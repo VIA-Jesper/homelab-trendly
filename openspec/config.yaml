@@ -1,0 +1,46 @@
+version: "1.3"
+
+project:
+  name: trendly
+  description: >
+    MCP-compatible content brief API for AI-assisted affiliate article generation.
+
+tech_stack:
+  runtime: Node.js 20+
+  language: TypeScript 5
+  framework: Fastify 5
+  validation: Zod 4
+  http_client: Axios 1
+  job_store: In-memory Map (Phase 1)
+  database: None (Phase 1) / PostgreSQL (Phase 2, planned)
+
+domains:
+  - name: api
+    spec: openspec/specs/api/spec.md
+  - name: brief
+    spec: openspec/specs/brief/spec.md
+  - name: compliance
+    spec: openspec/specs/compliance/spec.md
+  - name: widgets
+    spec: openspec/specs/widgets/spec.md
+  - name: publisher
+    spec: openspec/specs/publisher/spec.md
+
+phase:
+  current: 1
+  notes: >
+    Phase 1 uses real PriceRunner data seeded to disk (npm run seed).
+    WordPress publishing gated: Phase 1 writes to local output/ directory.
+    Phase 2 replaces product-store.ts with live pricerunner-client.ts calls and adds wp-publisher.ts.
+
+sites:
+  techblog:
+    tone: analytical
+    min_words: 800
+    max_words: 1400
+    wp_base_url: https://techblog.example.dk
+  budgetshop:
+    tone: friendly
+    min_words: 500
+    max_words: 900
+    wp_base_url: https://budgetshop.example.dk

@@ -1,0 +1,24 @@
+# Trendly
+
+> Danish affiliate content pipeline with MCP server for AI-assisted article generation.
+
+## What this is
+
+Trendly is a Node.js service that generates, validates, and publishes Danish affiliate articles
+from PriceRunner product data. It exposes an MCP (Model Context Protocol) server on port 3001
+so AI agents can drive the full pipeline programmatically.
+
+## MCP tools
+
+- get_brief: Fetches product data from PriceRunner and returns a structured content brief plus
+  per-type writing instructions. Returns a job_id for use with subsequent tools.
+- validate_article: Validates a Markdown article against its brief. Checks word count, affiliate
+  disclosure, SEO signals, widget placements, and brand voice. Returns pass/fail with specific issues.
+- publish_article: Converts a Markdown article to HTML, injects PriceRunner affiliate
+  widgets, and publishes to WordPress via REST API.
+
+## Key docs
+
+- README.md: Quick start, MCP connection instructions, project layout
+- ARCHITECTURE.md: System map, ADRs, environment variables
+- .agents/flows/article-pipeline/FLOW.md: End-to-end orchestration flow

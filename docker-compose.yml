@@ -1,0 +1,48 @@
+services:
+  trendly:
+    build: .
+    ports:
+      - "3000:3000"   # Fastify REST API
+      - "3001:3001"   # MCP Streamable HTTP server
+    environment:
+      PORT: 3000
+      MCP_PORT: 3001
+      LOG_LEVEL: info
+
+      # WordPress credentials — techblog site
+      WP_TECHBLOG_BASE_URL: ${WP_TECHBLOG_BASE_URL:-https://techblog.example.dk}
+      WP_TECHBLOG_USER: ${WP_TECHBLOG_USER:-}
+      WP_TECHBLOG_APP_PASSWORD: ${WP_TECHBLOG_APP_PASSWORD:-}
+      PR_TECHBLOG_PARTNER_ID: ${PR_TECHBLOG_PARTNER_ID:-}
+
+      # WordPress credentials — budgetshop site
+      WP_BUDGETSHOP_BASE_URL: ${WP_BUDGETSHOP_BASE_URL:-https://budgetshop.example.dk}
+      WP_BUDGETSHOP_USER: ${WP_BUDGETSHOP_USER:-}
+      WP_BUDGETSHOP_APP_PASSWORD: ${WP_BUDGETSHOP_APP_PASSWORD:-}
+      PR_BUDGETSHOP_PARTNER_ID: ${PR_BUDGETSHOP_PARTNER_ID:-}
+
+    volumes:
+      - ./data:/app/data         # Persist products.json, content-registry.json, published-log.json
+      - ./prompts:/app/prompts   # Briefs and generated articles (shared with preview)
+      - ./runs:/app/runs         # Run logs for retrospective
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:3000/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+    restart: unless-stopped
+
+  # ─── Preview server (dev/staging only) ──────────────────────────────────────
+  preview:
+    build: .
+    ports:
+      - "3030:3030"   # WordPress-style HTML preview
+    environment:
+      PREVIEW_PORT: 3030
+    command: ["npx", "tsx", "scripts/preview-server.ts"]
+    volumes:
+      - ./data:/app/data
+      - ./prompts:/app/prompts   # Reads brief + article files
+    profiles:
+      - preview                  # Start with: docker compose --profile preview up

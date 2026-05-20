@@ -1,0 +1,148 @@
+{
+  "job_id": "08489417-9621-411e-91e9-a9a4cd7db0c4",
+  "brief": {
+    "brief_id": "57e5dbf1-0e08-4494-977d-01990074b0b6",
+    "category": "laptops",
+    "articleType": "roundup",
+    "articleHook": "De bedste laptops i 2025",
+    "writing_rules": {
+      "tone": "analytical",
+      "minWords": 800,
+      "maxWords": 1400,
+      "includeProsCons": true,
+      "includeVerdict": true
+    },
+    "compliance": {
+      "requireDisclosure": true,
+      "disclosurePhrases": [
+        "indeholder affiliatelinks",
+        "vi tjener kommission",
+        "annonce",
+        "reklame"
+      ],
+      "forbiddenSuperlatives": [
+        "bedste på markedet",
+        "billigst i danmark",
+        "nr. 1 valg",
+        "absolut bedst"
+      ]
+    },
+    "products": [
+      {
+        "id": "pr_3457449733",
+        "name": "Apple 13-inch MacBook Air: M5 chip with 10-core CPU and 8-core GPU, 16GB, 512GB SSD - Midnight",
+        "category": "laptops",
+        "priceKr": 8699,
+        "retailer": "",
+        "affiliateUrl": "https://www.pricerunner.dk/pl/27-3457449733/Baerbar/Apple-MacBook-Air-M-M5-13-Inch-16GB-512GB-SSD-Sammenlign-Priser",
+        "specs": {
+          "brand": "Apple",
+          "description": "16 GB RAM, 512 GB SSD",
+          "ribbon": "WATCHED",
+          "watchedLabel": "50+",
+          "popularityRank": "1",
+          "merchantCount": "18",
+          "popularityScore": "53"
+        }
+      },
+      {
+        "id": "pr_3408001154",
+        "name": "Apple MacBook Air, 13-inch, M4 chip, 10-core CPU, 8-core GPU, 16GB Unified Memory, 256GB SSD Storage, Sky Blue",
+        "category": "laptops",
+        "priceKr": 8398,
+        "retailer": "",
+        "affiliateUrl": "https://www.pricerunner.dk/pl/27-3408001154/Baerbar/Apple-MacBook-Air-13-inch-M4-chip-10-core-CPU-8-core-GPU-16GB-Unified-Memory-256GB-SSD-Storage-Sky-Blue-Sammenlign-Priser",
+        "specs": {
+          "brand": "Apple",
+          "description": "13.6\" Apple M4, 16 GB RAM, 256 GB SSD",
+          "rating": "4.80 (357 reviews)",
+          "ribbon": "WATCHED",
+          "watchedLabel": "200+",
+          "popularityRank": "2",
+          "merchantCount": "4",
+          "popularityScore": "85"
+        }
+      },
+      {
+        "id": "pr_3457449725",
+        "name": "Apple 13-inch MacBook Neo: A18 Pro chip with 6-core CPU and 5-core GPU, 8GB, 256GB SSD - Indigo",
+        "category": "laptops",
+        "priceKr": 5217,
+        "retailer": "",
+        "affiliateUrl": "https://www.pricerunner.dk/pl/27-3457449725/Baerbar/Apple-MacBook-Neo-13-Inch-A18-Pro-8GB-256GB-Sammenlign-Priser",
+        "specs": {
+          "brand": "Apple",
+          "description": "8 GB RAM, 256 GB SSD",
+          "ribbon": "NONE",
+          "popularityRank": "3",
+          "merchantCount": "16",
+          "popularityScore": "23"
+        }
+      },
+      {
+        "id": "pr_3457449776",
+        "name": "Apple MacBook Air 13 Inch 16GB 512GB SSD Sky Blue",
+        "category": "laptops",
+        "priceKr": 8699,
+        "retailer": "",
+        "affiliateUrl": "https://www.pricerunner.dk/pl/27-3457449776/Baerbar/Apple-MacBook-Air-2026-13-Inch-16GB-512GB-SSD-Sammenlign-Priser",
+        "specs": {
+          "brand": "Apple",
+          "description": "16 GB RAM, 512 GB SSD",
+          "ribbon": "NONE",
+          "popularityRank": "4",
+          "merchantCount": "16",
+          "popularityScore": "13"
+        }
+      },
+      {
+        "id": "pr_3458000125",
+        "name": "Apple 13-inch MacBook Neo: Apple A18 Pro chip with 6-core CPU and 5-core GPU, 8GB, 256GB SSD - Blush",
+        "category": "laptops",
+        "priceKr": 5226,
+        "retailer": "",
+        "affiliateUrl": "https://www.pricerunner.dk/pl/27-3458000125/Baerbar/Apple-13-inch-MacBook-Neo-Apple-A18-Pro-chip-with-6-core-CPU-and-5-core-GPU-8GB-256GB-SSD-Blush-Sammenlign-Priser",
+        "specs": {
+          "brand": "Apple",
+          "description": "13\", 8 GB RAM, 512 GB, 256 GB SSD",
+          "ribbon": "NONE",
+          "popularityRank": "5",
+          "merchantCount": "18",
+          "popularityScore": "13"
+        }
+      }
+    ],
+    "images": [
+      {
+        "productId": "pr_3457449733",
+        "url": "https://www.pricerunner.dk/product/3261582509/Apple-MacBook-Air-M5.jpg",
+        "alt": "Apple 13-inch MacBook Air M5 - 16 GB RAM, 512 GB SSD",
+        "caption": "Apple MacBook Air M5 13-inch - 8.699 kr."
+      },
+      {
+        "productId": "pr_3408001154",
+        "url": "https://www.pricerunner.dk/product/3202493836/Apple-MacBook-Air-M4-Sky-Blue.jpg",
+        "alt": "Apple MacBook Air 13-inch M4 - 16 GB RAM, 256 GB SSD",
+        "caption": "Apple MacBook Air M4 13-inch - 8.398 kr."
+      },
+      {
+        "productId": "pr_3457449725",
+        "url": "https://www.pricerunner.dk/product/3261582504/Apple-MacBook-Neo-A18-Pro-Indigo.jpg",
+        "alt": "Apple MacBook Neo 13-inch A18 Pro - 8 GB RAM, 256 GB SSD",
+        "caption": "Apple MacBook Neo A18 Pro 13-inch - 5.217 kr."
+      },
+      {
+        "productId": "pr_3457449776",
+        "url": "https://www.pricerunner.dk/product/3261582612/Apple-MacBook-Air-2026-Sky-Blue.jpg",
+        "alt": "Apple MacBook Air 2026 13-inch - 16 GB RAM, 512 GB SSD",
+        "caption": "Apple MacBook Air 2026 13-inch - 8.699 kr."
+      },
+      {
+        "productId": "pr_3458000125",
+        "url": "https://www.pricerunner.dk/product/3261578988/Apple-MacBook-Neo-Blush.jpg",
+        "alt": "Apple MacBook Neo 13-inch A18 Pro - 8 GB RAM, 256 GB SSD",
+        "caption": "Apple MacBook Neo A18 Pro 13-inch - 5.226 kr."
+      }
+    ]
+  }
+}

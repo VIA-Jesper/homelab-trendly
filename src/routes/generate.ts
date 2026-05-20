@@ -8,11 +8,8 @@ import {
 } from "../types/index.js";
 import type { Job } from "../types/index.js";
 import { jobStore } from "../store/job-store.js";
-import { generateBrief } from "../services/brief-generator.js";
-import { validateArticle } from "../services/validator.js";
-import { insertWidgets } from "../services/widget-inserter.js";
-// Phase 1: write to disk. Phase 2: swap this import for wp-publisher.ts
-import { writeArticleToFile } from "../services/file-writer.js";
+import { generateBriefAsync } from "../services/brief-generator.js";
+import { publishToWordPress } from "../services/wp-publisher.js";
 
 export async function generateRoutes(app: FastifyInstance): Promise<void> {
   const server = app.withTypeProvider<ZodTypeProvider>();
@@ -26,7 +23,8 @@ export async function generateRoutes(app: FastifyInstance): Promise<void> {
     },
   }, async (request, reply) => {
     const { category, productUrl, site } = request.body;
-    const brief = generateBrief(category, productUrl, site);
+    const brief = await generateBriefAsync(category, productUrl, site);
+    if ("error" in brief) return reply.code(400).send(brief);
     const job: Job = {
       job_id: uuidv4(), status: "briefed", brief,
       createdAt: new Date(), updatedAt: new Date(),
@@ -52,7 +50,7 @@ export async function generateRoutes(app: FastifyInstance): Promise<void> {
     return reply.send(job.brief);
   });
 
-  // POST /generate/:job_id/publish — validate, insert widgets, write to disk
+  // POST /generate/:job_id/publish — insert placements, convert to HTML, publish to WordPress
   server.post("/generate/:job_id/publish", {
     schema: {
       tags: ["jobs"],
@@ -61,21 +59,32 @@ export async function generateRoutes(app: FastifyInstance): Promise<void> {
       response: {
         200: PublishResultSchema,
         404: z.object({ error: z.string() }),
+        500: z.object({ error: z.string() }),
       },
     },
   }, async (request, reply) => {
     const { job_id } = request.params;
-    const { article } = request.body;
+    const { article, site, status, placements, seo } = request.body;
     const job = jobStore.get(job_id);
     if (!job?.brief) return reply.code(404).send({ error: "Job not found" });
-    const validation = validateArticle(article, job.brief);
-    const articleWithWidgets = insertWidgets(validation.article_with_placeholders, job.brief);
-    // Phase 1: write to disk. Phase 2: swap for publishToWordPress(...)
-    const publishResult = writeArticleToFile({
-      jobId: job_id, article: articleWithWidgets, brief: job.brief, validation,
-    });
-    jobStore.update(job_id, { status: "published", publishResult });
-    return reply.send(publishResult);
+
+    try {
+      const publishResult = await publishToWordPress({
+        jobId: job_id,
+        article,
+        brief: job.brief,
+        siteKey: site,
+        status,
+        placements,
+        seo,
+      });
+      jobStore.update(job_id, { status: "published", publishResult });
+      return reply.send(publishResult);
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : String(err);
+      jobStore.update(job_id, { status: "failed" });
+      return reply.code(500).send({ error: msg });
+    }
   });
 
   // GET /generate/:job_id/status

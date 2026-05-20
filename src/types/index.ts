@@ -11,10 +11,43 @@ export const GenerateRequestSchema = z.object({
   { message: "Either 'category' or 'productUrl' must be provided" }
 );
 
+export const PlacementSchema = z.object({
+  type: z.enum(["image", "widget"]),
+  productId: z.string(),
+  after_paragraph: z.number().int().nonnegative(),
+});
+
+export const SeoPayloadSchema = z.object({
+  title: z.string().optional(),
+  description: z.string().optional(),
+  slug: z.string().optional(),
+  focus_keyword: z.string().optional(),
+  featured_image_product_id: z.string().optional(),
+});
+
 export const PublishRequestSchema = z.object({
   article: z.string().min(1, "Article content is required"),
   site: z.string().min(1, "Site key is required"),
+  status: z.enum(["publish", "draft"]).default("publish"),
+  placements: z.array(PlacementSchema).default([]),
+  seo: SeoPayloadSchema.optional(),
 });
+
+// ─── Article Classification ───────────────────────────────────────────────────
+
+export const ArticleTypeSchema = z.enum([
+  "hero",
+  "deal",
+  "brand-vs-brand",
+  "budget-tiers",
+  "roundup",
+  "single-product-review",
+]);
+
+export interface ArticleClassification {
+  articleType: z.infer<typeof ArticleTypeSchema>;
+  articleHook: string;
+}
 
 // ─── Product & Brief Schemas ─────────────────────────────────────────────────
 
@@ -56,6 +89,8 @@ export const ContentBriefSchema = z.object({
   images: z.array(ImageRefSchema),
   writing_rules: WritingRulesSchema,
   compliance: ComplianceRulesSchema,
+  articleType: ArticleTypeSchema.optional(),
+  articleHook: z.string().optional(),
 });
 
 export const ValidationResultSchema = z.object({
@@ -65,10 +100,13 @@ export const ValidationResultSchema = z.object({
   article_with_placeholders: z.string(),
 });
 
-// Phase 1: file output. Phase 2: add wp_post_id / post_url here.
 export const PublishResultSchema = z.object({
-  status: z.enum(["saved"]),
-  filePath: z.string(),
+  status: z.enum(["published", "draft", "saved"]),
+  wp_post_id: z.number().optional(),
+  url: z.string().optional(),
+  filePath: z.string().optional(),
+  site: z.string().optional(),
+  warnings: z.array(z.string()).default([]),
 });
 
 export const JobStatusSchema = z.enum(["pending", "briefed", "published", "failed"]);
@@ -89,8 +127,14 @@ export interface SiteConfig {
   defaultStatus: "publish" | "draft";
   categoryId: number;
   writingRules: z.infer<typeof WritingRulesSchema>;
+  // PriceRunner integration
+  pricerunnerCountry: string;            // e.g. "DK"
+  pricerunnerCategories: string[];       // PriceRunner category IDs, e.g. ["17", "2451"]
+  pricerunnerPartnerId: string;          // affiliate partner ID
+  categoryMap: Record<string, number>;   // PR category name → WP category ID
 }
 
+export type ArticleType = z.infer<typeof ArticleTypeSchema>;
 export type GenerateRequest = z.infer<typeof GenerateRequestSchema>;
 export type PublishRequest = z.infer<typeof PublishRequestSchema>;
 export type ContentBrief = z.infer<typeof ContentBriefSchema>;
@@ -101,3 +145,5 @@ export type PublishResult = z.infer<typeof PublishResultSchema>;
 export type JobStatus = z.infer<typeof JobStatusSchema>;
 export type WritingRules = z.infer<typeof WritingRulesSchema>;
 export type ComplianceRules = z.infer<typeof ComplianceRulesSchema>;
+export type Placement = z.infer<typeof PlacementSchema>;
+export type SeoPayload = z.infer<typeof SeoPayloadSchema>;

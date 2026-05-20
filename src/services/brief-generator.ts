@@ -1,7 +1,32 @@
 import { v4 as uuidv4 } from "uuid";
+import { readFileSync, existsSync } from "fs";
+import { join, dirname } from "path";
+import { fileURLToPath } from "url";
 import type { ContentBrief, ImageRef, WritingRules, ComplianceRules } from "../types/index.js";
 import { getProductsByCategory, getProductByUrl, getImageUrl } from "./product-store.js";
 import { SITE_CONFIGS } from "../config/sites.js";
+import { getUsedProductIds } from "./content-registry.js";
+import { getMostUnwrittenLeafCategory, getFreshProductsForCategory } from "./category-traversal.js";
+import { fetchProductsByCategoryId } from "../scraper/pricerunner-client.js";
+import type { RawProduct } from "./product-store.js";
+import { classifyProducts } from "./article-classifier.js";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+const CATEGORIES_CONFIG_PATH = join(__dirname, "../../config/categories.json");
+
+/** Looks up the PriceRunner category ID for a slug from config/categories.json */
+function getPrCategoryId(siteKey: string, categorySlug: string): string | undefined {
+  try {
+    if (!existsSync(CATEGORIES_CONFIG_PATH)) return undefined;
+    const config = JSON.parse(readFileSync(CATEGORIES_CONFIG_PATH, "utf-8")) as {
+      sites: Record<string, { categories: Array<{ slug: string; pricerunnerCategoryId: string }> }>;
+    };
+    return config.sites[siteKey]?.categories.find((c) => c.slug === categorySlug)?.pricerunnerCategoryId;
+  } catch {
+    return undefined;
+  }
+}
 
 const DEFAULT_WRITING_RULES: WritingRules = {
   tone: "neutral", minWords: 600, maxWords: 1200,
@@ -18,6 +43,115 @@ const DEFAULT_COMPLIANCE: ComplianceRules = {
   ],
 };
 
+export type BriefError =
+  | { error: "category_exhausted"; category: string }
+  | { error: "all_categories_exhausted" }
+  | { error: "product_not_found"; productUrl: string };
+
+function buildBrief(
+  products: RawProduct[],
+  resolvedCategory: string,
+  siteKey: string
+): ContentBrief {
+  const siteConfig = SITE_CONFIGS[siteKey];
+  const writingRules = siteConfig?.writingRules ?? DEFAULT_WRITING_RULES;
+
+  const images: ImageRef[] = products.map((p) => ({
+    productId: p.id,
+    url: p.imageUrl || getImageUrl(p.id),
+    alt: `${p.name} — ${Object.values(p.specs).slice(0, 2).join(", ")}`,
+    caption: `${p.name} hos ${p.retailer} — ${p.priceKr.toLocaleString("da-DK")} kr.`,
+  }));
+
+  const { articleType, articleHook } = classifyProducts(products);
+
+  return {
+    brief_id: uuidv4(),
+    category: resolvedCategory,
+    // Strip internal fields before exposing as ProductBrief
+    products: products.map(({ imageUrl: _i, popularityScore: _s, outOfStock: _o, ...rest }) => rest),
+    images,
+    writing_rules: writingRules,
+    compliance: DEFAULT_COMPLIANCE,
+    articleType,
+    articleHook,
+  };
+}
+
+/**
+ * Async variant — uses live PriceRunner data when available, falls back to product store.
+ *
+ * @param pricerunnerCategoryId - When provided (e.g. from dynamic discovery), fetches products
+ *   directly from PR by category ID, bypassing the pre-configured traversal list. The `category`
+ *   param is still used as the human-readable slug stored in the brief.
+ */
+export async function generateBriefAsync(
+  category: string | undefined,
+  productUrl: string | undefined,
+  siteKey = "techblog",
+  pricerunnerCategoryId?: string
+): Promise<ContentBrief | BriefError> {
+  if (productUrl) {
+    const single = getProductByUrl(productUrl);
+    if (!single) return { error: "product_not_found", productUrl };
+    return buildBrief([single], single.category, siteKey);
+  }
+
+  const siteConfig = SITE_CONFIGS[siteKey];
+  const country = siteConfig?.pricerunnerCountry ?? "DK";
+
+  // Fast path: caller already discovered a specific PR category ID (e.g. via category-discoverer)
+  if (pricerunnerCategoryId) {
+    try {
+      const usedIds = getUsedProductIds(siteKey);
+      const all = await fetchProductsByCategoryId(pricerunnerCategoryId, country, 30);
+      const fresh = all.filter((p) => !usedIds.includes(p.id));
+      const resolvedCategory = category ?? pricerunnerCategoryId;
+      if (fresh.length < 3) return { error: "category_exhausted", category: resolvedCategory };
+      return buildBrief(fresh.slice(0, 5), resolvedCategory, siteKey);
+    } catch (err) {
+      console.warn("[brief-generator] Direct categoryId fetch failed, falling back:", err);
+    }
+  }
+
+  // Try live PriceRunner category traversal (pre-configured category IDs)
+  try {
+    if (category) {
+      const freshProducts = await getFreshProductsForCategory(siteKey, category);
+      if (freshProducts) return buildBrief(freshProducts.slice(0, 5), category, siteKey);
+
+      // Traversal didn't know this category — look up its PR ID from categories.json and fetch directly
+      const configCategoryId = getPrCategoryId(siteKey, category);
+      if (configCategoryId) {
+        console.log(`[brief-generator] "${category}" not in traversal cache — fetching by ID ${configCategoryId}`);
+        const usedIds = getUsedProductIds(siteKey);
+        const all = await fetchProductsByCategoryId(configCategoryId, country, 30);
+        const fresh = all.filter((p) => !usedIds.includes(p.id));
+        if (fresh.length < 3) return { error: "category_exhausted", category };
+        return buildBrief(fresh.slice(0, 5), category, siteKey);
+      }
+
+      return { error: "category_exhausted", category };
+    } else {
+      const leaf = await getMostUnwrittenLeafCategory(siteKey);
+      if (!leaf) return { error: "all_categories_exhausted" };
+      return buildBrief(leaf.freshProducts.slice(0, 5), leaf.categoryName, siteKey);
+    }
+  } catch (err) {
+    console.warn("[brief-generator] Live PR lookup failed, falling back to product store:", err);
+  }
+
+  // Last resort: local product store with registry filtering
+  const usedIds = getUsedProductIds(siteKey);
+  const resolvedCategory = category ?? "general";
+  const allProducts = getProductsByCategory(resolvedCategory);
+  const fresh = allProducts.filter((p) => !usedIds.includes(p.id));
+
+  if (fresh.length < 3) return { error: "category_exhausted", category: resolvedCategory };
+  return buildBrief(fresh.slice(0, 5), resolvedCategory, siteKey);
+}
+
+/** Sync variant kept for backward compat with existing REST route */
 export function generateBrief(
   category: string | undefined,
   productUrl: string | undefined,
@@ -26,7 +160,7 @@ export function generateBrief(
   const siteConfig = SITE_CONFIGS[siteKey];
   const writingRules = siteConfig?.writingRules ?? DEFAULT_WRITING_RULES;
 
-  let products;
+  let products: RawProduct[];
   let resolvedCategory: string;
 
   if (productUrl) {
@@ -35,23 +169,10 @@ export function generateBrief(
     resolvedCategory = single?.category ?? "unknown";
   } else {
     resolvedCategory = category ?? "general";
-    products = getProductsByCategory(resolvedCategory);
+    const usedIds = getUsedProductIds(siteKey);
+    const all = getProductsByCategory(resolvedCategory);
+    products = all.filter((p) => !usedIds.includes(p.id));
   }
 
-  const images: ImageRef[] = products.map((p) => ({
-    productId: p.id,
-    url: getImageUrl(p.id),
-    alt: `${p.name} — ${Object.values(p.specs).slice(0, 2).join(", ")}`,
-    caption: `${p.name} hos ${p.retailer} — ${p.priceKr.toLocaleString("da-DK")} kr.`,
-  }));
-
-  return {
-    brief_id: uuidv4(),
-    category: resolvedCategory,
-    // Strip internal imageUrl field before returning ProductBrief
-    products: products.map(({ imageUrl: _omit, ...rest }) => rest),
-    images,
-    writing_rules: writingRules,
-    compliance: DEFAULT_COMPLIANCE,
-  };
+  return buildBrief(products, resolvedCategory, siteKey);
 }

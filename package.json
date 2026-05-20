@@ -10,7 +10,13 @@
     "start": "node dist/server.js",
     "build": "tsc",
     "typecheck": "tsc --noEmit",
-    "clean": "rm -rf dist"
+    "clean": "rm -rf dist",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "smoke:pricerunner": "tsx scripts/test-pricerunner.ts",
+    "smoke:server": "tsx scripts/smoke-server.ts",
+    "preview": "tsx scripts/preview-server.ts",
+    "validate": "tsx scripts/validate-article.ts"
   },
   "keywords": [],
   "author": "",
@@ -18,16 +24,20 @@
   "dependencies": {
     "@fastify/swagger": "^9.7.0",
     "@fastify/swagger-ui": "^5.2.6",
+    "@modelcontextprotocol/sdk": "^1.29.0",
     "axios": "^1.16.0",
     "fastify": "^5.8.5",
     "fastify-type-provider-zod": "^6.1.0",
+    "marked": "^18.0.3",
     "uuid": "^14.0.0",
     "zod": "^4.4.3"
   },
   "devDependencies": {
+    "@types/marked": "^5.0.2",
     "@types/node": "^25.6.0",
     "@types/uuid": "^10.0.0",
     "tsx": "^4.21.0",
-    "typescript": "^6.0.3"
+    "typescript": "^6.0.3",
+    "vitest": "^4.1.6"
   }
 }

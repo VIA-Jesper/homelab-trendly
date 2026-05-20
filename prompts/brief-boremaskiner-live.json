@@ -1,0 +1,155 @@
+{
+  "job_id": "dec77fc7-0438-440b-b388-5dca41ac68ee",
+  "brief": {
+    "brief_id": "fb32a20f-0d33-4c27-964b-8033e9398172",
+    "category": "boremaskiner",
+    "products": [
+      {
+        "id": "pr_5301986",
+        "name": "Makita DTW300Z Solo",
+        "category": "1258",
+        "priceKr": 1339,
+        "retailer": "",
+        "affiliateUrl": "https://www.pricerunner.dk/pl/1258-5301986/Bore-Skruemaskiner/Makita-DTW300Z-Solo-Sammenlign-Priser",
+        "specs": {
+          "brand": "Makita",
+          "description": "Slagnøgle, 18V 1.8kg",
+          "rating": "4.80 (175 reviews)",
+          "ribbon": "WATCHED",
+          "watchedLabel": "100+",
+          "popularityRank": "3",
+          "merchantCount": "49",
+          "popularityScore": "75"
+        }
+      },
+      {
+        "id": "pr_4015474",
+        "name": "Makita DHP484RTJ (2x5.0Ah)",
+        "category": "1258",
+        "priceKr": 2338,
+        "retailer": "",
+        "affiliateUrl": "https://www.pricerunner.dk/pl/1258-4015474/Bore-Skruemaskiner/Makita-DHP484RTJ-%282x5.0Ah%29-Sammenlign-Priser",
+        "specs": {
+          "brand": "Makita",
+          "description": "Boremaskine & Slagboremaskine, 18V 1.9kg",
+          "rating": "4.65 (962 reviews)",
+          "ribbon": "TOP_RATED_CATEGORY",
+          "watchedLabel": "1",
+          "popularityRank": "1",
+          "merchantCount": "30",
+          "popularityScore": "65"
+        }
+      },
+      {
+        "id": "pr_3143026",
+        "name": "Dewalt DCF887N-XJ Solo",
+        "category": "1258",
+        "priceKr": 633,
+        "retailer": "",
+        "affiliateUrl": "https://www.pricerunner.dk/pl/1258-3143026/Bore-Skruemaskiner/Dewalt-DCF887N-XJ-Solo-Sammenlign-Priser",
+        "specs": {
+          "brand": "Dewalt",
+          "description": "Skruemaskine, 18V 1kg",
+          "rating": "4.75 (2854 reviews)",
+          "ribbon": "WATCHED",
+          "watchedLabel": "50+",
+          "popularityRank": "5",
+          "merchantCount": "22",
+          "popularityScore": "55"
+        }
+      },
+      {
+        "id": "pr_3500190",
+        "name": "Makita DTD154Z Solo",
+        "category": "1258",
+        "priceKr": 966,
+        "retailer": "",
+        "affiliateUrl": "https://www.pricerunner.dk/pl/1258-3500190/Bore-Skruemaskiner/Makita-DTD154Z-Solo-Sammenlign-Priser",
+        "specs": {
+          "brand": "Makita",
+          "description": "Skruemaskine, 18V 0.9kg",
+          "rating": "4.70 (103 reviews)",
+          "ribbon": "WATCHED",
+          "watchedLabel": "50+",
+          "popularityRank": "10",
+          "merchantCount": "38",
+          "popularityScore": "55"
+        }
+      },
+      {
+        "id": "pr_4000152",
+        "name": "Makita DDF484RTJ (2x5.0Ah)",
+        "category": "1258",
+        "priceKr": 2349,
+        "retailer": "",
+        "affiliateUrl": "https://www.pricerunner.dk/pl/1258-4000152/Bore-Skruemaskiner/Makita-DDF484RTJ-%282x5.0Ah%29-Sammenlign-Priser",
+        "specs": {
+          "brand": "Makita",
+          "description": "Skruemaskine, 18V 1.8kg",
+          "rating": "4.65 (205 reviews)",
+          "ribbon": "WATCHED",
+          "watchedLabel": "100+",
+          "popularityRank": "11",
+          "merchantCount": "28",
+          "popularityScore": "55"
+        }
+      }
+    ],
+    "images": [
+      {
+        "productId": "pr_5301986",
+        "url": "https://www.pricerunner.dk/product/3006199915/Makita-DTW300Z-Solo.jpg",
+        "alt": "Makita DTW300Z Solo — Makita",
+        "caption": "Makita DTW300Z Solo — 1.339 kr. hos sammenlign"
+      },
+      {
+        "productId": "pr_4015474",
+        "url": "https://www.pricerunner.dk/product/1689732318/Makita-DHP484RTJ-%282x5.0Ah%29.jpg",
+        "alt": "Makita DHP484RTJ (2x5.0Ah) — Makita",
+        "caption": "Makita DHP484RTJ (2x5.0Ah) — 2.338 kr. hos sammenlign"
+      },
+      {
+        "productId": "pr_3143026",
+        "url": "https://www.pricerunner.dk/product/3014991502/Dewalt-DCF887N-XJ-Solo.jpg",
+        "alt": "Dewalt DCF887N-XJ Solo — Dewalt",
+        "caption": "Dewalt DCF887N-XJ Solo — 633 kr. hos sammenlign"
+      },
+      {
+        "productId": "pr_3500190",
+        "url": "https://www.pricerunner.dk/product/3222296138/Makita-DTD154Z-Solo.jpg",
+        "alt": "Makita DTD154Z Solo — Makita",
+        "caption": "Makita DTD154Z Solo — 966 kr. hos sammenlign"
+      },
+      {
+        "productId": "pr_4000152",
+        "url": "https://www.pricerunner.dk/product/3113020142/Makita-DDF484RTJ-%282x5.0Ah%29.jpg",
+        "alt": "Makita DDF484RTJ (2x5.0Ah) — Makita",
+        "caption": "Makita DDF484RTJ (2x5.0Ah) — 2.349 kr. hos sammenlign"
+      }
+    ],
+    "writing_rules": {
+      "tone": "practical",
+      "minWords": 600,
+      "maxWords": 1200,
+      "includeProsCons": false,
+      "includeVerdict": true
+    },
+    "compliance": {
+      "requireDisclosure": true,
+      "disclosurePhrases": [
+        "indeholder affiliatelinks",
+        "vi tjener kommission",
+        "annonce",
+        "reklame"
+      ],
+      "forbiddenSuperlatives": [
+        "bedste på markedet",
+        "billigst i danmark",
+        "nr. 1 valg",
+        "absolut bedst"
+      ]
+    },
+    "articleType": "budget-tiers",
+    "articleHook": "De bedste boremaskiner til alle budgetter - fra 633 kr. til 2.349 kr."
+  }
+}

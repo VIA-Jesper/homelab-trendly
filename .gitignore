@@ -1,7 +1,17 @@
 node_modules/
 dist/
 output/
+
+# Runtime data — generated at runtime, not committed
 data/products.json
+data/content-registry.json
+data/content-registry.tmp.json
+runs/
+
+# Secrets
 *.env
 .env
 .env.*
+
+# Stale backups
+prompts/*.bak.json

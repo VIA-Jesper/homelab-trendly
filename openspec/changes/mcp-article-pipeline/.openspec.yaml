@@ -1,0 +1,5 @@
+schema: spec-driven
+created: 2026-05-12
+status: archived
+archived: 2026-05-20
+notes: All tasks completed. MCP server, WP publisher, placement engine, article classifier, and content registry are all shipped.

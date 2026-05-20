@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "trendly": {
+      "url": "http://localhost:3001/mcp",
+      "transport": "streamable-http"
+    }
+  }
+}

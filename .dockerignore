@@ -1,0 +1,24 @@
+# Never send to Docker build context
+.git
+.gitignore
+.augment
+
+# Rebuilt inside the image
+node_modules
+dist
+
+# Volume-only at runtime — not copied by Dockerfile
+runs
+output
+
+# Secrets — must never enter the image
+.env
+.env.*
+*.env
+
+# Dev/test — not needed in production image
+tests
+vitest.config.ts
+
+# Stale backups
+prompts/*.bak.json

@@ -1,0 +1,47 @@
+{
+  "job_id": "spr-test-001",
+  "brief": {
+    "brief_id": "spr-test-brief-001",
+    "category": "robotstovsugere",
+    "products": [
+      {
+        "id": "pr_3408446919",
+        "name": "Dreame X50 Ultra Kombi 0.395 L Kombi Sort",
+        "category": "robotstovsugere",
+        "priceKr": 6233,
+        "retailer": "",
+        "affiliateUrl": "https://www.pricerunner.dk/pl/1613-3408446919/Robotstoevsugere/Dreame-X50-Ultra-Kombi-0.395-L-Kombi-Sort-Sammenlign-Priser",
+        "specs": {
+          "brand": "Dreame",
+          "ribbon": "WATCHED",
+          "watchedLabel": "50+",
+          "popularityRank": "1",
+          "merchantCount": "20",
+          "popularityScore": "53"
+        }
+      }
+    ],
+    "images": [
+      {
+        "productId": "pr_3408446919",
+        "url": "https://www.pricerunner.dk/product/3214850269/Dreame-X50-Ultra-Kombi-0.395-L-Kombi-Sort.jpg",
+        "alt": "Dreame X50 Ultra Kombi Sort — den mest populære robotstøvsuger",
+        "caption": "Dreame X50 Ultra Kombi Sort — 6.233 kr. hos 20 forhandlere"
+      }
+    ],
+    "writing_rules": {
+      "tone": "analytical",
+      "minWords": 600,
+      "maxWords": 1000,
+      "includeProsCons": true,
+      "includeVerdict": true
+    },
+    "compliance": {
+      "requireDisclosure": true,
+      "disclosurePhrases": ["indeholder affiliatelinks", "vi tjener kommission", "annonce", "reklame"],
+      "forbiddenSuperlatives": ["bedste på markedet", "billigst i danmark", "nr. 1 valg", "absolut bedst"]
+    },
+    "articleType": "single-product-review",
+    "articleHook": "Dreame X50 Ultra Kombi Sort — vores fulde anmeldelse"
+  }
+}

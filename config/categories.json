@@ -1,0 +1,88 @@
+{
+  "_comment": "Allowed PriceRunner categories per site. Add leaf category IDs here. The system picks the one not published recently and with the most fresh products.",
+  "sites": {
+    "techblog": {
+      "rootCategories": [
+        {
+          "name": "power-tools",
+          "label": "Elværktøj",
+          "searchTerms": ["boremaskine", "rundsav", "slagboremaskine", "sliber", "vinkelsliber"],
+          "defaultCooldownDays": 45
+        },
+        {
+          "name": "cleaning",
+          "label": "Rengøring",
+          "searchTerms": ["robotstøvsuger", "støvsuger", "højtryksrenser", "damprenser"],
+          "defaultCooldownDays": 60
+        },
+        {
+          "name": "smart-home",
+          "label": "Smart Home",
+          "searchTerms": ["smart pære", "smart plug", "termostat", "overvågningskamera"],
+          "defaultCooldownDays": 45
+        },
+        {
+          "name": "garden",
+          "label": "Have",
+          "searchTerms": ["robotplæneklipper", "hækkeklipper", "græsslåmaskine", "haveslange"],
+          "defaultCooldownDays": 60
+        }
+      ],
+      "categories": [
+        {
+          "name": "Robotstøvsugere",
+          "slug": "robotstovsugere",
+          "pricerunnerCategoryId": "1613",
+          "cooldownDays": 60,
+          "enabled": true
+        },
+        {
+          "name": "Laptops",
+          "slug": "laptops",
+          "pricerunnerCategoryId": "27",
+          "cooldownDays": 45,
+          "enabled": true
+        },
+        {
+          "name": "Høretelefoner",
+          "slug": "horetelefoner",
+          "pricerunnerCategoryId": "94",
+          "cooldownDays": 45,
+          "enabled": true
+        },
+        {
+          "name": "Mobiltelefoner",
+          "slug": "mobiltelefoner",
+          "pricerunnerCategoryId": "1",
+          "cooldownDays": 60,
+          "enabled": true
+        },
+        {
+          "name": "TV",
+          "slug": "tv",
+          "pricerunnerCategoryId": "2",
+          "cooldownDays": 60,
+          "enabled": false
+        }
+      ]
+    },
+    "budgetshop": {
+      "categories": [
+        {
+          "name": "Laptops",
+          "slug": "laptops",
+          "pricerunnerCategoryId": "27",
+          "cooldownDays": 30,
+          "enabled": true
+        },
+        {
+          "name": "Høretelefoner",
+          "slug": "horetelefoner",
+          "pricerunnerCategoryId": "94",
+          "cooldownDays": 30,
+          "enabled": true
+        }
+      ]
+    }
+  }
+}

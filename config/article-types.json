@@ -1,0 +1,91 @@
+{
+  "commonAiTells": [
+    "briefen",
+    "popularityrank",
+    "popularityscore",
+    "is 1",
+    "is 2",
+    "is 3",
+    "is 4",
+    "is 5",
+    "WATCHED",
+    "analytisk set"
+  ],
+  "types": {
+    "roundup": {
+      "minWords": 800,
+      "maxWords": 1400,
+      "minWordsPerProductSection": 80,
+      "requireVerdict": true,
+      "requireProsCons": true,
+      "extraAiTells": ["i dette udvalg", "i dette overblik", "i vores gennemgang"],
+      "croWeights": {
+        "verdictAffiliate": 20,
+        "placementDensity": 20
+      }
+    },
+    "hero": {
+      "minWords": 450,
+      "maxWords": 900,
+      "minWordsPerProductSection": 0,
+      "requireVerdict": true,
+      "requireProsCons": false,
+      "extraAiTells": ["i dette udvalg"],
+      "croWeights": {
+        "verdictAffiliate": 25,
+        "placementDensity": 15
+      }
+    },
+    "deal": {
+      "minWords": 400,
+      "maxWords": 700,
+      "minWordsPerProductSection": 0,
+      "requireVerdict": true,
+      "requireProsCons": false,
+      "extraAiTells": ["i dette udvalg", "objektivt set"],
+      "croWeights": {
+        "verdictAffiliate": 35,
+        "placementDensity": 10
+      }
+    },
+    "brand-vs-brand": {
+      "minWords": 700,
+      "maxWords": 1100,
+      "minWordsPerProductSection": 0,
+      "requireVerdict": true,
+      "requireProsCons": false,
+      "extraAiTells": ["i dette udvalg", "objektivt set"],
+      "croWeights": {
+        "verdictAffiliate": 20,
+        "placementDensity": 20
+      }
+    },
+    "budget-tiers": {
+      "minWords": 800,
+      "maxWords": 1300,
+      "minWordsPerProductSection": 0,
+      "requireVerdict": true,
+      "requireProsCons": false,
+      "extraAiTells": ["i dette udvalg"],
+      "croWeights": {
+        "verdictAffiliate": 15,
+        "placementDensity": 25
+      }
+    },
+    "single-product-review": {
+      "minWords": 500,
+      "maxWords": 1000,
+      "minWordsPerProductSection": 0,
+      "requireVerdict": true,
+      "requireProsCons": true,
+      "extraAiTells": ["i dette udvalg", "i denne anmeldelse", "ifølge vores test"],
+      "croWeights": {
+        "verdictAffiliate": 30,
+        "placementDensity": 10
+      }
+    }
+  },
+  "defaults": {
+    "scoreThreshold": 80
+  }
+}

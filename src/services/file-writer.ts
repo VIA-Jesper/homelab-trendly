@@ -32,7 +32,7 @@ export function writeArticleToFile({ jobId, article, brief, validation }: WriteO
   writeFileSync(join(dir, "report.json"), JSON.stringify(report, null, 2), "utf-8");
 
   console.log(`[file-writer] Saved → ${articlePath}`);
-  return { status: "saved", filePath: articlePath };
+  return { status: "saved" as const, filePath: articlePath, warnings: [] };
 }
 
 function wrapHtml(content: string, category: string): string {

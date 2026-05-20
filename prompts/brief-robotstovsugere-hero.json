@@ -1,0 +1,117 @@
+{
+  "job_id": "hero-test-001",
+  "brief": {
+    "brief_id": "hero-test-brief-001",
+    "category": "robotstovsugere",
+    "products": [
+      {
+        "id": "pr_3408446919",
+        "name": "Dreame X50 Ultra Kombi 0.395 L Kombi Sort",
+        "category": "robotstovsugere",
+        "priceKr": 6233,
+        "retailer": "",
+        "affiliateUrl": "https://www.pricerunner.dk/pl/1613-3408446919/Robotstoevsugere/Dreame-X50-Ultra-Kombi-0.395-L-Kombi-Sort-Sammenlign-Priser",
+        "specs": {
+          "brand": "Dreame",
+          "ribbon": "WATCHED",
+          "watchedLabel": "50+",
+          "popularityRank": "1",
+          "merchantCount": "20",
+          "popularityScore": "53"
+        }
+      },
+      {
+        "id": "pr_3391726225",
+        "name": "Dreame X50 Ultra Complete Hvid",
+        "category": "robotstovsugere",
+        "priceKr": 6047,
+        "retailer": "",
+        "affiliateUrl": "https://www.pricerunner.dk/pl/1613-3391726225/Robotstoevsugere/Dreame-X50-Ultra-Complete-Hvid-Sammenlign-Priser",
+        "specs": {
+          "brand": "Dreame",
+          "description": "Batteritid 220 min",
+          "rating": "4.55 (363 reviews)",
+          "ribbon": "WATCHED",
+          "watchedLabel": "500+",
+          "popularityRank": "2",
+          "merchantCount": "24",
+          "popularityScore": "90"
+        }
+      },
+      {
+        "id": "pr_3414152135",
+        "name": "Dreame L50 Ultra White Robotstøvsuger Hvid",
+        "category": "robotstovsugere",
+        "priceKr": 4990,
+        "retailer": "",
+        "affiliateUrl": "https://www.pricerunner.dk/pl/1613-3414152135/Robotstoevsugere/Dreame-L50-Ultra-White-Robotstoevsuger-Hvid-Sammenlign-Priser",
+        "specs": {
+          "brand": "Dreame",
+          "rating": "5.00 (1 reviews)",
+          "ribbon": "WATCHED",
+          "watchedLabel": "200+",
+          "popularityRank": "3",
+          "merchantCount": "15",
+          "popularityScore": "66"
+        }
+      },
+      {
+        "id": "pr_3389491210",
+        "name": "Roborock Qrevo Curv Hvid",
+        "category": "robotstovsugere",
+        "priceKr": 5355,
+        "retailer": "",
+        "affiliateUrl": "https://www.pricerunner.dk/pl/1613-3389491210/Robotstoevsugere/Roborock-Qrevo-Curv-Hvid-Sammenlign-Priser",
+        "specs": {
+          "brand": "Roborock",
+          "description": "55, Batteritid 220 min",
+          "ribbon": "WATCHED",
+          "watchedLabel": "200+",
+          "popularityRank": "6",
+          "merchantCount": "21",
+          "popularityScore": "55"
+        }
+      }
+    ],
+    "images": [
+      {
+        "productId": "pr_3408446919",
+        "url": "https://www.pricerunner.dk/product/3214850269/Dreame-X50-Ultra-Kombi-0.395-L-Kombi-Sort.jpg",
+        "alt": "Dreame X50 Ultra Kombi Sort — den mest populære robotstøvsuger",
+        "caption": "Dreame X50 Ultra Kombi Sort — 6.233 kr."
+      },
+      {
+        "productId": "pr_3391726225",
+        "url": "https://www.pricerunner.dk/product/3198932936/Dreame-X50-Ultra-Complete-Hvid.jpg",
+        "alt": "Dreame X50 Ultra Complete Hvid — Batteritid 220 min",
+        "caption": "Dreame X50 Ultra Complete Hvid — 6.047 kr."
+      },
+      {
+        "productId": "pr_3414152135",
+        "url": "https://www.pricerunner.dk/product/3220871600/Dreame-L50-Ultra-White-Robotstoevsuger-Hvid.jpg",
+        "alt": "Dreame L50 Ultra White Robotstøvsuger Hvid",
+        "caption": "Dreame L50 Ultra White — 4.990 kr."
+      },
+      {
+        "productId": "pr_3389491210",
+        "url": "https://www.pricerunner.dk/product/3194954583/Roborock-Qrevo-Curv-Hvid.jpg",
+        "alt": "Roborock Qrevo Curv Hvid",
+        "caption": "Roborock Qrevo Curv Hvid — 5.355 kr."
+      }
+    ],
+    "writing_rules": {
+      "tone": "analytical",
+      "minWords": 700,
+      "maxWords": 1100,
+      "includeProsCons": false,
+      "includeVerdict": true
+    },
+    "compliance": {
+      "requireDisclosure": true,
+      "disclosurePhrases": ["indeholder affiliatelinks", "vi tjener kommission", "annonce", "reklame"],
+      "forbiddenSuperlatives": ["bedste på markedet", "billigst i danmark", "nr. 1 valg", "absolut bedst"]
+    },
+    "articleType": "hero",
+    "articleHook": "Dreame X50 Ultra Kombi Sort — robotstøvsugeren som flest danskere holder øje med"
+  }
+}

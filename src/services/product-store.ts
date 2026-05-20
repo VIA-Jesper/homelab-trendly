@@ -7,9 +7,13 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 const DATA_PATH = join(__dirname, "../../data/products.json");
 
-// RawProduct includes the imageUrl field that is internal (not exposed in ProductBrief)
+// RawProduct includes internal fields not exposed in ProductBrief
 export interface RawProduct extends ProductBrief {
   imageUrl: string;
+  /** Pre-computed popularity score from PriceRunner signals (watchers, rank, rating, merchants) */
+  popularityScore: number;
+  /** True if the product is out of stock across all merchants */
+  outOfStock: boolean;
 }
 
 let _cache: RawProduct[] | null = null;
@@ -29,6 +33,8 @@ function loadProducts(): RawProduct[] {
 export function getProductsByCategory(category: string): RawProduct[] {
   return loadProducts()
     .filter((p) => p.category.toLowerCase() === category.toLowerCase())
+    .filter((p) => !p.outOfStock)
+    .sort((a, b) => (b.popularityScore ?? 0) - (a.popularityScore ?? 0))
     .slice(0, 5);
 }
 

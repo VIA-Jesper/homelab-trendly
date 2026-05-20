@@ -18,6 +18,20 @@ Every product in the brief SHALL have a corresponding {{AFFILIATE_WIDGET_<ID>}} 
 The validator SHALL produce a confidence_score between 0 and 1.
 Score < 0.7 triggers draft mode.
 
+## Strategic Considerations
+
+### Google Helpful Content Guidelines (HCG)
+Google specifically penalises thin AI-generated content but rewards genuinely useful content
+regardless of how it was produced. Trendly articles are grounded in real PriceRunner data —
+actual prices, real retailers, verified specs — which places them on the right side of this line.
+
+The primary defence against HCG penalties is brief quality, not system-level compliance gates.
+As long as articles are factually grounded in the brief and avoid generic filler, they are
+structurally aligned with what Google rewards.
+
+> Future consideration: if content quality degrades at scale, revisit adding a system-level
+> confidence gate before publish rather than relying solely on the agent.
+
 ## Scenarios
 
 ### Scenario: Missing disclosure

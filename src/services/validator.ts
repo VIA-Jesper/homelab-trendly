@@ -27,10 +27,12 @@ export function validateArticleFull(
     issues.push(`Word count ${wordCount} exceeds maximum ${typeRules.maxWords} for type "${typeRules.articleType}"`);
   }
 
-  // Disclosure in first 300 chars
+  // Disclosure in first 300 chars (optional — site-wide banner handles it)
   const opening = article.slice(0, 300).toLowerCase();
   const hasDisclosure = brief.compliance.disclosurePhrases.some((p) => opening.includes(p.toLowerCase()));
-  if (!hasDisclosure) issues.push("Missing affiliate disclosure in opening 300 characters");
+  if (!hasDisclosure && brief.compliance.requireDisclosure) {
+    issues.push("Missing affiliate disclosure in opening 300 characters");
+  }
 
   // Forbidden superlatives
   for (const term of brief.compliance.forbiddenSuperlatives) {

@@ -107,7 +107,21 @@ export const CATEGORY_ID_MAP: Record<string, string> = {
   "94": "headphones",
   "1": "phones",
   "2": "tvs",
-  "1613": "robotstovsugere",
+  // Hjem & Husholdning
+  "81": "frituregryder-airfryere",
+  "82": "kaffemaskiner",
+  "250": "ismaskiner",
+  "14": "vaskemaskiner",
+  "1613": "robotstoevsugere",
+  // Have & Udemiljø
+  "1595": "robotplaeneklippere",
+  "335": "grill",
+  "120": "havemaskiner",
+  "638": "hojtryks-hedvandsrensere",
+  // Værktøj
+  "345": "elvaerktoej",
+  "1258": "bore-skruemaskiner",
+  "1260": "elsave",
 };
 
 // Legacy slug map kept for seed script compatibility
@@ -285,4 +299,86 @@ export async function fetchProductsByCategory(
   if (!categoryId) throw new Error(`Cannot extract category ID from slug: ${categorySlug}`);
   const products = await fetchProductsByCategoryId(categoryId, "DK", Math.max(limit, 30));
   return products.slice(0, limit);
+}
+
+// ─── Category Tree Discovery ─────────────────────────────────────────────────
+
+interface MenuCategory {
+  id: string;
+  name: string;
+  url?: string | null;
+  children?: Array<{ id: string; name: string; url?: string | null }>;
+}
+
+interface MenuResponse {
+  id: string;
+  name: string;
+  categories: MenuCategory[];
+}
+
+export interface DiscoveredLeafCategory {
+  id: string;
+  name: string;
+  parentId: string;
+  parentName: string;
+}
+
+/** Discover all leaf categories under a PriceRunner topic.
+ *  Hits the navigation/menu endpoint once, caches to disk.
+ *  Topic IDs look like "t34", "t1424" etc.
+ */
+export async function discoverLeafCategories(
+  topicId: string,
+  country = "DK"
+): Promise<DiscoveredLeafCategory[]> {
+  const cacheKey = `pricerunner-tree:${topicId}:${country}`;
+  const cached = cacheGet<DiscoveredLeafCategory[]>(cacheKey);
+  if (cached) return cached;
+
+  await rateLimit();
+  const base = getBase(country);
+  const countryLower = country.toLowerCase();
+  const countryUpper = country.toUpperCase();
+
+  const res = await withBackoff(async () => {
+    return axios.get<MenuResponse>(
+      `${base}/${countryLower}/api/seo-edge-rest/public/navigation/menu/${countryUpper}/hierarchy/${topicId}`,
+      {
+        headers: { "User-Agent": randomUA(), "Accept": "application/json" },
+        timeout: 15_000,
+      }
+    );
+  });
+
+  const data = res.data;
+  const leaves: DiscoveredLeafCategory[] = [];
+
+  for (const cat of data.categories ?? []) {
+    if (cat.children && cat.children.length > 0) {
+      for (const child of cat.children) {
+        // Skip filter combinations (IDs with dashes like "100003649-100015017")
+        if (/\d+-\d+/.test(child.id)) continue;
+        leaves.push({
+          id: child.id,
+          name: child.name,
+          parentId: cat.id,
+          parentName: cat.name,
+        });
+      }
+    }
+  }
+
+  cacheSet(cacheKey, leaves);
+  return leaves;
+}
+
+/** Extract topic ID from a PriceRunner URL.
+ *  Supports /t/{id}/Name and /cl/{id}/Name formats.
+ */
+export function extractTopicIdFromUrl(url: string): string | null {
+  const tMatch = /\/t\/(\d+)\/[^\/]*$/.exec(url);
+  if (tMatch) return `t${tMatch[1]}`;
+  const clMatch = /\/cl\/(\d+)\/[^\/]*$/.exec(url);
+  if (clMatch) return `cl${clMatch[1]}`;
+  return null;
 }

@@ -18,7 +18,6 @@
    - FIRST mention of the product name MUST be an affiliate link
    - Name the product immediately (linked) and state your overall take
    - Example: "[Produkt](url) er ikke den billigste robotstøvsuger på markedet — men det er heller ikke den vi kalder frem når nogen spørger om 'noget der bare virker'."
-   - Affiliate disclosure woven naturally (keep it one short sentence, not a legal block)
    - Hook with the product's defining characteristic (price, rank, watcher count from brief — do NOT name the price-comparison platform, see universal rules)
 
 2. **Hvad er det?** (80-150 words, H2)

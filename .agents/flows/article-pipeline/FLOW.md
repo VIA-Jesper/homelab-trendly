@@ -9,19 +9,18 @@ when: >
   for a given product category, with iterative quality checks across SEO, CRO,
   and voice axes, a WordPress-style preview, and a retrospective that proposes
   improvements to the pipeline itself.
-version: "2.0"
+version: "3.0"
 ---
 
-# Article Pipeline Flow
+# Article Pipeline Flow (OpenClaw Edition)
 
 ## Security Model
 
-Sub-agents spawned via ACP (`auggie --acp`) ALWAYS run in **ask mode**.
-They produce TEXT ONLY - they cannot call `save-file`, `str-replace-editor`,
-`launch-process`, or any mutating tool.
+Sub-agents spawned via `sessions_spawn` ALWAYS run in isolated sessions.
+They produce TEXT ONLY - they cannot write files or call mutating tools.
 
 YOU (the orchestrator) are the ONLY agent that writes files.
-All ACP sessions use `"mcpServers": []` explicitly.
+All sub-agent sessions are isolated (no `context: "fork"` unless transcript needed).
 
 ---
 
@@ -30,14 +29,14 @@ All ACP sessions use `"mcpServers": []` explicitly.
 | Param | Required | Example | Notes |
 |---|---|---|---|
 | `$CATEGORY` | yes | `laptops`, `headphones`, `coffee-machines` | Slug-form, lowercase |
-| `$ARTICLE_TYPE` | no | `deal`, `hero`, `single-product-review` | Overrides classifier. If omitted, brief's `articleType` is used (set by classifier). |
+| `$ARTICLE_TYPE` | no | `deal`, `hero`, `single-product-review` | Overrides classifier. If omitted, brief's `articleType` is used. |
 | `$REGENERATE` | no | `true` / `false` | Force Phase 1 even if article exists |
 | `$MAX_QUALITY_ITER` | no | `3` (default) | Cap on Phase 3 review loops |
 
 Derived paths:
 - Brief: `prompts/brief-$CATEGORY-sample.json` (must exist)
 - Article: `prompts/article-$CATEGORY-sample.json` (orchestrator writes)
-- Type module: `prompts/agents/generator-types/$ARTICLE_TYPE.md` (orchestrator reads and concatenates)
+- Type module: `prompts/agents/generator-types/$ARTICLE_TYPE.md` (orchestrator reads)
 - Run log dir: `runs/$CATEGORY/$ISO_TIMESTAMP/` (orchestrator writes)
 
 ---
@@ -46,43 +45,43 @@ Derived paths:
 
 | File | Role |
 |---|---|
-| `prompts/brief-$CATEGORY-sample.json` | Input brief (includes `articleType` from classifier) |
-| `prompts/article-$CATEGORY-sample.json` | Article output (includes `articleType` field) |
-| `prompts/agents/generator.md` | Generator base prompt (universal rules) |
-| `prompts/agents/generator-types/$TYPE.md` | Type-specific writing instructions (concatenated in Phase 1) |
-| `prompts/agents/critiquer.md` | Critiquer system prompt (type-aware) |
-| `prompts/agents/reviewer-seo.md` | SEO reviewer prompt (type-aware, Phase 3) |
-| `prompts/agents/reviewer-cro.md` | CRO reviewer prompt (type-aware, Phase 3) |
-| `prompts/agents/reviewer-voice.md` | Danish voice reviewer prompt (type-aware, Phase 3) |
-| `config/article-types.json` | Per-type numerics: word counts, AI tells, CRO weights |
-| `scripts/validate-article.ts` | Compliance + quality validator (reads type from article JSON) |
-| `scripts/preview-server.ts` | Preview server (Phase 4) |
-| `runs/$CATEGORY/$TS/` | Per-run logs for retrospective (Phase 6) |
+| `prompts/brief-$CATEGORY-sample.json` | Input brief |
+| `prompts/article-$CATEGORY-sample.json` | Article output |
+| `prompts/agents/generator.md` | Generator base prompt |
+| `prompts/agents/generator-types/$TYPE.md` | Type-specific writing instructions |
+| `prompts/agents/critiquer.md` | Critiquer system prompt |
+| `prompts/agents/reviewer-seo.md` | SEO reviewer prompt |
+| `prompts/agents/reviewer-cro.md` | CRO reviewer prompt |
+| `prompts/agents/reviewer-voice.md` | Danish voice reviewer prompt |
+| `config/article-types.json` | Per-type numerics |
+| `scripts/validate-article.ts` | Compliance + quality validator |
+| `scripts/preview-server.ts` | Preview server |
+| `runs/$CATEGORY/$TS/` | Per-run logs |
 
 ---
 
 ## PHASE 0 - Initialize Run
 
 1. Confirm `$CATEGORY` is set. If not, ask the user.
-2. Verify `prompts/brief-$CATEGORY-sample.json` exists. If not, abort with a clear error.
-3. Create run dir: `runs/$CATEGORY/$(Get-Date -Format yyyy-MM-ddTHH-mm-ss)/`.
+2. Verify `prompts/brief-$CATEGORY-sample.json` exists. If not, build it via MCP `get_brief` first.
+3. Create run dir: `runs/$CATEGORY/$(date -u +%Y-%m-%dT%H-%M-%S)/`.
 4. Read brief → `$BRIEF`.
 5. Determine `$ARTICLE_TYPE`:
-   - If param explicitly provided by user → use it (override)
-   - Else → read `brief.articleType` (set by classifier in `brief-builder.ts`)
+   - If param explicitly provided → use it
+   - Else → read `brief.articleType`
    - Final fallback → `"roundup"`
 6. Read `prompts/agents/generator.md` → `$GENERATOR_BASE`.
 7. Read `prompts/agents/generator-types/$ARTICLE_TYPE.md` → `$TYPE_MODULE`.
-8. Print: `Run $TS started for category=$CATEGORY, articleType=$ARTICLE_TYPE`.
+8. Print: `Run started for category=$CATEGORY, articleType=$ARTICLE_TYPE`.
 
 ---
 
-## PHASE 1 - Generate (skip if article exists and `$REGENERATE != true`)
+## PHASE 1 - Generate
 
-**Goal:** Produce a complete article JSON conforming to the output schema. The generator prompt is assembled from the base + type module.
-**Launch:** `auggie --acp --model opus4.6`
+**Goal:** Produce a complete article JSON.
+**Method:** Spawn a single `sessions_spawn` sub-agent with the assembled prompt.
 
-### ACP session/prompt body (composed by orchestrator)
+### Sub-agent prompt body
 
 ```
 $GENERATOR_BASE
@@ -99,33 +98,32 @@ $TYPE_MODULE
 $BRIEF
 ```
 
-The orchestrator concatenates `$GENERATOR_BASE` + `$TYPE_MODULE` + the brief. The type module overrides structural defaults in the base prompt. The generator must copy `articleType` from the brief into the output JSON.
-
-**Collect:** Parse response as JSON -> `$ARTICLE`. Strip code fences if present.
+**Spawn:** `sessions_spawn` with the above prompt as `task`, `mode="run"`, `timeoutSeconds=300`.
+**Collect:** Parse response as JSON → `$ARTICLE`. Strip code fences.
 **YOU write:**
-- `prompts/article-$CATEGORY-sample.json` (the live article)
-- `runs/$CATEGORY/$TS/01-generated.json` (snapshot for retrospective)
+- `prompts/article-$CATEGORY-sample.json`
+- `runs/$CATEGORY/$TS/01-generated.json`
 
-**Abort if:** JSON parse fails twice. Save raw response to `runs/.../01-raw.txt` and show user.
+**Abort if:** JSON parse fails twice. Save raw response to `runs/.../01-raw.txt`.
 
 ---
 
 ## PHASE 2 - Compliance Validation
 
-**No agent.** YOU run:
+**No agent.** Run locally:
 
-```powershell
+```bash
 npx tsx scripts/validate-article.ts prompts/article-$CATEGORY-sample.json prompts/brief-$CATEGORY-sample.json
 ```
 
-Save stdout to `runs/$CATEGORY/$TS/02-validation.txt`. Capture exit code.
+Save stdout to `runs/$CATEGORY/$TS/02-validation.txt`.
 
-- **PASS (exit 0)** -> proceed to Phase 3
-- **FAIL** -> proceed to Phase 3 with validator output included in the critique bundle
+- **PASS (exit 0)** → proceed to Phase 3
+- **FAIL** → proceed to Phase 3 with validator output included
 
 ---
 
-## PHASE 3 - Quality Review Loop (parallel reviewers)
+## PHASE 3 - Quality Review Loop
 
 **Goal:** Reach quality thresholds on SEO, CRO, and voice axes.
 **Pass criteria:** All three reviewers return `verdict: "pass"` AND compliance exit 0.
@@ -133,10 +131,11 @@ Save stdout to `runs/$CATEGORY/$TS/02-validation.txt`. Capture exit code.
 
 ### 3a - Spawn three reviewers IN PARALLEL
 
-Launch three `auggie --acp --model sonnet4.6` processes simultaneously, one per reviewer.
-Each session gets:
+Launch three `sessions_spawn` simultaneously (no `context` needed — isolated sessions):
+
+**SEO reviewer prompt:**
 ```
-[contents of prompts/agents/reviewer-{seo|cro|voice}.md]
+[contents of prompts/agents/reviewer-seo.md]
 
 ## Article JSON
 $ARTICLE_RAW
@@ -145,14 +144,19 @@ $ARTICLE_RAW
 $BRIEF
 ```
 
-Wait for all three to return. Save each as:
+**CRO reviewer prompt:** (same pattern with `reviewer-cro.md`)
+**Voice reviewer prompt:** (same pattern with `reviewer-voice.md`)
+
+**Spawn:** Three `sessions_spawn` calls at once. Set `taskName` for each (e.g. `reviewer-seo`, `reviewer-cro`, `reviewer-voice`).
+
+Wait for all three to return via `sessions_yield`. Save each as:
 - `runs/$CATEGORY/$TS/03-iter$N-seo.json`
 - `runs/$CATEGORY/$TS/03-iter$N-cro.json`
 - `runs/$CATEGORY/$TS/03-iter$N-voice.json`
 
 ### 3b - Check pass criteria
 
-If all three verdicts are `pass` AND Phase 2 compliance is exit 0 -> proceed to Phase 4.
+If all three verdicts are `pass` AND Phase 2 compliance is exit 0 → proceed to Phase 4.
 
 ### 3c - Merge and apply critiques
 
@@ -179,17 +183,16 @@ $VOICE_JSON
 $BRIEF
 ```
 
-Launch `auggie --acp --model sonnet4.6`. Collect revised JSON.
-**YOU write:**
+**Spawn:** `sessions_spawn` with above prompt, `timeoutSeconds=300`.
+Collect revised JSON. **YOU write:**
 - `prompts/article-$CATEGORY-sample.json`
 - `runs/$CATEGORY/$TS/03-iter$N-revised.json`
 
-Re-run Phase 2 (compliance) and Phase 3a (parallel reviewers).
-Loop until pass or `$N == $MAX_QUALITY_ITER`.
+Re-run Phase 2 and 3a. Loop until pass or `$N == $MAX_QUALITY_ITER`.
 
 ### 3d - On iteration limit
 
-Print a summary table of remaining issues per axis. Ask user:
+Print summary of remaining issues per axis. Ask user:
 - `[Approve anyway]` - proceed to Phase 4
 - `[More iterations]` - extend limit by 2
 - `[Abort]` - stop
@@ -198,130 +201,56 @@ Print a summary table of remaining issues per axis. Ask user:
 
 ## PHASE 4 - Preview + Human Approval
 
-1. Start preview server in background: `npx tsx scripts/preview-server.ts`.
-2. Print: `Preview ready at http://localhost:3030 (refresh between iterations)`.
-3. Print iteration summary table:
-   ```
-   Words: X | Paragraphs: Y | Placements: Z
-   SEO: 92/100 (pass) | CRO: 88/100 (pass) | Voice: 85/100 (pass)
-   ```
-4. Ask user via `ask-user`:
-   - `[Approve]` - go to Phase 5
-   - `[Reject]` - abort
-   - Custom text - treat as user critique, go to Phase 5b
+1. Start preview server: `npx tsx scripts/preview-server.ts` (background).
+2. Print: `Preview: http://localhost:3030`.
+3. Print scores from latest validation.
+4. Ask user:
+   - `[Approve]` → Phase 5a
+   - `[Reject]` → abort
+   - Custom text → Phase 5b
 
 ---
 
 ## PHASE 5a - Finalize (on Approve)
 
-1. Confirm `prompts/article-$CATEGORY-sample.json` is the latest revision.
+1. Confirm `prompts/article-$CATEGORY-sample.json` is latest.
 2. Copy to `runs/$CATEGORY/$TS/05-final.json`.
-3. Stop preview server.
-4. Print: `Article approved. Final: prompts/article-$CATEGORY-sample.json | Log: runs/$CATEGORY/$TS/`.
-5. Proceed to Phase 6 (retrospective) - optional, ask user first.
+3. Print: `Article approved. Final: prompts/article-$CATEGORY-sample.json`.
 
 ---
 
 ## PHASE 5b - Apply User Critique
 
-Launch `auggie --acp --model sonnet4.6` with critiquer prompt:
-```
-[contents of prompts/agents/critiquer.md]
-
-## Current article JSON
-$ARTICLE_RAW
-
-## User critique
-$USER_TEXT
-
-## Brief
-$BRIEF
-```
-
-Collect revised JSON. Save to live file + `runs/.../04-user-critique-$N.json`.
-Loop back to Phase 2.
+Spawn `sessions_spawn` with critiquer prompt + user critique. Collect revised JSON. Save. Loop back to Phase 2.
 
 ---
 
 ## PHASE 6 - Retrospective (optional)
 
-**Goal:** Improve the pipeline itself based on what kept failing.
-
-### 6a - Single-run analysis
-
-Read all files in `runs/$CATEGORY/$TS/`. Identify:
-- Validator errors that took 2+ iterations to fix
-- Critique issues that appeared in 2+ iterations of the same axis
-- AI tells found by voice reviewer that survived past iteration 1
-
-Write findings to `runs/$CATEGORY/$TS/06-retro.json`:
-```
-{
-  "recurring_issues": [
-    { "axis": "voice", "issue": "...", "iterations_seen": [1, 2] }
-  ],
-  "proposed_changes": [
-    { "file": "prompts/generate-article.md", "change": "...", "rationale": "..." }
-  ]
-}
-```
-
-### 6b - Cross-run pattern detection (auto-apply rules)
-
-Scan `runs/$CATEGORY/*/06-retro.json` across the last 5 completed runs.
-For each `proposed_changes` entry, count how many runs proposed it.
-
-- **3+ runs propose same change** -> AUTO-APPLY: edit the target file, save before/after diff to `runs/$CATEGORY/$TS/06-applied.md`, ask user only for confirmation banner
-- **2 runs** -> propose only: write a proposal to `.agents/flows/article-pipeline/proposals/$TS.md`
-- **1 run** -> log only, no proposal
-
-### 6c - Present to user
-
-```
-Retrospective complete.
-Auto-applied: $N changes (see runs/$CATEGORY/$TS/06-applied.md)
-Proposed: $M changes (see .agents/flows/article-pipeline/proposals/$TS.md)
-```
+Read all files in `runs/$CATEGORY/$TS/`. Identify recurring issues.
+Write `runs/$CATEGORY/$TS/06-retro.json`.
 
 ---
 
 ## Flow Summary Table
 
-| Phase | Agent(s) | Model | Mode | Output |
-|---|---|---|---|---|
-| 0 - Init | none | - | - | Run dir, $BRIEF, $RULES |
-| 1 - Generate | 1 ACP | opus4.6 | ask | `$ARTICLE` JSON |
-| 2 - Validate | none | - | - | exit code + `$VALIDATION` |
-| 3a - Review | 3 ACP parallel | sonnet4.6 | ask | 3 critique JSONs |
-| 3c - Critique merge | 1 ACP | sonnet4.6 | ask | Revised `$ARTICLE` |
-| 4 - Preview | preview-server | - | interactive | HTML at :3030 |
-| 5a - Finalize | orchestrator | - | write | Saved + logged JSON |
-| 5b - User critique | 1 ACP | sonnet4.6 | ask | Revised `$ARTICLE` |
-| 6 - Retrospective | orchestrator | - | analyze | Proposals + auto-applies |
+| Phase | Agent(s) | Method | Output |
+|---|---|---|---|
+| 0 - Init | none | local | Run dir, $BRIEF |
+| 1 - Generate | 1 sub-agent | `sessions_spawn` | `$ARTICLE` JSON |
+| 2 - Validate | none | local script | exit code |
+| 3a - Review | 3 sub-agents parallel | `sessions_spawn` ×3 | 3 critiques |
+| 3c - Critique | 1 sub-agent | `sessions_spawn` | Revised article |
+| 4 - Preview | preview-server | local | HTML at :3030 |
+| 5a - Finalize | orchestrator | local | Saved JSON |
+| 5b - User fix | 1 sub-agent | `sessions_spawn` | Revised article |
+| 6 - Retro | orchestrator | local | Proposals |
 
 ---
 
 ## Known Limitations
 
-- **Brief format**: All categories must share the same brief schema. New categories require manual brief creation for now.
-- **Auto-apply scope**: Only edits prompt markdown and validator config. Does NOT auto-edit code in `scripts/`.
-- **Cross-run analysis**: Naively counts identical `proposed_changes.change` strings. Use canonical wording in proposals.
-- **JSON parse fragility**: Strip code fences and use lenient newline parsing (mirror `validate-article.ts` loader).
-- **Parallel reviewer cold start**: Three concurrent `auggie` processes load MCP plugins each - first iteration is slow (~30-60s per process). Cache warm if running multiple categories in sequence.
-
----
-
-## Rollback
-
-The orchestrator writes only:
-- `prompts/article-$CATEGORY-sample.json` (live article)
-- `runs/$CATEGORY/$TS/*` (logs)
-- Prompt files in `prompts/agents/*` (only during Phase 6b auto-apply)
-
-To roll back a run:
-```powershell
-git checkout -- prompts/article-$CATEGORY-sample.json prompts/agents/
-Remove-Item -Recurse runs/$CATEGORY/$TS
-```
-
-Kill lingering preview server: `Get-NetTCPConnection -LocalPort 3030 | Stop-Process -Id $_.OwningProcess`.
+- **Brief format**: All categories share the same brief schema.
+- **Sub-agent timeout**: Generator and critiquer get 300s. Adjust if articles are complex.
+- **Parallel reviewer cold start**: Three concurrent `sessions_spawn` calls may take 30-60s each to start. Subsequent iterations are faster.
+- **JSON parse fragility**: Strip code fences and use lenient newline parsing.

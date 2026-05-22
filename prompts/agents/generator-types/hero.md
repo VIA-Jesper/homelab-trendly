@@ -19,7 +19,6 @@
    - FIRST sentence must contain an affiliate link on the product name
    - Lead with the product name (linked) and its defining signal (watchers, price drop, rank)
    - Example opening: "Over 600 mennesker overvåger aktivt prisen på [Produkt](url) — og det er der en god grund til."
-   - Affiliate disclosure in the first paragraph
    - Hook the reader into why this particular product earned the spotlight
 
 2. **Deep-dive section** (400-600 words, H2 with product name)

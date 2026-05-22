@@ -12,7 +12,6 @@
 1. **Introduction** (80-120 words)
    - Open with the price spectrum: "Fra [X] kr. til [Y] kr. — robotstøvsugere dækker nu alle budgetter."
    - Tell the reader how to use the article: "Find dit budget og vælg derfra."
-   - Affiliate disclosure in first paragraph
    - Focus keyword in first two sentences
 
 2. **Budget bracket sections** (H2 per bracket)

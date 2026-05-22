@@ -34,7 +34,7 @@ const DEFAULT_WRITING_RULES: WritingRules = {
 };
 
 const DEFAULT_COMPLIANCE: ComplianceRules = {
-  requireDisclosure: true,
+  requireDisclosure: false,
   disclosurePhrases: [
     "indeholder affiliatelinks", "vi tjener kommission", "annonce", "reklame",
   ],

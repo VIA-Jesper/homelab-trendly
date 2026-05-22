@@ -12,7 +12,6 @@
 1. **Introduction** (80-120 words)
    - Frame the rivalry: name both brands/products and the core tension
    - Example: "Dreame eller Roborock — to af markedets stærkeste robotstøvsugere, og begge med trofaste fans. Spørgsmålet er, hvad der passer til dig."
-   - Affiliate disclosure in first paragraph
    - Tell the reader what question this article answers
 
 2. **Brand A section** (200-280 words, H2: "[Brand A] — [hvad den gør bedst]")

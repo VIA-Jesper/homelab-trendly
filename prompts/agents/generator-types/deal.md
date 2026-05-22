@@ -12,7 +12,6 @@
 1. **Introduction** (50-80 words)
    - Open with the deal fact: price, drop percentage, or watcher count
    - Example: "[Produkt] er netop faldet 18% i pris — og det mærker markedet. Over 400 mennesker holder allerede øje."
-   - Affiliate disclosure woven in naturally
    - No fluff. Every sentence must earn its place.
 
 2. **The deal section** (150-250 words, H2: "Hvad er tilbuddet?" or "Hvorfor nu?")

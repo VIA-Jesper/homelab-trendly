@@ -12,7 +12,6 @@
 1. **Introduction** (80-120 words)
    - Open with a relatable problem or buying dilemma, NOT "I denne artikel..."
    - Include focus keyword naturally in the first two sentences
-   - Affiliate disclosure in the first paragraph
    - Brief teaser of what the reader will discover
 
 2. **One section per product** (H2 heading with product name + affiliate link)
@@ -21,7 +20,7 @@
    - Cons list (1-2 honest bullets — no product is perfect)
    - Closing sentence with a soft CTA: "Se aktuel pris hos [retailer]"
 
-3. **Verdict section** (H2: "Vores dom" or "Konklusion")
+3. **Verdict section** (H2: "Sådan vælger du", "Det ender med", or "Hvilken skal du vælge?")
    - Name a clear winner or split recommendation by buyer type
    - Include an affiliate link on the recommended product name
    - End with a decision shortcut: "Vil du have X, vælg Y. Har du brug for Z, kig på W."

@@ -122,7 +122,7 @@ export async function buildBriefForCategory(
     images,
     writing_rules: siteConfig?.writingRules ?? { tone: "analytical", minWords: 800, maxWords: 1400, includeProsCons: true, includeVerdict: true },
     compliance: {
-      requireDisclosure: true,
+      requireDisclosure: false,
       disclosurePhrases: ["indeholder affiliatelinks", "vi tjener kommission", "annonce", "reklame"],
       forbiddenSuperlatives: ["bedste på markedet", "billigst i danmark", "nr. 1 valg", "absolut bedst"],
     },

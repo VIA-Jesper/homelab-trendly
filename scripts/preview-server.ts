@@ -1,5 +1,5 @@
 import Fastify from "fastify";
-import { readFileSync, existsSync } from "fs";
+import { readFileSync, existsSync, readdirSync, statSync } from "fs";
 import { resolve } from "path";
 import { insertPlacements } from "../src/services/widget-inserter.js";
 import { convertMarkdownToHtml, insertAffiliateLinks } from "../src/services/affiliate-linker.js";
@@ -54,30 +54,75 @@ const HTML_TEMPLATE = (title: string, content: string) => `
   </html>
 `;
 
+function findMostRecentArticle(): { articlePath: string; briefPath: string } {
+  const promptsDir = resolve("prompts");
+  const files = readdirSync(promptsDir)
+    .filter(f => f.startsWith("article-") && f.endsWith(".json"))
+    .map(f => {
+      const stat = statSync(resolve(promptsDir, f));
+      return { name: f, mtime: stat.mtimeMs };
+    })
+    .sort((a, b) => b.mtime - a.mtime);
+
+  if (files.length === 0) {
+    return {
+      articlePath: resolve("prompts/article-robotstovsugere-sample.json"),
+      briefPath: resolve("prompts/brief-robotstovsugere-sample.json")
+    };
+  }
+
+  const articleFile = files[0].name;
+  const articlePath = resolve(promptsDir, articleFile);
+  // Try to find matching brief: brief-{same-suffix}.json, fall back to brief-{category}-sample.json
+  const suffix = articleFile.replace(/^article-/, "").replace(/\.json$/, "");
+  let briefPath = resolve(promptsDir, `brief-${suffix}.json`);
+  if (!existsSync(briefPath)) {
+    // Extract category (everything before last hyphen if it ends in -sample, -regen, etc.)
+    const categoryMatch = suffix.match(/^(.+?)(?:-[\w]+)$/);
+    const category = categoryMatch ? categoryMatch[1] : suffix;
+    briefPath = resolve(promptsDir, `brief-${category}-sample.json`);
+    if (!existsSync(briefPath)) {
+      briefPath = resolve("prompts/brief-robotstovsugere-sample.json");
+    }
+  }
+
+  return { articlePath, briefPath };
+}
+
 fastify.get("/", async (request, reply) => {
   try {
     const q = request.query as any;
 
-    // Priority 1: explicit slug param (e.g. ?slug=robotstovsugere-hero)
-    // Loads prompts/article-{slug}.json + prompts/brief-{slug}.json
-    // Priority 2: category param (e.g. ?category=robotstovsugere)
-    // Loads prompts/article-{category}-sample.json + prompts/brief-{category}-sample.json
-    // Priority 3: fallback to robotstovsugere sample
     let articlePath: string;
     let briefPath: string;
 
     if (q.slug) {
+      // Explicit slug requested
       articlePath = resolve(`prompts/article-${q.slug}.json`);
-      briefPath   = resolve(`prompts/brief-${q.slug}.json`);
+      briefPath = resolve(`prompts/brief-${q.slug}.json`);
+      if (!existsSync(briefPath)) {
+        // Try to derive category from slug and find matching brief
+        const categoryMatch = q.slug.match(/^(.+?)(?:-[\w]+)$/);
+        const category = categoryMatch ? categoryMatch[1] : q.slug;
+        briefPath = resolve(`prompts/brief-${category}-sample.json`);
+        if (!existsSync(briefPath)) {
+          briefPath = resolve("prompts/brief-robotstovsugere-sample.json");
+        }
+      }
+    } else if (q.category) {
+      // Category specified
+      articlePath = resolve(`prompts/article-${q.category}-sample.json`);
+      briefPath = resolve(`prompts/brief-${q.category}-sample.json`);
     } else {
-      const category = q.category || "robotstovsugere";
-      articlePath = resolve(`prompts/article-${category}-sample.json`);
-      briefPath   = resolve(`prompts/brief-${category}-sample.json`);
+      // Root path: show most recent article
+      const recent = findMostRecentArticle();
+      articlePath = recent.articlePath;
+      briefPath = recent.briefPath;
     }
 
     if (!existsSync(articlePath)) {
       articlePath = resolve("prompts/article-robotstovsugere-sample.json");
-      briefPath   = resolve("prompts/brief-robotstovsugere-sample.json");
+      briefPath = resolve("prompts/brief-robotstovsugere-sample.json");
     }
 
     const articleData = loadArticle(articlePath);

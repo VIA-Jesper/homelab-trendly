@@ -5,7 +5,7 @@ const DEFAULT_RULES: WritingRules = {
   includeProsCons: true, includeVerdict: true,
 };
 
-/** Load WP credentials from env vars for a site key (e.g. "techblog" → WP_TECHBLOG_USER) */
+/** Load WP credentials from env vars for a site key (e.g. "techblog" -> WP_TECHBLOG_USER) */
 function wpCredentials(siteKey: string): { username: string; appPassword: string } {
   const upper = siteKey.toUpperCase();
   return {
@@ -22,7 +22,7 @@ export const SITE_CONFIGS: Record<string, SiteConfig> = {
     categoryId: 5,
     writingRules: { ...DEFAULT_RULES, tone: "analytical", minWords: 800, maxWords: 1400 },
     pricerunnerCountry: "DK",
-    pricerunnerCategories: ["27", "94", "1", "2"],         // laptops, headphones, phones, tvs
+    pricerunnerCategories: ["27", "94", "1", "2"],
     pricerunnerPartnerId: process.env["PR_TECHBLOG_PARTNER_ID"] ?? "",
     categoryMap: {
       laptops: 5,
@@ -38,11 +38,28 @@ export const SITE_CONFIGS: Record<string, SiteConfig> = {
     categoryId: 3,
     writingRules: { ...DEFAULT_RULES, tone: "friendly", minWords: 500, maxWords: 900 },
     pricerunnerCountry: "DK",
-    pricerunnerCategories: ["27", "94"],                   // laptops, headphones
+    pricerunnerCategories: ["27", "94"],
     pricerunnerPartnerId: process.env["PR_BUDGETSHOP_PARTNER_ID"] ?? "",
     categoryMap: {
       laptops: 3,
       headphones: 4,
+    },
+  },
+  husforbegyndere: {
+    baseUrl: process.env["WP_HUS_URL"] ?? "https://husforbegyndere.dk",
+    ...wpCredentials("hus"),
+    defaultStatus: "publish",
+    categoryId: 12,
+    writingRules: { ...DEFAULT_RULES, tone: "neutral", minWords: 700, maxWords: 1300 },
+    pricerunnerCountry: "DK",
+    pricerunnerCategories: ["82", "1613", "120", "335", "638"],
+    pricerunnerPartnerId: process.env["PR_HUS_PARTNER_ID"] ?? "",
+    categoryMap: {
+      kaffemaskiner: 12,
+      robotstoevsugere: 12,
+      havemaskiner: 13,
+      grill: 13,
+      hojtryksrensere: 13,
     },
   },
 };

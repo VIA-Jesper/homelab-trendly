@@ -13,7 +13,7 @@ Automated Danish affiliate article pipeline. Given a PriceRunner product categor
 4. Runs a multi-agent generation + review loop (orchestrated via `FLOW.md`)
 5. Validates compliance, SEO, CRO, and Danish voice quality (`validate-article.ts`)
 6. Renders widgets and affiliate links into the final HTML
-7. (Future) Publishes to WordPress via REST API
+7. Publishes to WordPress via REST API + WP-CLI
 
 The output is a publish-ready JSON object (`article` + `placements` + `seo`) that maps to a WordPress post.
 
@@ -49,9 +49,9 @@ ContentBrief (JSON)       types/index.ts → ContentBriefSchema
     │       output: critique JSON with verdict + issues
     │
     ├──► Critiquer Agent (ACP, ask-mode)
-    │       merges all critiques → revised article JSON
+    │       merges all critiques -> revised article JSON
     │
-    └──► insertPlacements → convertMarkdownToHtml → insertAffiliateLinks
+    └──► insertPlacements -> convertMarkdownToHtml -> insertAffiliateLinks
              services/widget-inserter.ts
              services/affiliate-linker.ts
              output: final HTML for WordPress or preview
@@ -65,14 +65,14 @@ Six formats. Classifier selects automatically; orchestrator can override via `$A
 
 | Type | Trigger signal | Key constraint |
 |---|---|---|
-| `roundup` | 3-5 products, mixed popularity | ≥80 words per product section |
+| `roundup` | 3-5 products, mixed popularity | >=80 words per product section |
 | `hero` | 1 dominant product (rank 1, high watchers) | Star product gets full treatment; brief alternatives |
-| `deal` | Price drop ≥15% on any product | Short (450-700w), urgency-first |
+| `deal` | Price drop >=15% on any product | Short (450-700w), urgency-first |
 | `brand-vs-brand` | 2 products from different brands | Must include comparison table + winner |
-| `budget-tiers` | Products spanning ≥2 price brackets | Bracket structure: budget / mid / premium |
+| `budget-tiers` | Products spanning >=2 price brackets | Bracket structure: budget / mid / premium |
 | `single-product-review` | Exactly 1 product in brief | Pros/Cons/Verdict structure required |
 
-Type-specific numerics (word counts, AI-tells, CRO weights) live in `config/article-types.json`.
+Type-specific numerics (word counts, CRO weights, AI-tells) live in `config/article-types.json`.
 Type-specific writing instructions live in `prompts/agents/generator-types/$TYPE.md`.
 
 ---
@@ -123,7 +123,7 @@ Type-specific writing instructions live in `prompts/agents/generator-types/$TYPE
 
 ### ADR-008 · PriceRunner brand not named in article body
 **Date:** 2026-05
-**Decision:** Generator prompt forbids naming "PriceRunner" in article body text. Popularity, rank, and watcher signals are referenced as platform-neutral facts ("topper kategorien", "50+ holder øje med prisen").
+**Decision:** Generator prompt forbids naming "PriceRunner" in article body text. Popularity, rank, and watcher signals are referenced as platform-neutral facts ("topper kategorien", "50+ holder oje med prisen").
 **Reasoning:** Excessive platform-name mentions read as sponsored content and erode editorial trust. Widget attribution text ("Annonce i samarbejde med PriceRunner") is auto-injected and is the only sanctioned appearance.
 **Consequence:** Generator prompts and type modules must avoid framing brief signals as "PriceRunner data". Validator does not currently enforce this — it is a prompt-level constraint only.
 
@@ -133,11 +133,46 @@ Type-specific writing instructions live in `prompts/agents/generator-types/$TYPE
 **Reasoning:** Google's link graph treats zero-external-link pages as thin content or link farms. Manufacturer links also serve as trust signals for EEAT (Expertise, Authority, Trustworthiness).
 **Consequence:** Validator does not currently enforce external link presence. Future improvement: add an `externalLinkCount` check in Phase 2 of the flow.
 
-### ADR-010 · WordPress publishing deferred
+### ADR-010 · Git push on any trendly change
 **Date:** 2026-05
-**Decision:** `wp-publisher.ts` exists but the pipeline stops at the approved article JSON. No automated publish step.
-**Reasoning:** WP publish is irreversible in production. Until the full review + approval loop is proven reliable across multiple categories, human-in-the-loop approval at Phase 4 is the gate. The publisher service is kept ready but not wired into the flow.
-**Consequence:** The final output is `prompts/article-$CATEGORY-sample.json`. Publishing requires a manual step or future flow extension.
+**Decision:** Any change to the trendly codebase — whether by OWL or a human — must be committed and pushed to `origin/main` immediately.
+**Reasoning:** The trendly repo is the single source of truth for the article pipeline. Unpushed changes create silent divergence between local and remote, risking lost work or conflicting edits. Treat git push as part of the change, not an afterthought.
+**Consequence:** After any file edit, run:
+```bash
+cd /home/jhe/.openclaw/workspace-affiliate-marketing/github/homelab-trendly
+git add -A
+git commit -m "<description>"
+git push origin main
+```
+The `SELF_IMPROVEMENT_REMINDER.md` checklist applies: log learnings to `.learnings/LEARNINGS.md` when patterns emerge.
+
+### ADR-011 · Self-improving pipeline
+**Date:** 2026-05
+**Decision:** The article generation pipeline must continuously improve from its own output. Failed validations, reviewer critiques, and production performance data feed back into prompts, type configs, and validation rules.
+**Reasoning:** A static prompt set degrades as Google's quality bar shifts and as we discover new failure modes. The cheapest improvement is one that prevents the same issue across all future articles.
+**Consequence:** When a pattern is observed:
+1. **Fix the root cause, not the symptom.** If the generator keeps producing a forbidden phrase, update the prompt/config, don't just patch one article.
+2. **Log to `.learnings/`.** Structure: date, title, what happened, what to do differently.
+3. **Promote proven patterns.** If a behavioral fix works across 3+ articles, promote it to the generator prompt (universal rule), a type module (type-specific rule), or the validator (enforceable check).
+4. **Update TOOLS.md / AGENTS.md / SOUL.md as needed.** Process-level behavioral changes go in agent docs; article-level rules go in trendly code.
+5. **Push all changes.** See ADR-010.
+
+Self-improvement tracking lives in:
+- `.learnings/LEARNINGS.md` — pitfalls, fixes, insights
+- `.learnings/ERRORS.md` — command/operation failures
+- `AGENTS.md` — workflow and behavioral patterns
+- `SOUL.md` — tone and output quality rules
+
+### ADR-012 · WordPress publishing (unblocked)
+**Date:** 2026-05
+**Decision:** WordPress publishing is unblocked. The `wordpress-api` (REST) and `wordpress-wpcli` (SSH) skills handle all remote operations.
+**Reasoning:** Previously, Yoast SEO meta could not be written via REST. The `register-yoast-meta.php` mu-plugin resolves this. SSH access is now available via `~/.ssh/id_ed25519`.
+**Consequence:** The full pipeline now runs end-to-end: brief -> generate -> validate -> review -> approve -> publish. Publishing requires explicit permission (WP-CLI via SSH always asks first). Publish steps:
+1. Create draft post via REST API
+2. Upload featured image via REST API
+3. Set Yoast meta via WP-CLI (or REST with mu-plugin)
+4. Publish via REST API
+5. Verify on live site
 
 ---
 
@@ -146,7 +181,7 @@ Type-specific writing instructions live in `prompts/agents/generator-types/$TYPE
 | Area | Issue | Workaround |
 |---|---|---|
 | `generate.ts` | TS2345 type error on `reply.status(400)` | Pre-existing; does not affect runtime. Fix requires Fastify generic typing. |
-| Validator | `⚠️ Product may be missing` on the star product | False positive when product name contains special chars that break the regex. Cosmetic warning only. |
+| Validator | `Warning: Product may be missing` on the star product | False positive when product name contains special chars that break the regex. Cosmetic warning only. |
 | Validator | External link count not checked | ADR-009 is prompt-only. Add `externalLinkCount` metric to Phase 2. |
 | Validator | PriceRunner name detection not enforced | ADR-008 is prompt-only. Could add a regex check for "PriceRunner" in body text. |
 | Brief | All categories share one brief schema | New categories require manual `brief-$CATEGORY-sample.json` creation. No brief-gen UI. |
@@ -190,3 +225,4 @@ All variables are optional locally — services degrade gracefully (Tailwind wid
 4. Add classification rule in `src/services/article-classifier.ts`
 5. Run `npx tsc --noEmit` to confirm no type errors
 6. Test: create a brief JSON, run the validator, run the flow
+7. Push all changes (see ADR-010)

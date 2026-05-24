@@ -15,3 +15,8 @@ runs/
 
 # Stale backups
 prompts/*.bak.json
+
+# Generated pipeline outputs — prompts/agents/ templates are tracked, root-level outputs are not
+prompts/*.json
+prompts/*.html
+prompts/*-task.md

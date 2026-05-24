@@ -48,6 +48,10 @@ const classified = classifyProducts(top);
 console.log(`\n  Classifier → articleType: "${classified.articleType}"`);
 console.log(`  Hook: "${classified.articleHook}"`);
 
+// Ensure the hook uses the current year
+const currentYear = new Date().getFullYear().toString();
+classified.articleHook = classified.articleHook.replace(/\\b20\\d{2}\\b/g, currentYear);
+
 // Build images
 const images: ImageRef[] = top.map((p) => ({
   productId: p.id,
@@ -76,7 +80,8 @@ const brief: ContentBrief = {
     forbiddenSuperlatives: ["bedste på markedet", "billigst i danmark", "nr. 1 valg", "absolut bedst"],
   },
   articleType: classified.articleType,
-  articleHook: classified.articleHook,
+  currentDate: new Date().toISOString().split("T")[0],
+    articleHook: classified.articleHook,
 };
 
 mkdirSync(PROMPTS_DIR, { recursive: true });

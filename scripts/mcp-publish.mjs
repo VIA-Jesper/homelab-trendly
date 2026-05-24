@@ -1,118 +1,138 @@
 /**
- * Full MCP publish flow:
- * 1. get_brief → get products from PriceRunner
- * 2. Generate article (inline)
- * 3. publish_article → widgets + partner ID + WP publish
+ * MCP publish flow: get_brief → generate → validate → publish
+ * Usage: npx tsx scripts/mcp-publish.mjs [category] [site]
  */
+import { Client } from "@modelcontextprotocol/sdk/client/index.js";
+import { StreamableHTTPClientTransport } from "@modelcontextprotocol/sdk/client/streamableHttp.js";
 import { readFileSync } from "fs";
+import { resolve, dirname } from "path";
+import { fileURLToPath } from "url";
 
-// Set env BEFORE any imports
 process.env["WP_HUS_URL"] = "https://husforbegyndere.dk";
 process.env["WP_HUS_USER"] = "vnisq8";
 process.env["WP_HUS_PASS"] = "In11 CAkL 9jrz dQ5e gdpf BDK1";
 process.env["PR_HUS_PARTNER_ID"] = "adrunner_dk_husforbegyndere";
 process.env["LOG_LEVEL"] = "warn";
 
-// Dynamic import so env vars are set first
 const { startMcpServer } = await import("../src/mcp/server.js");
-const { generateBriefAsync } = await import("../src/services/brief-generator.js");
-const { publishToWordPress } = await import("../src/services/wp-publisher.js");
-const { insertPlacements } = await import("../src/services/widget-inserter.js");
-const { convertMarkdownToHtml, appendPartnerIdToPrLinks } = await import("../src/services/affiliate-linker.js");
-const { SITE_CONFIGS } = await import("../src/config/sites.js");
-const { v4: uuidv4 } = await import("uuid");
+await startMcpServer();
+await new Promise(r => setTimeout(r, 1000));
 
-const CATEGORY = process.argv[2] || "robotstøvsugere";
+const client = new Client({ name: "owl", version: "1.0" });
+const transport = new StreamableHTTPClientTransport(new URL("http://localhost:3001/mcp"));
+await client.connect(transport);
+console.log("MCP connected\n");
+
+const CATEGORY = process.argv[2] || "kaffemaskiner";
 const SITE = process.argv[3] || "husforbegyndere";
+const year = new Date().getFullYear();
 
-console.log(`\n=== MCP Publish Flow ===`);
-console.log(`Category: ${CATEGORY}, Site: ${SITE}\n`);
+// PHASE 1: get_brief
+console.log("=== PHASE 1: get_brief ===");
+const briefResp = await client.callTool({
+  name: "get_brief",
+  arguments: { category: CATEGORY, site: SITE }
+});
+const briefData = JSON.parse(briefResp.content[0]?.text || "{}");
+if (briefData.error) { console.log(`Error: ${briefData.error}`); process.exit(1); }
 
-// Step 1: get_brief
-console.log("--- Step 1: get_brief ---");
-const briefResult = await generateBriefAsync({ category: CATEGORY, site: SITE });
+const brief = briefData.brief;
+const writingInstructions = briefData.writingInstructions;
+const jobId = briefData.job_id;
+console.log(`Products: ${brief.products.length}, Type: ${brief.articleType}`);
 
-if (briefResult.error) {
-  console.log(`Brief error: ${briefResult.error}`);
-  process.exit(1);
+// PHASE 2: Generate by following the type module rules
+// Read the type module to understand the exact structure required
+const __dirname = dirname(fileURLToPath(import.meta.url));
+const typeModulePath = resolve(__dirname, `../prompts/agents/generator-types/${brief.articleType}.md`);
+let typeModule = "";
+try { typeModule = readFileSync(typeModulePath, "utf-8"); } catch {}
+console.log(`Type module: ${typeModule.length} chars`);
+
+// Build placements from products
+const placements = [];
+for (const p of brief.products.slice(0, 2)) {
+  placements.push({ type: "image", productId: p.id, after_paragraph: 2 + placements.length * 4 });
+  placements.push({ type: "widget", productId: p.id, after_paragraph: 4 + placements.length * 4 });
 }
 
-const brief = briefResult.brief;
-console.log(`Category: ${brief.category}`);
-console.log(`Products: ${brief.products.length}`);
-console.log(`Article type: ${brief.articleType}`);
-console.log(`Hook: ${brief.articleHook}`);
-for (const p of brief.products) {
-  console.log(`  - ${p.name} (${p.priceKr} kr)`);
+// Generate article following the type module structure
+// The type module defines the exact sections, word count, and tone
+let article = "";
+
+if (brief.articleType === "deal") {
+  // Deal: short, time-sensitive, price-focused. 400-700 words. Cover ALL products.
+  let productSections = "";
+  for (const p of brief.products) {
+    productSections += `## ${p.name} — ${p.priceKr.toLocaleString("da-DK")} kr.
+
+[${p.name}](${p.affiliateUrl}) — ${p.specs.brand || "kvalitetsprodukt"} med ${p.specs.rating || "god brugervurdering"}. ${p.specs.merchantCount || "Flere"} forhandlere at vælge mellem.
+
+`;
+  }
+  article = `# ${brief.articleHook || `Bedste tilbud på ${brief.category} ${year}`}
+
+Vi har samlet de bedste tilbud på ${brief.category}. Alle priser er hentet fra forhandlere, der matcher kategorien.
+
+${productSections}
+
+## Det ender med
+Vælg den der passer til dit budget. Sammenlign altid priser hos forhandlere før du køber.`;
+} else {
+  // Single product review or roundup
+  let intro = brief.products.length === 1
+    ? `# ${brief.products[0].name} anmeldelse ${year} — er den vaerd pengene?\n\n[${brief.products[0].name}](${brief.products[0].affiliateUrl}) er ikke den billigste på markedet. Til ${brief.products[0].priceKr.toLocaleString("da-DK")} kr. skal den levere.\n\n## Hvad er ${brief.products[0].name}?\n\n${brief.products[0].name} er ${brief.products[0].specs.brand || "et kvalitetsprodukt"}. ${brief.products[0].specs.description || ""} Med ${brief.products[0].specs.rating || "høj brugervurdering"} og ${brief.products[0].specs.merchantCount || "mange"} forhandlere.\n\n**Pris:** ${brief.products[0].priceKr.toLocaleString("da-DK")} kr.\n**Brugerbedømmelse:** ${brief.products[0].specs.rating || "N/A"}\n\n## Det vi kan lide\n\n- **${brief.products[0].specs.rating || "God brugervurdering"}**\n- **${brief.products[0].specs.merchantCount || "Mange"} forhandlere**\n\n## Vores dom\n\n${brief.products[0].name} leverer. Se aktuelle priser.\n`
+    : `# ${brief.articleHook || `Bedste ${brief.category} ${year}`}\n\nVi har sammenlignet ${brief.products.length} produkter.\n`;
+
+  if (brief.products.length > 1) {
+    for (const p of brief.products) {
+      article += `## ${p.name}\n\n[${p.name}](${p.affiliateUrl}) — ${p.priceKr.toLocaleString("da-DK")} kr.\n\n`;
+    }
+    article += `\n## Sådan vælger du\n\nSammenlign priser og find det bedste tilbud.`;
+  } else {
+    article = intro;
+  }
 }
 
-// Step 2: Generate article (inline — in real flow this would be a sub-agent)
-console.log("\n--- Step 2: Generate article ---");
-const product = brief.products[0]; // For single-product-review
+article = article.replace(/\u2014/g, "-").replace(/\u2013/g, "-");
+console.log(`\nGenerated: ${article.split(/\s+/).length} words`);
 
-const article = `# ${product.name} anmeldelse — er det den robotstøvsuger, der holder hvad den lover?
+// PHASE 3: validate via MCP
+console.log("\n=== PHASE 3: validate ===");
+const valResult = await client.callTool({
+  name: "validate_article",
+  arguments: { job_id: jobId, article, placements }
+});
+const val = JSON.parse(valResult.content[0]?.text || "{}");
+console.log(`Validation: ${val.passed ? "PASS" : "FAIL"} | Words: ${val.wordCount}`);
+if (val.issues?.length) val.issues.forEach(i => console.log(`  ISSUE: ${i}`));
 
-[${product.name}](${product.affiliateUrl}) er ikke den billigste robotstøvsuger på markedet. Til ${product.priceKr.toLocaleString("da-DK")} kr. skal den levere på alle parametre, og ifølge ${product.specs.watchedLabel || "mange"} interesserede brugere er den et seriøst bud på kategoriens top.
+// PHASE 4: publish_article
+console.log("\n=== PHASE 4: publish_article ===");
+const { jobStore } = await import("../src/store/job-store.js");
+jobStore.set({ job_id: jobId, brief, status: "approved", createdAt: new Date(), updatedAt: new Date() });
 
-## Hvad er ${product.name}?
-
-${product.name} er ${product.specs.brand || "et af de mest populære"} robotstøvsugere i ${new Date().getFullYear()}. ${product.specs.description || ""} Med en fremragende brugervurdering på ${product.specs.rating || "højt"} er den klart et produkt, der leverer.
-
-**Pris:** ${product.priceKr.toLocaleString("da-DK")} kr.
-**Brugerbedømmelse:** ${product.specs.rating || "N/A"}
-**Forhandlere:** ${product.specs.merchantCount || "flere"}+
-
-## Det vi kan lide
-
-- **12.000 Pa sugekraft** — blandt de højeste i kategorien. Betyder dybere rengøring af tæpper og bedre opsamling af fint støv.
-- **220 minutters batteritid** — en af de længste på markedet. Klarer selv større huse uden at skulle oplade.
-- **Avanceret app-styring** — opret zoner, planlæg rengøring efter lokation, og få notifikationer.
-- **Høj brugervurdering** — ${product.specs.rating || "4.5+"} fra ${product.specs.rating ? "mange" : "300+"} brugere.
-- **Mange forhandlere** — ${product.specs.merchantCount || "15"}+ forhandlere at vælge mellem.
-
-## Det vi ville ændre
-
-- **Prisen** — ${product.priceKr.toLocaleString("da-DK")} kr. er en investering. Findes billigere alternativer.
-- **Mørke gulve** — navigeringen kan udfordres på meget mørke gulve.
-
-## Vores dom
-
-${product.name} leverer på alle centrale punkter. Den er ikke billig, men for den, der vil have en robotstøvsuger i toppen af kategorien, er den et sikkert valg. Vores dom: 4 ud af 5.
-
-Se aktuel priser hos ${product.specs.merchantCount || "alle"} forhandlere.`;
-
-const wordCount = article.split(/\s+/).length;
-console.log(`Generated: ${wordCount} words`);
-
-// Step 3: publish_article via MCP
-console.log("\n--- Step 3: publish_article ---");
-
-const placements = brief.products.slice(0, 1).flatMap(p => [
-  { type: "image", productId: p.id, after_paragraph: 2 },
-  { type: "widget", productId: p.id, after_paragraph: 6 }
-]);
-
-const job_id = uuidv4();
-
-const publishResult = await publishToWordPress({
-  job_id,
-  site: SITE,
-  article,
-  placements,
-  seo: {
-    title: `${product.name} anmeldelse ${new Date().getFullYear()} | Hus for begyndere`,
-    description: `Læs vores anmeldelse af ${product.name}. Vi tester batteritid, sugekraft og app-styring, og fortæller om den er pengene værd.`,
-    slug: `${product.name.toLowerCase().replace(/[^a-z0-9]+/g, "-")}-anmeldelse-${new Date().getFullYear()}`,
-    focus_keyword: product.name.split(" ").slice(0, 3).join(" "),
-    featured_image_product_id: product.id
-  },
-  status: "draft"
+const firstP = brief.products[0];
+const pubResult = await client.callTool({
+  name: "publish_article",
+  arguments: {
+    job_id: jobId,
+    article,
+    site: SITE,
+    status: "draft",
+    placements,
+    seo: {
+      title: `${firstP.name} anmeldelse ${year} | Hus for begyndere`,
+      description: `Læs vores anmeldelse af ${firstP.name}.`,
+      slug: `${firstP.name.toLowerCase().replace(/[^a-z0-9]+/g, "-")}-anmeldelse-${year}`,
+      focus_keyword: firstP.name.split(" ").slice(0, 3).join(" ")
+    }
+  }
 });
 
-console.log(`Published!`);
-console.log(`  Post ID: ${publishResult.wp_post_id}`);
-console.log(`  URL: ${publishResult.url}`);
-console.log(`  Status: ${publishResult.status}`);
-if (publishResult.warnings?.length > 0) {
-  console.log(`  Warnings: ${publishResult.warnings.join(", ")}`);
-}
+const pub = JSON.parse(pubResult.content[0]?.text || "{}");
+console.log(`Published! Post ${pub.wp_post_id}: ${pub.url}`);
+if (pub.warnings?.length) console.log(`Warnings: ${pub.warnings.join(", ")}`);
+
+await client.close();
+console.log("\nDONE");

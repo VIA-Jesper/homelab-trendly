@@ -47,7 +47,7 @@ export const SITE_CONFIGS: Record<string, SiteConfig> = {
   },
   husforbegyndere: {
     baseUrl: process.env["WP_HUS_URL"] ?? "https://husforbegyndere.dk",
-    ...wpCredentials("hus"),
+    ...{ username: process.env["WP_HUS_USER"] ?? "", appPassword: process.env["WP_HUS_PASS"] ?? "" },
     defaultStatus: "publish",
     categoryId: 12,
     writingRules: { ...DEFAULT_RULES, tone: "neutral", minWords: 700, maxWords: 1300 },

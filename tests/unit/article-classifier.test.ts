@@ -187,8 +187,12 @@ describe("classifyProducts — roundup", () => {
   });
 
   it("roundup hook mentions category", () => {
-    const products = [makeProduct({ category: "elsave", popularityScore: 10 })];
-    const { articleHook } = classifyProducts(products);
+    const products = [
+      makeProduct({ category: "elsave", popularityScore: 10, id: "pr_1" }),
+      makeProduct({ category: "elsave", popularityScore: 9, id: "pr_2" }),
+    ];
+    const { articleType, articleHook } = classifyProducts(products);
+    expect(articleType).toBe("roundup");
     expect(articleHook).toContain("elsave");
   });
 });

@@ -30,16 +30,16 @@ function formatPrice(kr: number): string {
 function heroHook(top: RawProduct): string {
   const watched = getWatchedLabel(top);
   if (watched) {
-    return `${top.name} — ${watched} overvåger aktivt prisen på dette produkt`;
+    return `${top.name}: ${watched} overvåger aktivt prisen på dette produkt`;
   }
-  return `${top.name} — det mest populære valg i kategorien lige nu`;
+  return `${top.name}: det mest populære valg i kategorien lige nu`;
 }
 
 function dealHook(top: RawProduct): string {
   const drop = top.specs["priceDrop"] ?? "";
   const watched = getWatchedLabel(top);
   if (watched) {
-    return `${top.name} er faldet ${drop} i pris — og ${watched} holder stadig øje med den`;
+    return `${top.name} er faldet ${drop} i pris, og ${watched} holder stadig øje med den`;
   }
   return `${top.name} er netop faldet ${drop} i pris`;
 }
@@ -49,9 +49,9 @@ function brandVsBrandHook(a: RawProduct, b: RawProduct): string {
   const brandB = getBrand(b);
   const category = a.category;
   if (brandA && brandB) {
-    return `${brandA} eller ${brandB} — hvilken ${category} er den bedste?`;
+    return `${brandA} eller ${brandB}: hvilken ${category} er den bedste?`;
   }
-  return `${a.name} eller ${b.name} — hvad er det bedste valg?`;
+  return `${a.name} eller ${b.name}: hvad er det bedste valg?`;
 }
 
 function budgetTiersHook(products: RawProduct[]): string {
@@ -59,7 +59,7 @@ function budgetTiersHook(products: RawProduct[]): string {
   const min = Math.min(...prices);
   const max = Math.max(...prices);
   const category = products[0]?.category ?? "produkter";
-  return `De bedste ${category} til alle budgetter — fra ${formatPrice(min)} til ${formatPrice(max)}`;
+  return `De bedste ${category} til alle budgetter. Fra ${formatPrice(min)} til ${formatPrice(max)}`;
 }
 
 function roundupHook(products: RawProduct[]): string {
@@ -70,7 +70,10 @@ function roundupHook(products: RawProduct[]): string {
 // ─── Classification rules (checked in priority order) ─────────────────────────
 
 function isSingleProductReview(products: RawProduct[]): boolean {
-  return products.length === 1;
+  if (products.length !== 1) return false;
+  const p = products[0]!;
+  // Only single-product-review if no hero/deal signals
+  return !getWatchedLabel(p) && !hasRankOne(p) && getPriceDrop(p) < 10;
 }
 
 function isHero(products: RawProduct[]): boolean {
@@ -123,7 +126,7 @@ export function classifyProducts(products: RawProduct[]): ArticleClassification 
   // Priority order: single-product-review → hero → deal → brand-vs-brand → budget-tiers → roundup
   if (isSingleProductReview(products)) {
     articleType = "single-product-review";
-    articleHook = `${products[0]!.name} — vores fulde anmeldelse`;
+    articleHook = `${products[0]!.name}: vores fulde anmeldelse`;
   } else if (isHero(products)) {
     articleType = "hero";
     articleHook = heroHook(products[0]!);

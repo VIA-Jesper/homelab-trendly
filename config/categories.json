@@ -6,25 +6,46 @@
         {
           "name": "power-tools",
           "label": "Elværktøj",
-          "searchTerms": ["boremaskine", "rundsav", "slagboremaskine", "sliber", "vinkelsliber"],
+          "searchTerms": [
+            "boremaskine",
+            "rundsav",
+            "slagboremaskine",
+            "sliber",
+            "vinkelsliber"
+          ],
           "defaultCooldownDays": 45
         },
         {
           "name": "cleaning",
           "label": "Rengøring",
-          "searchTerms": ["robotstøvsuger", "støvsuger", "højtryksrenser", "damprenser"],
+          "searchTerms": [
+            "robotstøvsuger",
+            "støvsuger",
+            "højtryksrenser",
+            "damprenser"
+          ],
           "defaultCooldownDays": 60
         },
         {
           "name": "smart-home",
           "label": "Smart Home",
-          "searchTerms": ["smart pære", "smart plug", "termostat", "overvågningskamera"],
+          "searchTerms": [
+            "smart pære",
+            "smart plug",
+            "termostat",
+            "overvågningskamera"
+          ],
           "defaultCooldownDays": 45
         },
         {
           "name": "garden",
           "label": "Have",
-          "searchTerms": ["robotplæneklipper", "hækkeklipper", "græsslåmaskine", "haveslange"],
+          "searchTerms": [
+            "robotplæneklipper",
+            "hækkeklipper",
+            "græsslåmaskine",
+            "haveslange"
+          ],
           "defaultCooldownDays": 60
         }
       ],
@@ -89,31 +110,56 @@
         {
           "name": "kaffemaskiner",
           "label": "Kaffemaskiner",
-          "searchTerms": ["kaffemaskine", "kaffemaskiner", "espressomaskine", "kapselmaskine"],
+          "searchTerms": [
+            "kaffemaskine",
+            "kaffemaskiner",
+            "espressomaskine",
+            "kapselmaskine"
+          ],
           "defaultCooldownDays": 45
         },
         {
           "name": "robotstoevsugere",
           "label": "Robotstøvsugere",
-          "searchTerms": ["robotstøvsuger", "robot støvsuger", "roborock", "roomba"],
+          "searchTerms": [
+            "robotstøvsuger",
+            "robot støvsuger",
+            "roborock",
+            "roomba"
+          ],
           "defaultCooldownDays": 60
         },
         {
           "name": "havemaskiner",
           "label": "Havemaskiner",
-          "searchTerms": ["plæneklipper", "hækkeklipper", "robotplæneklipper", "græsslåmaskine"],
+          "searchTerms": [
+            "plæneklipper",
+            "hækkeklipper",
+            "robotplæneklipper",
+            "græsslåmaskine"
+          ],
           "defaultCooldownDays": 60
         },
         {
           "name": "grill",
           "label": "Grill",
-          "searchTerms": ["gasgrill", "kulgrill", "grill tilbud", "weber grill"],
+          "searchTerms": [
+            "gasgrill",
+            "kulgrill",
+            "grill tilbud",
+            "weber grill"
+          ],
           "defaultCooldownDays": 45
         },
         {
           "name": "hojtryksrensere",
           "label": "Højtryksrensere",
-          "searchTerms": ["højtryksrenser", "højtryksrenser test", "kärcher", "nilfisk"],
+          "searchTerms": [
+            "højtryksrenser",
+            "højtryksrenser test",
+            "kärcher",
+            "nilfisk"
+          ],
           "defaultCooldownDays": 60
         }
       ],
@@ -152,6 +198,18 @@
           "pricerunnerCategoryId": "638",
           "cooldownDays": 60,
           "enabled": true
+        },
+        {
+          "slug": "parasol",
+          "pricerunnerCategoryId": "347",
+          "enabled": true,
+          "cooldownDays": 30,
+          "afFilters": [
+            {
+              "attributeId": "60542209",
+              "valueId": "60542210"
+            }
+          ]
         }
       ]
     }

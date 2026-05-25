@@ -16,13 +16,24 @@ const __dirname = dirname(__filename);
 const CATEGORIES_CONFIG_PATH = join(__dirname, "../../config/categories.json");
 
 /** Looks up the PriceRunner category ID for a slug from config/categories.json */
-function getPrCategoryId(siteKey: string, categorySlug: string): string | undefined {
+interface CategoryConfig {
+  slug: string;
+  pricerunnerCategoryId: string;
+  afFilters?: Array<{ attributeId: string; valueId: string }>;
+}
+
+function getPrCategoryConfig(siteKey: string, categorySlug: string): CategoryConfig | undefined {
   try {
     if (!existsSync(CATEGORIES_CONFIG_PATH)) return undefined;
     const config = JSON.parse(readFileSync(CATEGORIES_CONFIG_PATH, "utf-8")) as {
-      sites: Record<string, { categories: Array<{ slug: string; pricerunnerCategoryId: string }> }>;
+      sites: Record<string, { categories: CategoryConfig[] }>;
     };
-    return config.sites[siteKey]?.categories.find((c) => c.slug === categorySlug)?.pricerunnerCategoryId;
+    const normalise = (s: string) => s.replace(/ø/g, 'oe').replace(/æ/g, 'ae').replace(/å/g, 'aa');
+    const needle = normalise(categorySlug);
+    return config.sites[siteKey]?.categories.find((c) => {
+      const hay = normalise(c.slug);
+      return hay === needle || hay.startsWith(needle);
+    });
   } catch {
     return undefined;
   }
@@ -121,11 +132,11 @@ export async function generateBriefAsync(
       if (freshProducts) return buildBrief(freshProducts.slice(0, 5), category, siteKey);
 
       // Traversal didn't know this category — look up its PR ID from categories.json and fetch directly
-      const configCategoryId = getPrCategoryId(siteKey, category);
-      if (configCategoryId) {
-        console.log(`[brief-generator] "${category}" not in traversal cache — fetching by ID ${configCategoryId}`);
+      const catConfig = getPrCategoryConfig(siteKey, category);
+      if (catConfig) {
+        console.log(`[brief-generator] "${category}" not in traversal cache — fetching by ID ${catConfig.pricerunnerCategoryId}`);
         const usedIds = getUsedProductIds(siteKey);
-        const all = await fetchProductsByCategoryId(configCategoryId, country, 30);
+        const all = await fetchProductsByCategoryId(catConfig.pricerunnerCategoryId, country, 30, catConfig.afFilters);
         const fresh = all.filter((p) => !usedIds.includes(p.id));
         if (fresh.length < 3) return { error: "category_exhausted", category };
         return buildBrief(fresh.slice(0, 5), category, siteKey);

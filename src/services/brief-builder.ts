@@ -82,7 +82,8 @@ export async function buildBriefForCategory(
   // Fetch live products
   const siteConfig = SITE_CONFIGS[siteKey];
   const country = siteConfig?.pricerunnerCountry ?? "DK";
-  const allProducts = await fetchProductsByCategoryId(cat.pricerunnerCategoryId, country, 30);
+  const afFilters = (cat as Record<string, unknown>).afFilters as Array<{ attributeId: string; valueId: string }> | undefined;
+  const allProducts = await fetchProductsByCategoryId(cat.pricerunnerCategoryId, country, 30, afFilters);
 
   // Filter already-used product IDs
   const usedIds = getUsedProductIds(siteKey);
@@ -154,7 +155,8 @@ export async function pickNextCategory(siteKey = "techblog"): Promise<BriefBuild
   for (const cat of siteCategories) {
     if (wasPublishedRecently(siteKey, cat.slug, cat.cooldownDays)) continue;
     try {
-      const all = await fetchProductsByCategoryId(cat.pricerunnerCategoryId, country, 30);
+      const afFilters = (cat as Record<string, unknown>).afFilters as Array<{ attributeId: string; valueId: string }> | undefined;
+      const all = await fetchProductsByCategoryId(cat.pricerunnerCategoryId, country, 30, afFilters);
       const usedIds = getUsedProductIds(siteKey);
       const fresh = all.filter((p) => !usedIds.includes(p.id));
       if (fresh.length >= 3) candidates.push({ cat, freshCount: fresh.length });

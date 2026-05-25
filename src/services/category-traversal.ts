@@ -78,9 +78,10 @@ export async function getFreshProductsForCategory(
   categoryName: string
 ): Promise<Awaited<ReturnType<typeof fetchProductsByCategoryId>> | null> {
   const leaves = await fetchLeafResults(siteKey);
-  const leaf = leaves.find(
-    (l) => l.categoryName.toLowerCase() === categoryName.toLowerCase()
-  );
+  const normalise = (s: string) => s.toLowerCase().replace(/ø/g, 'oe').replace(/æ/g, 'ae').replace(/å/g, 'aa');
+  const needle = normalise(categoryName);
+  const leaf = leaves.find((l) => normalise(l.categoryName) === needle)
+    ?? leaves.find((l) => normalise(l.categoryName).startsWith(needle) || needle.startsWith(normalise(l.categoryName)));
   if (!leaf || leaf.freshProducts.length < 3) return null;
   return leaf.freshProducts;
 }

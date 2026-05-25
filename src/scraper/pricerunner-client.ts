@@ -207,7 +207,11 @@ export function mapV4Product(p: V4Product, base: string, internalCategory: strin
   if (p.description) specs["description"] = p.description;
   if (p.rating?.average !== undefined) specs["rating"] = `${p.rating.average} (${p.rating.count ?? 0} reviews)`;
   if (p.ribbon?.type) specs["ribbon"] = p.ribbon.type;
-  if (p.ribbon?.value) specs["watchedLabel"] = p.ribbon.value;
+  if (p.ribbon?.type === "WATCHED" && p.ribbon?.value) {
+    // Format as integer count with "+" suffix, strip any minus sign
+    const num = Math.abs(parseFloat(p.ribbon.value));
+    specs["watchedLabel"] = `${Math.round(num)}+`;
+  }
   if (p.priceDrop?.percent !== undefined) specs["priceDrop"] = `${p.priceDrop.percent}%`;
   if (p.rank?.rank !== undefined) specs["popularityRank"] = String(p.rank.rank);
   if (p.previewMerchants?.count !== undefined) specs["merchantCount"] = String(p.previewMerchants.count);
@@ -230,12 +234,19 @@ export function mapV4Product(p: V4Product, base: string, internalCategory: strin
 }
 
 // ─── Category Browse v4 ───────────────────────────────────────────────────────
+export interface AfFilter {
+  attributeId: string;
+  valueId: string;
+}
+
 export async function fetchProductsByCategoryId(
   categoryId: string,
   country = "DK",
-  size = 30
+  size = 30,
+  afFilters?: AfFilter[]
 ): Promise<RawProduct[]> {
-  const cacheKey = `pricerunner-category:${categoryId}:${country}`;
+  const filterKey = afFilters?.map(f => `${f.attributeId}=${f.valueId}`).join(':') ?? '';
+  const cacheKey = `pricerunner-category:${categoryId}:${country}:${filterKey}`;
   const cached = cacheGet<RawProduct[]>(cacheKey);
   if (cached) return cached;
 
@@ -246,10 +257,16 @@ export async function fetchProductsByCategoryId(
   const internalCategory = CATEGORY_ID_MAP[categoryId] ?? categoryId;
 
   const results = await withBackoff(async () => {
+    const params: Record<string, string | number> = { size, sorting: "POPULARITY", device: "desktop" };
+    if (afFilters) {
+      for (const f of afFilters) {
+        params[`af_${f.attributeId}`] = f.valueId;
+      }
+    }
     const res = await axios.get<V4CategoryResponse>(
       `${base}/${countryLower}/api/search-edge-rest/public/search/category/v4/${countryUpper}/${categoryId}`,
       {
-        params: { size, sorting: "POPULARITY", device: "desktop" },
+        params,
         headers: { "User-Agent": randomUA(), "Accept": "application/json" },
         timeout: 15_000,
       }

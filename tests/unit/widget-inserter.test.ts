@@ -75,7 +75,7 @@ describe("insertPlacements", () => {
     const result = insertPlacements(ARTICLE, BRIEF, placements, "techblog");
     expect(result).toContain("<figure");
     expect(result).toContain("loading=\"lazy\"");
-    expect(result).toContain("border-radius:8px");
+    expect(result).toContain("rounded-xl");
   });
 
   it("appends placement at end when after_paragraph exceeds article length", () => {

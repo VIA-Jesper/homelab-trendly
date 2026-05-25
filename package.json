@@ -26,6 +26,7 @@
     "@fastify/swagger-ui": "^5.2.6",
     "@modelcontextprotocol/sdk": "^1.29.0",
     "axios": "^1.16.0",
+    "dotenv": "^17.4.2",
     "fastify": "^5.8.5",
     "fastify-type-provider-zod": "^6.1.0",
     "marked": "^18.0.3",

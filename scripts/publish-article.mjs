@@ -1,110 +1,52 @@
 /**
- * Publish a trendly article JSON to WordPress with proper widgets and affiliate links.
- * Usage: node scripts/publish-article.mjs <article.json> <brief.json> <site>
+ * Publish a trendly article JSON to WordPress.
+ * Uses the same publishToWordPress service as the MCP tool — widgets, affiliate links,
+ * partner ID stamping, and SEO meta are all handled identically.
+ *
+ * Usage: node scripts/publish-article.mjs <article.json> <brief.json> [site] [--draft]
+ * Example: node scripts/publish-article.mjs prompts/article-robotstovsugere-live.json prompts/brief-robotstovsugere-live.json husforbegyndere
  */
-import { readFileSync, writeFileSync } from "fs";
+import { readFileSync } from "fs";
+import { config } from "dotenv";
 
-// Set env vars BEFORE any imports that use them
-process.env["WP_HUS_URL"] = "https://husforbegyndere.dk";
-process.env["WP_HUS_USER"] = "vnisq8";
-process.env["WP_HUS_APP_PASSWORD"] = "In11 CAkL 9jrz dQ5e gdpf BDK1";
-process.env["PR_HUS_PARTNER_ID"] = "adrunner_dk_husforbegyndere";
+config(); // load .env
 
-import { insertPlacements } from "../src/services/widget-inserter.js";
-import { convertMarkdownToHtml } from "../src/services/affiliate-linker.js";
-import { SITE_CONFIGS } from "../src/config/sites.js";
+import { publishToWordPress } from "../src/services/wp-publisher.js";
 
 const articlePath = process.argv[2];
-const briefPath = process.argv[3] || null;
+const briefPath = process.argv[3];
 const siteKey = process.argv[4] || "husforbegyndere";
+const asDraft = process.argv.includes("--draft");
 
 if (!articlePath || !briefPath) {
-  console.error("Usage: node scripts/publish-article.mjs <article.json> <brief.json> [site]");
+  console.error("Usage: node scripts/publish-article.mjs <article.json> <brief.json> [site] [--draft]");
   process.exit(1);
 }
 
 const article = JSON.parse(readFileSync(articlePath, "utf-8"));
-const brief = JSON.parse(readFileSync(briefPath, "utf-8"));
+const briefWrapper = JSON.parse(readFileSync(briefPath, "utf-8"));
+const brief = briefWrapper.brief ?? briefWrapper;
 
-console.log(`Article: ${article.seo?.title}`);
-console.log(`Type: ${article.articleType}`);
-console.log(`Products: ${brief.brief?.products?.length}`);
+console.log(`Article : ${article.seo?.title}`);
+console.log(`Type    : ${article.articleType}`);
+console.log(`Products: ${brief.products?.length}`);
+console.log(`Site    : ${siteKey}`);
+console.log(`Status  : ${asDraft ? "draft" : "publish"}`);
+console.log();
 
-// Verify site config
-const siteConfig = SITE_CONFIGS[siteKey];
-console.log(`\nSite config:`);
-console.log(`  Partner ID: ${siteConfig.pricerunnerPartnerId ? "SET" : "EMPTY"}`);
-console.log(`  Username: ${siteConfig.username ? "SET" : "EMPTY"}`);
-console.log(`  Country: ${siteConfig.pricerunnerCountry}`);
+const result = await publishToWordPress({
+  jobId: article.job_id ?? "manual",
+  article: article.article,
+  brief,
+  siteKey,
+  status: asDraft ? "draft" : "publish",
+  placements: article.placements ?? [],
+  seo: article.seo,
+});
 
-// Step 1: Insert placements (widgets + images)
-console.log("\n=== Step 1: Insert placements ===");
-const htmlWithWidgets = insertPlacements(article.article, brief.brief, article.placements, siteKey);
-const widgetCount = (htmlWithWidgets.match(/pr-widget-wrapper/g) || []).length;
-const imgCount = (htmlWithWidgets.match(/<figure/g) || []).length;
-const fallbackCount = (htmlWithWidgets.match(/price-widget/g) || []).length;
-console.log(`Widgets: ${widgetCount}, Images: ${imgCount}, Fallbacks: ${fallbackCount}`);
-
-if (widgetCount === 0 && fallbackCount > 0) {
-  console.log("WARNING: Using fallback cards instead of real PR widgets");
-  console.log("This means the partner ID is not configured correctly");
-}
-
-// Step 2: Convert to HTML
-console.log("\n=== Step 2: Convert to HTML ===");
-const fullHtml = convertMarkdownToHtml(htmlWithWidgets);
-console.log(`Full HTML: ${fullHtml.length} chars`);
-
-// Check for em dashes
-const emDashes = (fullHtml.match(/\u2014|\u2013/g) || []).length;
-if (emDashes > 0) {
-  console.log(`WARNING: ${emDashes} em dashes found - replacing`);
-} else {
-  console.log("No em dashes: OK");
-}
-
-// Save processed HTML
-const outputPath = articlePath.replace('.json', '-final.html');
-writeFileSync(outputPath, fullHtml, "utf-8");
-console.log(`Saved to: ${outputPath}`);
-
-// Step 3: Publish to WordPress
-console.log("\n=== Step 3: Publish to WordPress ===");
-const baseUrl = siteConfig.baseUrl.replace(/\/$/, '');
-const auth = Buffer.from(`${siteConfig.username}:${siteConfig.appPassword}`).toString('base64');
-
-const payload = {
-  title: article.seo?.title || "",
-  content: fullHtml,
-  status: "draft",
-  slug: article.seo?.slug,
-  categories: [siteConfig.categoryId],
-  excerpt: article.seo?.description || "",
-  meta: {
-    _yoast_wpseo_title: article.seo?.title || "",
-    _yoast_wpseo_metadesc: article.seo?.description || "",
-    _yoast_wpseo_focuskw: article.seo?.focus_keyword || ""
-  }
-};
-
-try {
-  const response = await fetch(`${baseUrl}/wp-json/wp/v2/posts`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "Authorization": `Basic ${auth}`
-    },
-    body: JSON.stringify(payload)
-  });
-
-  const result = await response.json();
-  if (result.id) {
-    console.log(`Published! Post ID: ${result.id}`);
-    console.log(`URL: ${result.link}`);
-    console.log(`Status: ${result.status}`);
-  } else {
-    console.error(`Error: ${JSON.stringify(result).substring(0, 500)}`);
-  }
-} catch (e) {
-  console.error(`Fetch error: ${e.message}`);
+console.log(`\nDone: ${result.status}`);
+console.log(`URL : ${result.url}`);
+if (result.warnings?.length) {
+  console.log(`\nWarnings:`);
+  result.warnings.forEach((w) => console.log(`  - ${w}`));
 }

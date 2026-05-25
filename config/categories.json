@@ -83,6 +83,77 @@
           "enabled": true
         }
       ]
+    },
+    "husforbegyndere": {
+      "rootCategories": [
+        {
+          "name": "kaffemaskiner",
+          "label": "Kaffemaskiner",
+          "searchTerms": ["kaffemaskine", "kaffemaskiner", "espressomaskine", "kapselmaskine"],
+          "defaultCooldownDays": 45
+        },
+        {
+          "name": "robotstoevsugere",
+          "label": "Robotstøvsugere",
+          "searchTerms": ["robotstøvsuger", "robot støvsuger", "roborock", "roomba"],
+          "defaultCooldownDays": 60
+        },
+        {
+          "name": "havemaskiner",
+          "label": "Havemaskiner",
+          "searchTerms": ["plæneklipper", "hækkeklipper", "robotplæneklipper", "græsslåmaskine"],
+          "defaultCooldownDays": 60
+        },
+        {
+          "name": "grill",
+          "label": "Grill",
+          "searchTerms": ["gasgrill", "kulgrill", "grill tilbud", "weber grill"],
+          "defaultCooldownDays": 45
+        },
+        {
+          "name": "hojtryksrensere",
+          "label": "Højtryksrensere",
+          "searchTerms": ["højtryksrenser", "højtryksrenser test", "kärcher", "nilfisk"],
+          "defaultCooldownDays": 60
+        }
+      ],
+      "categories": [
+        {
+          "name": "Kaffemaskiner",
+          "slug": "kaffemaskiner",
+          "pricerunnerCategoryId": "82",
+          "cooldownDays": 45,
+          "enabled": true
+        },
+        {
+          "name": "Robotstøvsugere",
+          "slug": "robotstoevsugere",
+          "pricerunnerCategoryId": "1613",
+          "cooldownDays": 60,
+          "enabled": true
+        },
+        {
+          "name": "Havemaskiner",
+          "slug": "havemaskiner",
+          "pricerunnerCategoryId": "120",
+          "cooldownDays": 60,
+          "enabled": true
+        },
+        {
+          "name": "Grill",
+          "slug": "grill",
+          "pricerunnerCategoryId": "335",
+          "cooldownDays": 45,
+          "enabled": true
+        },
+        {
+          "name": "Højtryksrensere",
+          "slug": "hojtryksrensere",
+          "pricerunnerCategoryId": "638",
+          "cooldownDays": 60,
+          "enabled": true
+        }
+      ]
     }
   }
 }

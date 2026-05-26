@@ -4,6 +4,9 @@
   "description": "MCP-compatible content brief API for AI-assisted affiliate article generation",
   "type": "module",
   "main": "dist/server.js",
+  "bin": {
+    "trendly": "./dist/cli/index.js"
+  },
   "scripts": {
     "seed": "tsx scripts/seed.ts",
     "dev": "tsx watch src/server.ts",
@@ -13,6 +16,8 @@
     "clean": "rm -rf dist",
     "test": "vitest run",
     "test:watch": "vitest",
+    "cli": "tsx src/cli/index.ts",
+    "migrate": "tsx src/store/migrate-json-to-sqlite.ts",
     "smoke:pricerunner": "tsx scripts/test-pricerunner.ts",
     "smoke:server": "tsx scripts/smoke-server.ts",
     "preview": "tsx scripts/preview-server.ts",
@@ -25,11 +30,15 @@
     "@fastify/swagger": "^9.7.0",
     "@fastify/swagger-ui": "^5.2.6",
     "@modelcontextprotocol/sdk": "^1.29.0",
+    "@types/better-sqlite3": "^7.6.13",
     "axios": "^1.16.0",
+    "better-sqlite3": "^12.10.0",
+    "commander": "^14.0.3",
     "dotenv": "^17.4.2",
     "fastify": "^5.8.5",
     "fastify-type-provider-zod": "^6.1.0",
     "marked": "^18.0.3",
+    "openai": "^6.39.0",
     "uuid": "^14.0.0",
     "zod": "^4.4.3"
   },

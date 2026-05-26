@@ -1,5 +1,7 @@
-import type { ContentBrief, ValidationResult, Placement } from "../types/index.js";
+import type { ContentBrief, ValidationResult, Placement, AnchoredPlacement } from "../types/index.js";
+import type { ValidatorOutput, ValidatorError } from "../types/pipeline.js";
 import { getTypeRules } from "./article-type-config.js";
+import { insertAnchoredPlacements } from "./widget-inserter.js";
 
 // ─── MCP-facing rich validation ───────────────────────────────────────────────
 
@@ -99,6 +101,105 @@ export function validateArticleFull(
     wordCount,
     issues,
     scores: { seo: Math.max(0, seoScore), voice: Math.max(0, voiceScore), cro: Math.max(0, croScore) },
+  };
+}
+
+// ─── v2 Validator: structured errors + anchor resolution ─────────────────────
+
+/**
+ * Full hard-gate validation. Returns structured ValidatorOutput compatible with
+ * the v2 pipeline types. Called by publish-service before any WP publish.
+ */
+export function validateArticleV2(
+  article: string,
+  brief: ContentBrief,
+  placements: AnchoredPlacement[],
+  siteKey = "techblog"
+): ValidatorOutput {
+  const errors: ValidatorError[] = [];
+  const articleLower = article.toLowerCase();
+  const typeRules = getTypeRules(brief.articleType);
+
+  // Word count
+  const word_count = article.trim().split(/\s+/).filter(Boolean).length;
+  if (word_count < typeRules.minWords) {
+    errors.push({
+      code: "word_count_low",
+      message: `Word count ${word_count} below minimum ${typeRules.minWords} for type "${typeRules.articleType}"`,
+      severity: "error",
+    });
+  } else if (word_count > typeRules.maxWords) {
+    errors.push({
+      code: "word_count_high",
+      message: `Word count ${word_count} exceeds maximum ${typeRules.maxWords} for type "${typeRules.articleType}"`,
+      severity: "warning",
+    });
+  }
+
+  // Disclosure
+  const opening = article.slice(0, 300).toLowerCase();
+  const hasDisclosure = brief.compliance.disclosurePhrases.some((p) => opening.includes(p.toLowerCase()));
+  if (!hasDisclosure && brief.compliance.requireDisclosure) {
+    errors.push({
+      code: "disclosure_missing",
+      message: "Missing affiliate disclosure in opening 300 characters",
+      severity: "error",
+    });
+  }
+
+  // Forbidden superlatives
+  for (const term of brief.compliance.forbiddenSuperlatives) {
+    if (articleLower.includes(term.toLowerCase())) {
+      errors.push({
+        code: "superlative_found",
+        message: `Forbidden term found: "${term}"`,
+        severity: "error",
+      });
+    }
+  }
+
+  // Verdict
+  if (typeRules.requireVerdict && !/vores dom|konklusion|sammenfattende/i.test(article)) {
+    errors.push({
+      code: "verdict_missing",
+      message: "Missing 'Vores dom' verdict section",
+      severity: "error",
+    });
+  }
+
+  // Pros/Cons
+  if (typeRules.requireProsCons && !/fordele|ulemper|det vi kan lide|det vi ville ændre/i.test(article)) {
+    errors.push({
+      code: "pros_cons_missing",
+      message: `Missing pros/cons sections (required for type "${typeRules.articleType}")`,
+      severity: "error",
+    });
+  }
+
+  // Product coverage
+  for (const product of brief.products) {
+    const shortName = product.name.slice(0, 30).toLowerCase();
+    if (!articleLower.includes(shortName)) {
+      errors.push({
+        code: "product_missing",
+        message: `Product may be missing from article: "${product.name.slice(0, 40)}"`,
+        severity: "warning",
+      });
+    }
+  }
+
+  // Anchor resolution check
+  if (placements.length > 0) {
+    const { errors: anchorErrors } = insertAnchoredPlacements(article, brief, placements, siteKey);
+    for (const ae of anchorErrors) {
+      errors.push({ code: ae.code, message: ae.message, severity: "error" });
+    }
+  }
+
+  return {
+    passed: errors.filter((e) => e.severity === "error").length === 0,
+    errors,
+    word_count,
   };
 }
 

@@ -44,15 +44,31 @@ const DEFAULT_WRITING_RULES: WritingRules = {
   includeProsCons: true, includeVerdict: true,
 };
 
-const DEFAULT_COMPLIANCE: ComplianceRules = {
-  requireDisclosure: false,
-  disclosurePhrases: [
-    "indeholder affiliatelinks", "vi tjener kommission", "annonce", "reklame",
-  ],
-  forbiddenSuperlatives: [
-    "bedste på markedet", "billigst i danmark", "nr. 1 valg", "absolut bedst",
-  ],
-};
+function loadComplianceRules(): ComplianceRules {
+  try {
+    const configPath = join(__dirname, "../../config/compliance-rules.json");
+    const raw = readFileSync(configPath, "utf-8");
+    const config = JSON.parse(raw) as {
+      requireDisclosure: boolean;
+      disclosurePhrases: string[];
+      forbiddenSuperlatives: string[];
+    };
+    return {
+      requireDisclosure: config.requireDisclosure ?? true,
+      disclosurePhrases: config.disclosurePhrases ?? [],
+      forbiddenSuperlatives: config.forbiddenSuperlatives ?? [],
+    };
+  } catch {
+    console.warn("[brief-generator] Could not load compliance-rules.json — using defaults");
+    return {
+      requireDisclosure: true,
+      disclosurePhrases: ["indeholder affiliatelinks", "vi tjener kommission", "annonce", "reklame"],
+      forbiddenSuperlatives: ["bedste på markedet", "billigst i danmark", "nr. 1 valg", "absolut bedst"],
+    };
+  }
+}
+
+const DEFAULT_COMPLIANCE: ComplianceRules = loadComplianceRules();
 
 export type BriefError =
   | { error: "category_exhausted"; category: string }

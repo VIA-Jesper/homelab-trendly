@@ -11,10 +11,26 @@ export const GenerateRequestSchema = z.object({
   { message: "Either 'category' or 'productUrl' must be provided" }
 );
 
+// ─── Legacy Placement (paragraph-index based) - DEPRECATED ──────────────────
+/** @deprecated Use AnchoredPlacementSchema instead */
 export const PlacementSchema = z.object({
   type: z.enum(["image", "widget"]),
   productId: z.string(),
   after_paragraph: z.number().int().nonnegative(),
+});
+
+// ─── Anchored Placement (heading-anchor based) ───────────────────────────────
+export const PlacementAnchorSchema = z.object({
+  kind: z.enum(["after-heading", "before-heading", "end-of-section", "after-intro"]),
+  section: z.string().describe("Heading text to anchor to (exact match, slug match, or prefix)"),
+});
+
+export const AnchoredPlacementSchema = z.object({
+  type: z.enum(["image", "widget"]),
+  productId: z.string(),
+  anchor: PlacementAnchorSchema,
+  after_paragraph: z.number().int().nonnegative().optional()
+    .describe("DEPRECATED - only for migration compatibility"),
 });
 
 export const SeoPayloadSchema = z.object({
@@ -147,3 +163,6 @@ export type WritingRules = z.infer<typeof WritingRulesSchema>;
 export type ComplianceRules = z.infer<typeof ComplianceRulesSchema>;
 export type Placement = z.infer<typeof PlacementSchema>;
 export type SeoPayload = z.infer<typeof SeoPayloadSchema>;
+/** @deprecated Use AnchoredPlacement from pipeline.ts */
+export type PlacementAnchor = z.infer<typeof PlacementAnchorSchema>;
+export type AnchoredPlacement = z.infer<typeof AnchoredPlacementSchema>;

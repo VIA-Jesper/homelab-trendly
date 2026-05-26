@@ -36,6 +36,7 @@ interface CategoryEntry {
   pricerunnerCategoryId: string;
   cooldownDays: number;
   enabled: boolean;
+  afFilters?: Array<{ attributeId: string; valueId: string }>;
 }
 
 interface CategoriesConfig {
@@ -82,7 +83,7 @@ export async function buildBriefForCategory(
   // Fetch live products
   const siteConfig = SITE_CONFIGS[siteKey];
   const country = siteConfig?.pricerunnerCountry ?? "DK";
-  const afFilters = (cat as Record<string, unknown>).afFilters as Array<{ attributeId: string; valueId: string }> | undefined;
+  const afFilters = cat.afFilters;
   const allProducts = await fetchProductsByCategoryId(cat.pricerunnerCategoryId, country, 30, afFilters);
 
   // Filter already-used product IDs
@@ -155,7 +156,7 @@ export async function pickNextCategory(siteKey = "techblog"): Promise<BriefBuild
   for (const cat of siteCategories) {
     if (wasPublishedRecently(siteKey, cat.slug, cat.cooldownDays)) continue;
     try {
-      const afFilters = (cat as Record<string, unknown>).afFilters as Array<{ attributeId: string; valueId: string }> | undefined;
+      const afFilters = cat.afFilters;
       const all = await fetchProductsByCategoryId(cat.pricerunnerCategoryId, country, 30, afFilters);
       const usedIds = getUsedProductIds(siteKey);
       const fresh = all.filter((p) => !usedIds.includes(p.id));

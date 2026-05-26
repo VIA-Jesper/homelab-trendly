@@ -1,6 +1,151 @@
 import { randomUUID } from "crypto";
-import type { ContentBrief, Placement } from "../types/index.js";
+import type { ContentBrief, Placement, AnchoredPlacement } from "../types/index.js";
 import { SITE_CONFIGS } from "../config/sites.js";
+
+// ─── Heading anchor resolver ──────────────────────────────────────────────────
+
+/** Slugify: lowercase, transliterate Danish, strip punctuation */
+function toSlug(s: string): string {
+  return s
+    .toLowerCase()
+    .replace(/æ/g, "ae").replace(/ø/g, "oe").replace(/å/g, "aa")
+    .replace(/[^a-z0-9\s]/g, "")
+    .trim()
+    .replace(/\s+/g, "-");
+}
+
+/**
+ * Parse all headings from a Markdown article.
+ * Returns array of { text, lineIndex } where lineIndex is the line number (0-based).
+ */
+function parseHeadings(article: string): Array<{ text: string; lineIndex: number }> {
+  const lines = article.split(/\r?\n/);
+  const headings: Array<{ text: string; lineIndex: number }> = [];
+  for (let i = 0; i < lines.length; i++) {
+    const m = lines[i].match(/^#{1,6}\s+(.+)$/);
+    if (m) headings.push({ text: m[1].trim(), lineIndex: i });
+  }
+  return headings;
+}
+
+/**
+ * Find the line index of the heading matching the anchor section.
+ * Strategy: exact match -> slug match -> startsWith (slug).
+ * Returns -1 if not found.
+ */
+function resolveHeadingLineIndex(headings: Array<{ text: string; lineIndex: number }>, section: string): number {
+  const targetSlug = toSlug(section);
+  // 1. Exact match
+  let found = headings.find((h) => h.text === section);
+  if (found) return found.lineIndex;
+  // 2. Slug match
+  found = headings.find((h) => toSlug(h.text) === targetSlug);
+  if (found) return found.lineIndex;
+  // 3. StartsWith slug match
+  found = headings.find((h) => toSlug(h.text).startsWith(targetSlug));
+  if (found) return found.lineIndex;
+  return -1;
+}
+
+export interface InsertResult {
+  html: string;
+  errors: Array<{ code: string; message: string }>;
+}
+
+/**
+ * Inserts image/widget HTML blocks anchored to headings.
+ * This is the v2 placement engine - replaces paragraph-index based insertPlacements.
+ */
+export function insertAnchoredPlacements(
+  article: string,
+  brief: ContentBrief,
+  placements: AnchoredPlacement[],
+  siteKey: string
+): InsertResult {
+  const errors: Array<{ code: string; message: string }> = [];
+
+  if (placements.length === 0) {
+    return { html: article, errors };
+  }
+
+  const lines = article.split(/\r?\n/);
+  const headings = parseHeadings(article);
+
+  // Collect insertion instructions (line index, html to insert after)
+  type Insertion = { afterLine: number; html: string };
+  const insertions: Insertion[] = [];
+
+  const totalWidgets = placements.filter((p) => p.type === "widget").length;
+  let widgetCount = 0;
+
+  for (const placement of placements) {
+    let insertAfterLine: number;
+
+    if (placement.anchor.kind === "after-intro") {
+      // Insert after the first blank line following the first heading
+      const firstHeading = headings[0];
+      if (!firstHeading) {
+        errors.push({ code: "anchor_unresolved", message: `No heading found for after-intro placement of "${placement.productId}"` });
+        continue;
+      }
+      // Find next non-empty content after the heading
+      insertAfterLine = firstHeading.lineIndex + 1;
+      while (insertAfterLine < lines.length && lines[insertAfterLine].trim() === "") insertAfterLine++;
+
+    } else if (placement.anchor.kind === "end-of-section") {
+      const headingLineIdx = resolveHeadingLineIndex(headings, placement.anchor.section);
+      if (headingLineIdx === -1) {
+        errors.push({ code: "anchor_unresolved", message: `Heading not found for end-of-section: "${placement.anchor.section}" (product: ${placement.productId})` });
+        continue;
+      }
+      // Find next heading after this one, insert before it
+      const nextHeadingIdx = headings.findIndex((h) => h.lineIndex > headingLineIdx);
+      insertAfterLine = nextHeadingIdx === -1
+        ? lines.length - 1
+        : headings[nextHeadingIdx].lineIndex - 1;
+
+    } else if (placement.anchor.kind === "after-heading") {
+      const headingLineIdx = resolveHeadingLineIndex(headings, placement.anchor.section);
+      if (headingLineIdx === -1) {
+        errors.push({ code: "anchor_unresolved", message: `Heading not found for after-heading: "${placement.anchor.section}" (product: ${placement.productId})` });
+        continue;
+      }
+      insertAfterLine = headingLineIdx;
+
+    } else if (placement.anchor.kind === "before-heading") {
+      const headingLineIdx = resolveHeadingLineIndex(headings, placement.anchor.section);
+      if (headingLineIdx === -1) {
+        errors.push({ code: "anchor_unresolved", message: `Heading not found for before-heading: "${placement.anchor.section}" (product: ${placement.productId})` });
+        continue;
+      }
+      insertAfterLine = Math.max(0, headingLineIdx - 1);
+
+    } else {
+      errors.push({ code: "anchor_unresolved", message: `Unknown anchor kind: "${(placement as AnchoredPlacement).anchor.kind}"` });
+      continue;
+    }
+
+    let html: string;
+    if (placement.type === "image") {
+      html = renderImage(placement.productId, brief);
+    } else {
+      const variant: WidgetVariant = widgetCount % 2 === 0 ? "singleproduct" : "product";
+      html = renderWidget(placement.productId, brief, siteKey, variant);
+      widgetCount++;
+    }
+
+    if (html) insertions.push({ afterLine: insertAfterLine, html });
+  }
+
+  // Apply insertions in descending line order to preserve indices
+  insertions.sort((a, b) => b.afterLine - a.afterLine);
+  for (const { afterLine, html } of insertions) {
+    lines.splice(afterLine + 1, 0, html);
+  }
+
+  return { html: lines.join("\n"), errors };
+}
+
 
 type WidgetVariant = "singleproduct" | "product";
 

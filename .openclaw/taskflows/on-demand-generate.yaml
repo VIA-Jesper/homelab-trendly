@@ -1,0 +1,101 @@
+name: on-demand-generate
+description: Generate and publish a single affiliate article for a given site
+version: "2.0"
+
+# Trigger: manual (via `trendly generate` CLI or directly in agent session)
+# Required inputs: site (e.g. techblog, husforbegyndere)
+# Optional inputs: category, product_url, publish (true/false)
+
+steps:
+  - id: get_brief
+    description: Find best category gap and generate content brief
+    tool: get_brief
+    input:
+      site: "{{inputs.site}}"
+      category: "{{inputs.category | default: null}}"
+      productUrl: "{{inputs.product_url | default: null}}"
+    output: brief_result
+    on_error: abort
+
+  - id: generate_article
+    description: Write the Danish affiliate article from the brief
+    subagent: article-generator
+    input:
+      run_id: "{{brief_result.run_id}}"
+      brief: "{{brief_result.brief}}"
+      writingInstructions: "{{brief_result.writingInstructions}}"
+    output: article_result
+    on_error: abort
+
+  - id: parse_placements
+    description: Extract placement anchors from article output (<!-- placements --> block)
+    inline: |
+      Extract the JSON array inside <!-- placements ... --> from article_result.article.
+      If not present, return an empty array [].
+    output: placements
+    on_error: continue_with_default
+    default: []
+
+  - id: validate
+    description: Hard-gate validation - must pass before review or publish
+    tool: validate_article
+    input:
+      run_id: "{{brief_result.run_id}}"
+      article: "{{article_result.article}}"
+      placements: "{{placements}}"
+    output: validation_result
+    on_error: abort
+
+  - id: check_validation
+    description: Abort if validation failed - agent must fix before proceeding
+    condition: "{{validation_result.passed == false}}"
+    action: |
+      The article failed validation. Fix ALL errors listed in validation_result.errors
+      where severity == "error" before continuing. Do NOT publish a failed article.
+      Errors: {{validation_result.errors}}
+    on_match: pause_for_human
+
+  - id: review
+    description: Self-review from SEO, CRO, and voice angles
+    subagent: article-reviewer
+    input:
+      article: "{{article_result.article}}"
+      brief: "{{brief_result.brief}}"
+      validation: "{{validation_result}}"
+    output: review_result
+    on_error: continue
+
+  - id: check_review
+    description: If review score < 7 or blockers exist, revise before publishing
+    condition: "{{review_result.ready_to_publish == false}}"
+    action: |
+      The article needs revision before publishing.
+      Critical blockers: {{review_result.critical_blockers}}
+      SEO issues: {{review_result.seo.issues}}
+      CRO issues: {{review_result.cro.issues}}
+      Voice issues: {{review_result.voice.issues}}
+
+      Apply surgical fixes (do NOT rewrite from scratch). Then re-run validate + review.
+    on_match: loop_to_step
+    loop_target: generate_article
+    max_loops: 2
+
+  - id: publish
+    description: Publish to WordPress (draft by default, live if inputs.publish == true)
+    tool: publish_article
+    input:
+      run_id: "{{brief_result.run_id}}"
+      article: "{{article_result.article}}"
+      site: "{{inputs.site}}"
+      status: "{{inputs.publish == true ? 'publish' : 'draft'}}"
+      placements: "{{placements}}"
+    output: publish_result
+    on_error: abort
+
+  - id: done
+    description: Report completion
+    inline: |
+      Article published successfully.
+      Status: {{publish_result.status}}
+      URL: {{publish_result.wp_url | default: '(draft - not yet live)'}}
+      Run ID: {{brief_result.run_id}}

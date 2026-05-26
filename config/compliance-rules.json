@@ -1,0 +1,17 @@
+{
+  "requireDisclosure": true,
+  "disclosurePhrases": [
+    "indeholder affiliatelinks",
+    "vi tjener kommission",
+    "annonce",
+    "reklame"
+  ],
+  "forbiddenSuperlatives": [
+    "bedste på markedet",
+    "bedste pa markedet",
+    "billigst i danmark",
+    "nr. 1 valg",
+    "absolut bedst"
+  ],
+  "disclosureCheckRange": 300
+}

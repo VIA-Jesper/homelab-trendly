@@ -6,14 +6,13 @@ import { resolve, dirname } from "path";
 import { fileURLToPath } from "url";
 import { v4 as uuidv4 } from "uuid";
 import { z } from "zod";
-import { jobStore } from "../store/job-store.js";
+import { createRun, getRun, setBrief } from "../services/article-store.js";
 import { generateBriefAsync } from "../services/brief-generator.js";
-import { publishToWordPress } from "../services/wp-publisher.js";
-import { logPublished } from "../services/duplicate-guard.js";
-import { validateArticleFull } from "../services/validator.js";
+import { publish } from "../services/publish-service.js";
+import { validateArticleV2 } from "../services/validator.js";
 import { discoverBestCategory } from "../services/category-discoverer.js";
-import { PlacementSchema, SeoPayloadSchema } from "../types/index.js";
-import type { Job } from "../types/index.js";
+import { AnchoredPlacementSchema, SeoPayloadSchema } from "../types/index.js";
+import type { ContentBrief, AnchoredPlacement } from "../types/index.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -37,7 +36,7 @@ const MCP_PORT = Number(process.env["MCP_PORT"] ?? 3001);
 export async function startMcpServer(): Promise<void> {
   const server = new McpServer({
     name: "trendly",
-    version: "1.0.0",
+    version: "2.0.0",
   });
 
   // ─── Tool: get_brief ─────────────────────────────────────────────────────
@@ -76,21 +75,14 @@ export async function startMcpServer(): Promise<void> {
         };
       }
 
-      const jobId = uuidv4();
-      const job: Job = {
-        job_id: jobId,
-        status: "briefed",
-        brief: result,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      };
-      jobStore.set(job);
+      const runId = createRun(site, "mcp");
+      setBrief(runId, result);
 
       const writingInstructions = loadWritingInstructions(result.articleType);
       return {
         content: [{
           type: "text" as const,
-          text: JSON.stringify({ job_id: jobId, brief: result, writingInstructions }),
+          text: JSON.stringify({ run_id: runId, brief: result, writingInstructions }),
         }],
       };
     }
@@ -101,46 +93,42 @@ export async function startMcpServer(): Promise<void> {
     "publish_article",
     "Publish a Markdown article to WordPress. Injects widgets/images at specified placements, converts Markdown to HTML, adds affiliate links, and posts to WP.",
     {
-      job_id: z.string().describe("The job_id returned by get_brief"),
+      run_id: z.number().int().describe("The run_id returned by get_brief"),
       article: z.string().describe("Article content in Markdown"),
       site: z.string().describe("Site key, e.g. 'techblog'"),
-      status: z.enum(["publish", "draft"]).describe("Whether to publish or save as draft"),
-      placements: z.array(PlacementSchema).default([]).describe("Where to inject images/widgets"),
+      status: z.enum(["publish", "draft"]).default("draft").describe("Whether to publish or save as draft"),
+      placements: z.array(AnchoredPlacementSchema).default([]).describe("Where to inject images/widgets"),
       seo: SeoPayloadSchema.optional().describe("SEO metadata for RankMath"),
     },
-    async ({ job_id, article, site, status, placements, seo }) => {
-      const job = jobStore.get(job_id);
-      if (!job?.brief) {
+    async ({ run_id, article, site, status, placements, seo }) => {
+      const run = getRun(run_id);
+      const brief: ContentBrief | null = run?.brief_json ? JSON.parse(run.brief_json) : null;
+      if (!brief) {
         return {
-          content: [{ type: "text" as const, text: JSON.stringify({ error: "job_not_found", job_id }) }],
+          content: [{ type: "text" as const, text: JSON.stringify({ error: "run_not_found", run_id }) }],
           isError: true,
         };
       }
 
       try {
-        const result = await publishToWordPress({
-          jobId: job_id,
+        const result = await publish({
+          runId: run_id,
           article,
-          brief: job.brief,
+          brief,
           siteKey: site,
-          status,
-          placements,
+          placements: placements as AnchoredPlacement[],
           seo,
+          status,
         });
-        if (status === "publish") {
-          logPublished(
-            site,
-            job.brief.category,
-            seo?.slug ?? job.brief.category,
-            seo?.focus_keyword ?? "",
-            job.brief.products.map((p) => p.id)
-          );
+        if (result.status === "rejected") {
+          return {
+            content: [{ type: "text" as const, text: JSON.stringify(result) }],
+            isError: true,
+          };
         }
-        jobStore.update(job_id, { status: "published" });
         return { content: [{ type: "text" as const, text: JSON.stringify(result) }] };
       } catch (err: unknown) {
         const msg = err instanceof Error ? err.message : String(err);
-        jobStore.update(job_id, { status: "failed" });
         return {
           content: [{ type: "text" as const, text: JSON.stringify({ error: msg }) }],
           isError: true,
@@ -154,19 +142,20 @@ export async function startMcpServer(): Promise<void> {
     "validate_article",
     "Validate a Markdown article against its brief before publishing. Returns pass/fail, word count, scores, and specific issues to fix.",
     {
-      job_id: z.string().describe("job_id from get_brief"),
+      run_id: z.number().int().describe("run_id from get_brief"),
       article: z.string().describe("Article content in Markdown"),
-      placements: z.array(PlacementSchema).default([]).describe("Planned widget/image placements"),
+      placements: z.array(AnchoredPlacementSchema).default([]).describe("Planned widget/image placements"),
     },
-    async ({ job_id, article, placements }) => {
-      const job = jobStore.get(job_id);
-      if (!job?.brief) {
+    async ({ run_id, article, placements }) => {
+      const run = getRun(run_id);
+      const brief: ContentBrief | null = run?.brief_json ? JSON.parse(run.brief_json) : null;
+      if (!run || !brief) {
         return {
-          content: [{ type: "text" as const, text: JSON.stringify({ error: "job_not_found", job_id }) }],
+          content: [{ type: "text" as const, text: JSON.stringify({ error: "run_not_found", run_id }) }],
           isError: true,
         };
       }
-      const result = validateArticleFull(article, job.brief, placements);
+      const result = validateArticleV2(article, brief, placements as AnchoredPlacement[], run.site_key);
       return { content: [{ type: "text" as const, text: JSON.stringify(result) }] };
     }
   );

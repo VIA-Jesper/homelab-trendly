@@ -1,69 +1,51 @@
-import { readFileSync, writeFileSync, existsSync, mkdirSync, renameSync } from "fs";
-import { join, dirname } from "path";
-import { fileURLToPath } from "url";
+import { getDb } from "../store/sqlite.js";
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
-const DATA_DIR = join(__dirname, "../../data");
-const REGISTRY_PATH = join(DATA_DIR, "content-registry.json");
-const REGISTRY_TMP_PATH = join(DATA_DIR, "content-registry.tmp.json");
-
-type Registry = Record<string, string[]>;
-
-let _cache: Registry | null = null;
-
-function loadRegistry(): Registry {
-  if (_cache) return _cache;
-  if (!existsSync(REGISTRY_PATH)) {
-    _cache = {};
-    return _cache;
-  }
-  try {
-    const raw = readFileSync(REGISTRY_PATH, "utf-8");
-    _cache = JSON.parse(raw) as Registry;
-    return _cache;
-  } catch {
-    console.warn("[content-registry] Failed to parse registry — treating as empty");
-    _cache = {};
-    return _cache;
-  }
-}
-
-function saveRegistry(registry: Registry): void {
-  mkdirSync(DATA_DIR, { recursive: true });
-  // Atomic write: write to temp file first, then rename
-  writeFileSync(REGISTRY_TMP_PATH, JSON.stringify(registry, null, 2), "utf-8");
-  renameSync(REGISTRY_TMP_PATH, REGISTRY_PATH);
-}
+// ─── content-registry v2: backed by SQLite published_products table ───────────
+// Public API is unchanged from v1 so callers don't need updating.
 
 /** Returns true if the product ID has already been published on the given site */
 export function isProductUsed(siteKey: string, productId: string): boolean {
-  const registry = loadRegistry();
-  return (registry[siteKey] ?? []).includes(productId);
+  const db = getDb();
+  const row = db.prepare(
+    "SELECT 1 FROM published_products WHERE site_key = ? AND product_id = ?"
+  ).get(siteKey, productId);
+  return row !== undefined;
 }
 
 /** Returns all used product IDs for a site */
 export function getUsedProductIds(siteKey: string): string[] {
-  const registry = loadRegistry();
-  return registry[siteKey] ?? [];
+  const db = getDb();
+  const rows = db.prepare(
+    "SELECT product_id FROM published_products WHERE site_key = ?"
+  ).all(siteKey) as Array<{ product_id: string }>;
+  return rows.map((r) => r.product_id);
 }
 
 /**
  * Registers product IDs as published for a site.
  * Only call this when an article is actually published (not drafted).
+ * run_id is optional - 0 used as sentinel when called from legacy code without a run.
  */
-export function registerProducts(siteKey: string, productIds: string[]): void {
-  const registry = loadRegistry();
-  const existing = registry[siteKey] ?? [];
-  const toAdd = productIds.filter((id) => !existing.includes(id));
-  if (toAdd.length === 0) return;
-  registry[siteKey] = [...existing, ...toAdd];
-  _cache = registry;
-  saveRegistry(registry);
-  console.log(`[content-registry] Registered ${toAdd.length} products for site "${siteKey}"`);
+export function registerProducts(siteKey: string, productIds: string[], runId = 0): void {
+  const db = getDb();
+  const insert = db.prepare(
+    "INSERT OR IGNORE INTO published_products (site_key, product_id, run_id) VALUES (?, ?, ?)"
+  );
+  const insertMany = db.transaction((ids: string[]) => {
+    let count = 0;
+    for (const id of ids) {
+      const result = insert.run(siteKey, id, runId);
+      count += result.changes;
+    }
+    return count;
+  });
+  const added = insertMany(productIds);
+  if (added > 0) {
+    console.log(`[content-registry] Registered ${added} products for site "${siteKey}"`);
+  }
 }
 
-/** Invalidates in-memory cache (useful in tests) */
+/** No-op in v2 (SQLite has no in-memory cache to invalidate). Kept for test compatibility. */
 export function resetCache(): void {
-  _cache = null;
+  // no-op: SQLite doesn't use a file cache
 }

@@ -1,80 +1,250 @@
-# Danish Affiliate Content Pipeline
+# Trendly v2
 
-Automated pipeline for generating, reviewing, and publishing Danish affiliate articles from PriceRunner product data. Uses a multi-agent architecture (Generator + parallel Reviewers + Critiquer) to produce SEO- and CRO-optimized article JSON, validated before publishing to WordPress.
+Agentic affiliate article pipeline for Danish WordPress sites. Finds content gaps via PriceRunner, generates briefs, writes articles through an AI agent, validates compliance, and publishes to WordPress.
 
-## Documentation
+The agent (Augment/Claude) drives everything via CLI commands. Hard compliance gates run server-side on every `validate` and `publish` call and cannot be bypassed.
 
-| Document | What it covers |
-|---|---|
-| [`ARCHITECTURE.md`](ARCHITECTURE.md) | **Start here.** System map, all architectural decisions (ADRs), known issues, env vars |
-| [`.agents/flows/article-pipeline/FLOW.md`](.agents/flows/article-pipeline/FLOW.md) | End-to-end pipeline flow — phases, agent models, orchestration rules, rollback |
-| [`WIDGET-SYSTEM-REFERENCE.md`](WIDGET-SYSTEM-REFERENCE.md) | PriceRunner widget embed system, affiliate link insertion, placement algorithm |
-| [`PRICERUNNER-SCRAPER-REFERENCE.md`](PRICERUNNER-SCRAPER-REFERENCE.md) | PriceRunner API client, product data shape, category traversal |
-| [`docs/llm-optimization.md`](docs/llm-optimization.md) | Planned: llms.txt, Schema.org, EEAT signals, AI crawler config |
+## Supported sites
 
-## Quick start
+| Key | Description |
+|-----|-------------|
+| `techblog` | Danish tech reviews (laptops, phones, headphones, TVs) |
+| `husforbegyndere` | Danish home/garden (coffee machines, robot vacuums, grills) |
 
-```powershell
-# Install dependencies
+---
+
+## Setup
+
+### Prerequisites
+
+- Node.js 20+
+- A WordPress site with REST API enabled (one per site)
+- PriceRunner affiliate partner ID (one per site)
+
+### 1. Install dependencies
+
+```bash
 npm install
-
-# Preview an existing article
-npx tsx scripts/preview-server.ts
-# → http://localhost:3030/?slug=robotstovsugere-sample
-
-# Validate an article
-npx tsx scripts/validate-article.ts prompts/article-robotstovsugere-sample.json prompts/brief-robotstovsugere-sample.json
-
-# Run the full pipeline (requires auggie CLI)
-# See .agents/flows/article-pipeline/FLOW.md for orchestration steps
 ```
 
-## MCP connection
+### 2. Configure environment
 
-The MCP server runs on port 3001 using the Streamable HTTP transport.
+```bash
+cp .env.example .env
+```
 
-**Endpoint:** `POST http://<host>:3001/mcp`
-**Transport:** `streamable-http`
-**Client config:** see `mcp.json` at repo root
+Edit `.env` with your credentials:
 
-### Connection sequence
+```env
+# techblog
+WP_TECHBLOG_USER=your-wp-username
+WP_TECHBLOG_APP_PASSWORD=xxxx xxxx xxxx xxxx xxxx xxxx
+WP_TECHBLOG_BASE_URL=https://your-techblog.dk
+PR_TECHBLOG_PARTNER_ID=your-pricerunner-partner-id
 
-1. POST `initialize` to `/mcp` - capture `Mcp-Session-Id` from response header
-2. Include `Mcp-Session-Id: <id>` in all subsequent requests
-3. Call tools using `tools/call` method
+# husforbegyndere
+WP_HUS_USER=your-wp-username
+WP_HUS_PASS=xxxx xxxx xxxx xxxx xxxx xxxx
+WP_HUS_URL=https://husforbegyndere.dk
+PR_HUS_PARTNER_ID=your-pricerunner-partner-id
+```
 
-### Available tools
+**WordPress Application Password:** WP Admin - Users - Your Profile - Application Passwords. Create one named "Trendly". Copy the value (spaces and all).
 
-| Tool | Description |
-|------|-------------|
-| `get_brief` | Fetches PriceRunner products and returns a brief + writing instructions + `job_id` |
-| `validate_article` | Validates a Markdown article against its brief. Returns pass/fail, scores, issues |
-| `publish_article` | Converts article to HTML, inserts affiliate widgets, publishes to WordPress |
+### 3. Run setup check
 
-### Hosted deployment
+```bash
+npm run cli -- setup
+```
 
-Replace `localhost` with your service hostname. A `/health` endpoint is available on port 3000 for readiness probes.
+Validates env vars, creates `data/trendly.db` (SQLite), and tests WP connectivity for each site.
 
-## Environment variables
+### 4. Optional: install CLI globally
 
-See [`ARCHITECTURE.md`](ARCHITECTURE.md#environment-variables) for the full list. Minimum for local dev: none required (widgets fall back to Tailwind cards, WP publishing is disabled).
+```bash
+npm link
+trendly setup   # now works without npm run cli --
+```
+
+Without `npm link`, prefix all commands with `npm run cli --`:
+
+```bash
+npm run cli -- generate --site techblog
+```
+
+### Upgrading from v1
+
+If you have `data/content-registry.json` or `data/published-log.json` from v1:
+
+```bash
+npm run migrate
+```
+
+Imports the data into SQLite and renames the old files to `.legacy`.
+
+---
+
+## Usage
+
+### CLI quick reference
+
+```
+trendly setup                                        check env + DB + WP connectivity
+trendly generate --site <site>                       find content gap, create brief + run_id
+trendly generate --site <site> --category <slug>     force a specific category
+trendly validate --run <id> --article <file>         run compliance check against brief
+trendly publish  --run <id> --article <file>         save as WordPress draft
+trendly publish  --run <id> --article <file> --live  publish live immediately
+trendly runs                                         list recent runs
+trendly runs --site techblog --status published      filter by site or status
+trendly runs show <id>                               full run details + validation result
+```
+
+Add `--json` to any command for machine-readable output.
+
+### Manual workflow (step by step)
+
+**Step 1 - Find a content gap and get a brief**
+
+```bash
+trendly generate --site techblog
+```
+
+The CLI picks the category with the most fresh (unpublished) products that is not in cooldown. It prints a brief and a **Run ID** - save the Run ID, you need it for every subsequent step.
+
+To force a specific category:
+
+```bash
+trendly generate --site techblog --category laptops
+```
+
+**Step 2 - Write the article**
+
+Use the brief output to write the article. Follow these rules - they are enforced on publish:
+
+- Include affiliate disclosure in the opening paragraph (within first 300 characters)
+  - Example: *"Denne artikel indeholder affiliatelinks - vi tjener kommission uden ekstra omkostninger for dig."*
+- Do not use forbidden superlatives: `bedste på markedet`, `nr. 1 valg`, `billigst i Danmark`, `absolut bedst`
+- Cover every product listed in the brief
+- Stay within the word count range in the brief (`writing_rules.minWords` - `writing_rules.maxWords`)
+
+Save the article as a `.md` file (e.g. `articles/<run_id>.md`).
+
+**Step 3 - Validate**
+
+```bash
+trendly validate --run <id> --article articles/<run_id>.md
+```
+
+Fix all `[ERROR]` items before publishing. `[WARN]` items are optional.
+
+```
+Validation: PASSED
+Word count: 1043
+No issues found. Ready to publish.
+```
+
+```
+Validation: FAILED
+Errors (2) - must fix before publishing:
+  [ERROR] disclosure_missing: Missing affiliate disclosure in opening 300 characters
+  [ERROR] superlative_found: Forbidden term found: "bedste på markedet"
+```
+
+**Step 4 - Publish**
+
+```bash
+# Save as draft (default - review in WP admin before going live)
+trendly publish --run <id> --article articles/<run_id>.md
+
+# Publish live immediately
+trendly publish --run <id> --article articles/<run_id>.md --live
+```
+
+Always default to draft. Only use `--live` after reviewing the draft in WordPress.
+
+---
+
+## Agent workflow
+
+With Augment or Claude, simply ask:
+
+> "Generate an article for techblog"
+
+The agent activates the `trendly-generate` skill and runs the full pipeline automatically:
+
+1. Runs `trendly generate` to find the best gap and get a brief
+2. Writes the article using the `article-generator` subagent prompt
+3. Saves the article and runs `trendly validate`
+4. Self-reviews (SEO, CRO, voice) using the `article-reviewer` subagent
+5. Fixes any blockers and re-validates (max 2 cycles)
+6. Publishes as WordPress draft with `trendly publish`
+
+To go live, confirm explicitly after reviewing the draft in WordPress admin.
+
+**Available skills** (in `.openclaw/skills/`):
+
+| Skill | Trigger |
+|-------|---------|
+| `trendly-generate` | "generate an article for techblog" |
+| `trendly-find-gap` | "what should I write next", "find a gap" |
+| `trendly-publish` | "publish the article", "validate the article" |
+| `trendly-runs` | "show runs", "what was published", "run history" |
+| `trendly-setup` | "check setup", "test WP connection" |
+
+---
+
+## Compliance gates
+
+These checks run on every `validate` and `publish` call. They cannot be skipped.
+
+| Gate | Rule |
+|------|------|
+| `disclosure_missing` | Affiliate disclosure must appear in the first 300 characters |
+| `superlative_found` | Forbidden phrases: `bedste på markedet`, `nr. 1 valg`, `billigst i Danmark`, `absolut bedst` |
+| `word_count_low` | Article must meet the minimum word count for its type |
+| `anchor_unresolved` | Every widget placement anchor must match an actual heading in the article |
+
+Rules are configured in `config/compliance-rules.json`.
+
+---
+
+## Troubleshooting
+
+| Error | Cause | Fix |
+|-------|-------|-----|
+| `category_exhausted` | All products in category already published | Choose a different category or wait for cooldown |
+| `all_categories_exhausted` | Every category is exhausted or in cooldown | Add categories to `config/categories.json` |
+| `disclosure_missing` | No affiliate disclosure in opening | Add disclosure phrase to first paragraph |
+| `superlative_found` | Forbidden phrase used | Remove or rephrase |
+| `anchor_unresolved` | Widget placement anchor heading not found | Use exact heading text from the article |
+| `run_not_found` | Wrong run ID | Check with `trendly runs` |
+| `WP 401` | Wrong credentials | Check app password in `.env` |
+| `WP 404` | Wrong base URL | Check `WP_*_BASE_URL` in `.env` |
+
+---
 
 ## Project layout
 
 ```
-config/               Per-type article rules (word counts, CRO weights, AI-tells)
-docs/                 Implementation notes and planned work
-prompts/
-  agents/             System prompts for Generator, Reviewers, Critiquer
-  agents/generator-types/  Per-type writing instructions (one file per article type)
-  article-*.json      Generated article output (dev/test)
-  brief-*.json        Content briefs (input to generator)
-runs/                 Per-run logs for retrospective analysis
-scripts/              CLI tools: validate, preview, seed, smoke test
+.openclaw/
+  skills/             Agent skill definitions (one per workflow step)
+  subagents/          Article generator and reviewer prompts
+  taskflows/          Automated YAML pipelines (on-demand + daily cron)
+config/
+  categories.json     PriceRunner category mappings per site
+  compliance-rules.json  Disclosure phrases and forbidden terms
+  article-types.json  Word counts and CRO weights per article type
+data/
+  trendly.db          SQLite: runs, published products, category cooldowns
+docs/
+  INSTALL.md          Detailed installation steps
+  USAGE.md            CLI reference and workflow details
+prompts/agents/       Writing instructions per article type
 src/
-  config/             Site configs (WP credentials, partner IDs via env vars)
+  cli/                CLI commands: generate, validate, publish, runs, setup
+  services/           Core logic: brief, validation, publish gate, widgets
+  store/              SQLite wrapper + migrations
   scraper/            PriceRunner API client
-  services/           Core logic: brief-builder, widget-inserter, affiliate-linker, validator
-  types/              Zod schemas — single source of truth for all data shapes
-.agents/flows/        Agent orchestration flows (FLOW.md)
+  types/              Zod schemas - single source of truth
 ```

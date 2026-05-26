@@ -1,0 +1,38 @@
+name: daily-autonomous-run
+description: Autonomous daily article generation for all configured sites
+version: "2.0"
+
+# Trigger: cron (e.g. 0 8 * * 1-5) or manual
+# Runs once per site, picks the best category gap automatically
+
+steps:
+  - id: generate_techblog
+    description: Generate article for techblog
+    taskflow: on-demand-generate
+    input:
+      site: techblog
+      publish: true
+    output: techblog_result
+    on_error: continue
+
+  - id: generate_husforbegyndere
+    description: Generate article for husforbegyndere
+    taskflow: on-demand-generate
+    input:
+      site: husforbegyndere
+      publish: true
+    output: hus_result
+    on_error: continue
+
+  - id: summary
+    description: Daily run summary
+    inline: |
+      Daily run complete.
+
+      techblog:
+        Status: {{techblog_result.publish_result.status | default: 'error'}}
+        URL:    {{techblog_result.publish_result.wp_url | default: 'n/a'}}
+
+      husforbegyndere:
+        Status: {{hus_result.publish_result.status | default: 'error'}}
+        URL:    {{hus_result.publish_result.wp_url | default: 'n/a'}}

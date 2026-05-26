@@ -1,7 +1,7 @@
 import axios from "axios";
-import type { ContentBrief, PublishResult, SeoPayload, Placement } from "../types/index.js";
+import type { ContentBrief, PublishResult, SeoPayload, Placement, AnchoredPlacement } from "../types/index.js";
 import { SITE_CONFIGS } from "../config/sites.js";
-import { insertPlacements } from "./widget-inserter.js";
+import { insertPlacements, insertAnchoredPlacements } from "./widget-inserter.js";
 import { convertMarkdownToHtml, extractH1, insertAffiliateLinks } from "./affiliate-linker.js";
 import { registerProducts } from "./content-registry.js";
 import { withBackoff } from "../scraper/pricerunner-client.js";
@@ -33,13 +33,15 @@ export interface PublishOptions {
   brief: ContentBrief;
   siteKey: string;
   status: "publish" | "draft";
-  placements: Placement[];
+  /** @deprecated Use anchoredPlacements. Kept for backward compat. */
+  placements?: Placement[];
+  anchoredPlacements?: AnchoredPlacement[];
   seo?: SeoPayload;
 }
 
 // ─── Main publisher ───────────────────────────────────────────────────────────
 export async function publishToWordPress(options: PublishOptions): Promise<PublishResult> {
-  const { jobId, article, brief, siteKey, status, placements, seo } = options;
+  const { jobId, article, brief, siteKey, status, placements, anchoredPlacements, seo } = options;
   const siteConfig = SITE_CONFIGS[siteKey];
   if (!siteConfig) throw new Error(`Unknown site key: ${siteKey}`);
 
@@ -49,7 +51,14 @@ export async function publishToWordPress(options: PublishOptions): Promise<Publi
   }
 
   // 1. Inject agent-directed placements into Markdown
-  const articleWithPlacements = insertPlacements(article, brief, placements, siteKey);
+  // v2: prefer anchored placements; fall back to legacy paragraph-index placements
+  let articleWithPlacements: string;
+  if (anchoredPlacements && anchoredPlacements.length > 0) {
+    const { html } = insertAnchoredPlacements(article, brief, anchoredPlacements, siteKey);
+    articleWithPlacements = html;
+  } else {
+    articleWithPlacements = insertPlacements(article, brief, placements ?? [], siteKey);
+  }
 
   // 2. Convert Markdown + HTML blocks → full HTML
   const rawHtml = convertMarkdownToHtml(articleWithPlacements);

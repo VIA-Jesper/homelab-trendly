@@ -1,0 +1,43 @@
+type: versus
+display_name: "X vs Y"
+schema_type: Article
+tone_guidance: "Direct and decisive. Pick a winner in each category. Give an overall pick."
+min_products: 2
+max_products: 2
+
+required_sections:
+  - id: intro
+    heading: "{product_a} vs {product_b} - hvad er forskellen?"
+    purpose: "Frame the comparison - who each product is for"
+    target_words: 150
+    required_elements: []
+
+  - id: side_by_side
+    heading: "Sammenligning"
+    purpose: "Side-by-side spec table"
+    target_words: 60
+    required_elements:
+      - html_table
+
+  - id: product_a_section
+    heading: "{product_a}"
+    purpose: "Deep dive on product A - strengths, weaknesses, ideal user"
+    target_words: 300
+    required_elements:
+      - pricerunner_widget
+      - affiliate_link
+
+  - id: product_b_section
+    heading: "{product_b}"
+    purpose: "Deep dive on product B - strengths, weaknesses, ideal user"
+    target_words: 300
+    required_elements:
+      - pricerunner_widget
+      - affiliate_link
+
+  - id: verdict
+    heading: "Hvem vinder?"
+    purpose: "Category-by-category winners then an overall pick with rationale"
+    target_words: 150
+    required_elements:
+      - cta_button

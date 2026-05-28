@@ -1,250 +1,105 @@
-# Trendly v2
+# TestFlow - Affiliate Article Generator
 
-Agentic affiliate article pipeline for Danish WordPress sites. Finds content gaps via PriceRunner, generates briefs, writes articles through an AI agent, validates compliance, and publishes to WordPress.
+Autonomous pipeline for generating SEO-optimised Danish affiliate articles
+and publishing them to WordPress with Yoast SEO metadata.
 
-The agent (Augment/Claude) drives everything via CLI commands. Hard compliance gates run server-side on every `validate` and `publish` call and cannot be bypassed.
+## Architecture
 
-## Supported sites
-
-| Key | Description |
-|-----|-------------|
-| `techblog` | Danish tech reviews (laptops, phones, headphones, TVs) |
-| `husforbegyndere` | Danish home/garden (coffee machines, robot vacuums, grills) |
-
----
-
-## Setup
-
-### Prerequisites
-
-- Node.js 20+
-- A WordPress site with REST API enabled (one per site)
-- PriceRunner affiliate partner ID (one per site)
-
-### 1. Install dependencies
-
-```bash
-npm install
+```
+You (natural language) -> OpenClaw (reasoning + orchestration)
+                            |
+                    TypeScript Plugin (tool adapter + approval gate)
+                            |
+                    Python Tool Server :8000 (all I/O)
+                            |
+                    WordPress (draft created, you publish)
 ```
 
-### 2. Configure environment
+OpenClaw does ALL reasoning. Python does ALL I/O. You click Publish.
+
+## Prerequisites
+
+- Python 3.11+, Poetry 1.8+
+- Node.js 18+ (for TypeScript plugin)
+- WordPress site with REST API enabled, Yoast SEO plugin installed
+- Yoast REST Bridge plugin installed (see `wp-plugin/`)
+- OpenClaw installed
+
+## Quick Start
 
 ```bash
+# 1. Install Python dependencies
+poetry install
+
+# 2. Set up environment
 cp .env.example .env
+# Edit .env: add PriceRunner affiliate ID and WordPress app passwords
+
+# 3. Configure your site
+# Edit sites/site-one.yaml with your WordPress URL
+
+# 4. Install Yoast REST Bridge on your WordPress site
+# Upload wp-plugin/yoast-rest-bridge/ to wp-content/plugins/ and activate
+
+# 5. Build and install the OpenClaw plugin
+cd openclaw-plugin-testflow && npm install && cd ..
+./scripts/build-plugin.sh
+
+# 6. Start the tool server
+./scripts/start.sh
+
+# 7. Open OpenClaw in this directory and start writing:
+# "write a best-of article about robot vacuums"
 ```
 
-Edit `.env` with your credentials:
-
-```env
-# techblog
-WP_TECHBLOG_USER=your-wp-username
-WP_TECHBLOG_APP_PASSWORD=xxxx xxxx xxxx xxxx xxxx xxxx
-WP_TECHBLOG_BASE_URL=https://your-techblog.dk
-PR_TECHBLOG_PARTNER_ID=your-pricerunner-partner-id
-
-# husforbegyndere
-WP_HUS_USER=your-wp-username
-WP_HUS_PASS=xxxx xxxx xxxx xxxx xxxx xxxx
-WP_HUS_URL=https://husforbegyndere.dk
-PR_HUS_PARTNER_ID=your-pricerunner-partner-id
-```
-
-**WordPress Application Password:** WP Admin - Users - Your Profile - Application Passwords. Create one named "Trendly". Copy the value (spaces and all).
-
-### 3. Run setup check
+## CLI Usage (without OpenClaw)
 
 ```bash
-npm run cli -- setup
+# Pre-flight checks
+python runner.py --site sites/site-one.yaml --check
+
+# Dry run (fetch products + validate, no publish)
+python runner.py --site sites/site-one.yaml --products "Roomba j9+" --dry-run
+
+# Discover PriceRunner category IDs
+python runner.py --discover "robotstovsuger"
+
+# Generate OpenClaw prompt (paste into OpenClaw)
+python runner.py --site sites/site-one.yaml --products "Roomba j9+"
 ```
 
-Validates env vars, creates `data/trendly.db` (SQLite), and tests WP connectivity for each site.
+## Article Types
 
-### 4. Optional: install CLI globally
+| Type | Description | Min products |
+|------|-------------|------|
+| `best-of-list` | Ranked list for a category | 3 |
+| `single-review` | Deep review of one product | 1 |
+| `versus` | Head-to-head battle | 2 |
+| `comparison` | Multi-product comparison | 3 |
+| `buying-guide` | Educational guide + recommendations | 2 |
+
+## Development
 
 ```bash
-npm link
-trendly setup   # now works without npm run cli --
+poetry run task test       # run all tests
+poetry run task lint       # ruff lint
+poetry run task fmt        # auto-format
+poetry run task check      # lint + typecheck
+poetry run task start      # start tool server with hot reload
+poetry run task build-plugin  # rebuild TypeScript plugin
 ```
 
-Without `npm link`, prefix all commands with `npm run cli --`:
+## Adding a New Site
 
-```bash
-npm run cli -- generate --site techblog
-```
+1. Create `sites/my-new-site.yaml` with name, url, username
+2. Add `WP_APP_PASSWORD_MY_NEW_SITE=xxxx xxxx xxxx xxxx xxxx xxxx` to `.env`
+3. Install Yoast REST Bridge plugin on the new WordPress site
+4. Run with `--site sites/my-new-site.yaml`
 
-### Upgrading from v1
+## Security Notes
 
-If you have `data/content-registry.json` or `data/published-log.json` from v1:
-
-```bash
-npm run migrate
-```
-
-Imports the data into SQLite and renames the old files to `.legacy`.
-
----
-
-## Usage
-
-### CLI quick reference
-
-```
-trendly setup                                        check env + DB + WP connectivity
-trendly generate --site <site>                       find content gap, create brief + run_id
-trendly generate --site <site> --category <slug>     force a specific category
-trendly validate --run <id> --article <file>         run compliance check against brief
-trendly publish  --run <id> --article <file>         save as WordPress draft
-trendly publish  --run <id> --article <file> --live  publish live immediately
-trendly runs                                         list recent runs
-trendly runs --site techblog --status published      filter by site or status
-trendly runs show <id>                               full run details + validation result
-```
-
-Add `--json` to any command for machine-readable output.
-
-### Manual workflow (step by step)
-
-**Step 1 - Find a content gap and get a brief**
-
-```bash
-trendly generate --site techblog
-```
-
-The CLI picks the category with the most fresh (unpublished) products that is not in cooldown. It prints a brief and a **Run ID** - save the Run ID, you need it for every subsequent step.
-
-To force a specific category:
-
-```bash
-trendly generate --site techblog --category laptops
-```
-
-**Step 2 - Write the article**
-
-Use the brief output to write the article. Follow these rules - they are enforced on publish:
-
-- Include affiliate disclosure in the opening paragraph (within first 300 characters)
-  - Example: *"Denne artikel indeholder affiliatelinks - vi tjener kommission uden ekstra omkostninger for dig."*
-- Do not use forbidden superlatives: `bedste på markedet`, `nr. 1 valg`, `billigst i Danmark`, `absolut bedst`
-- Cover every product listed in the brief
-- Stay within the word count range in the brief (`writing_rules.minWords` - `writing_rules.maxWords`)
-
-Save the article as a `.md` file (e.g. `articles/<run_id>.md`).
-
-**Step 3 - Validate**
-
-```bash
-trendly validate --run <id> --article articles/<run_id>.md
-```
-
-Fix all `[ERROR]` items before publishing. `[WARN]` items are optional.
-
-```
-Validation: PASSED
-Word count: 1043
-No issues found. Ready to publish.
-```
-
-```
-Validation: FAILED
-Errors (2) - must fix before publishing:
-  [ERROR] disclosure_missing: Missing affiliate disclosure in opening 300 characters
-  [ERROR] superlative_found: Forbidden term found: "bedste på markedet"
-```
-
-**Step 4 - Publish**
-
-```bash
-# Save as draft (default - review in WP admin before going live)
-trendly publish --run <id> --article articles/<run_id>.md
-
-# Publish live immediately
-trendly publish --run <id> --article articles/<run_id>.md --live
-```
-
-Always default to draft. Only use `--live` after reviewing the draft in WordPress.
-
----
-
-## Agent workflow
-
-With Augment or Claude, simply ask:
-
-> "Generate an article for techblog"
-
-The agent activates the `trendly-generate` skill and runs the full pipeline automatically:
-
-1. Runs `trendly generate` to find the best gap and get a brief
-2. Writes the article using the `article-generator` subagent prompt
-3. Saves the article and runs `trendly validate`
-4. Self-reviews (SEO, CRO, voice) using the `article-reviewer` subagent
-5. Fixes any blockers and re-validates (max 2 cycles)
-6. Publishes as WordPress draft with `trendly publish`
-
-To go live, confirm explicitly after reviewing the draft in WordPress admin.
-
-**Available skills** (in `.openclaw/skills/`):
-
-| Skill | Trigger |
-|-------|---------|
-| `trendly-generate` | "generate an article for techblog" |
-| `trendly-find-gap` | "what should I write next", "find a gap" |
-| `trendly-publish` | "publish the article", "validate the article" |
-| `trendly-runs` | "show runs", "what was published", "run history" |
-| `trendly-setup` | "check setup", "test WP connection" |
-
----
-
-## Compliance gates
-
-These checks run on every `validate` and `publish` call. They cannot be skipped.
-
-| Gate | Rule |
-|------|------|
-| `disclosure_missing` | Affiliate disclosure must appear in the first 300 characters |
-| `superlative_found` | Forbidden phrases: `bedste på markedet`, `nr. 1 valg`, `billigst i Danmark`, `absolut bedst` |
-| `word_count_low` | Article must meet the minimum word count for its type |
-| `anchor_unresolved` | Every widget placement anchor must match an actual heading in the article |
-
-Rules are configured in `config/compliance-rules.json`.
-
----
-
-## Troubleshooting
-
-| Error | Cause | Fix |
-|-------|-------|-----|
-| `category_exhausted` | All products in category already published | Choose a different category or wait for cooldown |
-| `all_categories_exhausted` | Every category is exhausted or in cooldown | Add categories to `config/categories.json` |
-| `disclosure_missing` | No affiliate disclosure in opening | Add disclosure phrase to first paragraph |
-| `superlative_found` | Forbidden phrase used | Remove or rephrase |
-| `anchor_unresolved` | Widget placement anchor heading not found | Use exact heading text from the article |
-| `run_not_found` | Wrong run ID | Check with `trendly runs` |
-| `WP 401` | Wrong credentials | Check app password in `.env` |
-| `WP 404` | Wrong base URL | Check `WP_*_BASE_URL` in `.env` |
-
----
-
-## Project layout
-
-```
-.openclaw/
-  skills/             Agent skill definitions (one per workflow step)
-  subagents/          Article generator and reviewer prompts
-  taskflows/          Automated YAML pipelines (on-demand + daily cron)
-config/
-  categories.json     PriceRunner category mappings per site
-  compliance-rules.json  Disclosure phrases and forbidden terms
-  article-types.json  Word counts and CRO weights per article type
-data/
-  trendly.db          SQLite: runs, published products, category cooldowns
-docs/
-  INSTALL.md          Detailed installation steps
-  USAGE.md            CLI reference and workflow details
-prompts/agents/       Writing instructions per article type
-src/
-  cli/                CLI commands: generate, validate, publish, runs, setup
-  services/           Core logic: brief, validation, publish gate, widgets
-  store/              SQLite wrapper + migrations
-  scraper/            PriceRunner API client
-  types/              Zod schemas - single source of truth
-```
+- Never commit `.env` (covered by `.gitignore`)
+- WordPress `testflow-bot` user should have `Editor` role only (not Admin)
+- Pipeline ALWAYS creates drafts - never publishes live
+- Human reviews and clicks Publish in WP Admin
+- `testflow_create_draft` tool requires manual approval in OpenClaw chat

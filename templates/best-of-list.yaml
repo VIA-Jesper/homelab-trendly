@@ -1,0 +1,42 @@
+type: best-of-list
+display_name: "Bedste X produkter"
+schema_type: Article
+tone_guidance: "Helpful and concrete. The reader wants a clear recommendation."
+min_products: 3
+max_products: 8
+
+required_sections:
+  - id: intro
+    heading: "Hvad skal du kigge efter?"
+    purpose: "Establish user need and why this comparison is useful"
+    target_words: 150
+    required_elements: []
+
+  - id: top_picks
+    heading: "De bedste {keyword} - vores valg"
+    purpose: "Ranked product list with widget per product"
+    target_words: 600
+    required_elements:
+      - pricerunner_widget
+      - product_pros_cons
+      - affiliate_link
+
+  - id: comparison_table
+    heading: "Sammenligning"
+    purpose: "Side-by-side table of key specs"
+    target_words: 50
+    required_elements:
+      - html_table
+
+  - id: buying_guide
+    heading: "Sadan vaelger du"
+    purpose: "Educational: what criteria matter and why"
+    target_words: 300
+    required_elements: []
+
+  - id: conclusion
+    heading: "Vores anbefaling"
+    purpose: "Clear winner + CTA"
+    target_words: 100
+    required_elements:
+      - cta_button

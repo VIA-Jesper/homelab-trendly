@@ -1,0 +1,39 @@
+{
+  // Use the "coding" profile: enables exec, web_fetch, and file read/write tools.
+  profile: "coding",
+
+  // Skills to load at startup (skill docs injected into system prompt)
+  skills: [
+    "skills/affiliate-pipeline.md",
+  ],
+
+  // testflow_create_draft is optional: must be explicitly listed before OpenClaw will call it.
+  tools: {
+    allow: ["testflow_create_draft"],
+  },
+
+  // Plugin configuration
+  plugins: {
+    entries: {
+      testflow: {
+        hooks: {
+          allowConversationAccess: false,
+          timeoutMs: 30000,
+          timeouts: {
+            // Give the approval gate 10 minutes in case the user is away
+            before_tool_call: 600000,
+          },
+        },
+      },
+    },
+  },
+
+  agents: {
+    defaults: {
+      subagents: {
+        delegationMode: "suggest",
+        maxConcurrent: 4,
+      },
+    },
+  },
+}

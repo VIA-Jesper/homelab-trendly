@@ -1,0 +1,31 @@
+pricerunner:
+  domain: "pricerunner.dk"
+  ref_param: "ref-site"        # produces ?ref-site={PRICERUNNER_AFFILIATE_ID} on direct links
+  widget_param: "partnerId"    # produces partnerId={PRICERUNNER_PARTNER_ID} in widget embed
+  # Both credentials come from .env
+
+disclosure:
+  position: "top"   # top | bottom
+  # Danish affiliate disclosure text - injected as first element inside <article> body
+  # Must be present on every published article per Danish marketing law (markedsforingsloven)
+  html: |
+    <div class="affiliate-disclosure">
+      <strong>Affiliate-oplysning:</strong> Denne side indeholder affiliate-links til PriceRunner.
+      Hvis du kober via vores links, modtager vi en kommission uden ekstraomkostninger for dig.
+      Vores anbefalinger er baseret pa produktegenskaber og brugeranmeldelser - ikke provision.
+    </div>
+
+link_rules:
+  rel: "sponsored nofollow"
+  target: "_blank"
+
+# Prohibited claims - deterministic_audit() will flag any of these in the article body
+# These are absolute statements that cannot be substantiated and may mislead consumers
+prohibited_claims:
+  - "billigste pris garanteret"
+  - "laveste pris"
+  - "garanti for"
+  - "vi garanterer"
+  - "billigst i Danmark"
+  - "nummer 1 i Danmark"
+  - "markedets bedste"

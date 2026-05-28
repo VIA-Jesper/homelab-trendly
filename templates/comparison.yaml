@@ -1,0 +1,36 @@
+type: comparison
+display_name: "X vs Y vs Z"
+schema_type: Article
+tone_guidance: "Analytical and structured. Each product gets a fair assessment before the ranking."
+min_products: 3
+max_products: 5
+
+required_sections:
+  - id: intro
+    heading: "Hvad vi sammenligner"
+    purpose: "Why these specific products, what criteria matter"
+    target_words: 130
+    required_elements: []
+
+  - id: comparison_table
+    heading: "Hurtig oversigt"
+    purpose: "Summary spec table across all products"
+    target_words: 50
+    required_elements:
+      - html_table
+
+  - id: product_reviews
+    heading: "Produkterne i detaljer"
+    purpose: "One subsection per product with widget, pros/cons, and affiliate link"
+    target_words: 250
+    required_elements:
+      - pricerunner_widget
+      - product_pros_cons
+      - affiliate_link
+
+  - id: verdict
+    heading: "Vores rangering"
+    purpose: "Ranked list 1 to N with brief rationale per product"
+    target_words: 150
+    required_elements:
+      - cta_button

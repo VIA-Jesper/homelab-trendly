@@ -1,0 +1,41 @@
+# PriceRunner category IDs (numeric part only - strip 'cl' prefix)
+# Confirmed by browsing PriceRunner DK and cross-referencing API responses.
+# Add new categories using: python runner.py --discover "product type in Danish"
+# or: testflow_discover_categories("product type in Danish") via OpenClaw
+
+# Rengoring
+robotstovsuger: 1613           # Robot vacuum cleaners
+stovsugere: 67                 # Traditional vacuum cleaners
+robotplaeneklippere: 1831      # Robot lawn mowers
+
+# Kaffe & Te
+kaffemaskiner: 82              # Coffee machines (all types)
+kaffekapselmaskiner: 395       # Pod/capsule coffee machines
+kaffekvarne: 2035              # Coffee grinders
+
+# Computere & Tablets
+laptops: 100                   # Laptops / notebooks
+tablets: 308                   # Tablets
+stationaere-computere: 101     # Desktop computers
+
+# Telefoner
+smartphones: 291               # Smartphones
+
+# Lyd
+tradlose-horetelefoner: 1485   # Wireless headphones
+true-wireless-earbuds: 1846    # TWS earbuds / in-ears
+bluetooth-hojttalere: 1012     # Bluetooth speakers
+
+# Hjem & Luft
+luftrensere: 2011              # Air purifiers
+luftaffugtere: 576             # Dehumidifiers
+ventilatorer: 570              # Fans
+
+# Kokken
+airfryers: 2180                # Air fryers
+mikroboelgeovne: 90            # Microwave ovens
+brodristere: 143               # Toasters
+
+# Personlig pleje
+elektriske-tandboerster: 325   # Electric toothbrushes
+epilatorer: 334                # Epilators

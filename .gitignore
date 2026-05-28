@@ -1,22 +1,30 @@
-node_modules/
-dist/
-output/
-
-# Runtime data — generated at runtime, not committed
-data/products.json
-data/content-registry.json
-data/content-registry.tmp.json
-runs/
-
 # Secrets
-*.env
 .env
-.env.*
 
-# Stale backups
-prompts/*.bak.json
+# State
+testflow_state.db
 
-# Generated pipeline outputs — prompts/agents/ templates are tracked, root-level outputs are not
-prompts/*.json
-prompts/*.html
-prompts/*-task.md
+# PriceRunner API cache
+cache/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+dist/
+*.egg-info/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+
+# OS
+.DS_Store
+Thumbs.db
+
+# TypeScript
+node_modules/
+openclaw-plugin-testflow/dist/
+openclaw-plugin-testflow/openclaw.plugin.json

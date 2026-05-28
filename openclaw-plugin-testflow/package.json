@@ -1,0 +1,23 @@
+{
+  "name": "openclaw-plugin-testflow",
+  "version": "1.0.0",
+  "description": "OpenClaw tool plugin for the TestFlow affiliate pipeline",
+  "type": "module",
+  "main": "./dist/index.js",
+  "scripts": {
+    "build": "tsc",
+    "plugin:build": "openclaw plugins build --entry ./dist/index.js",
+    "plugin:validate": "openclaw plugins validate --entry ./dist/index.js",
+    "plugin:install": "openclaw plugins install .",
+    "dev": "tsc --watch"
+  },
+  "dependencies": {
+    "@sinclair/typebox": "^0.32.0"
+  },
+  "peerDependencies": {
+    "openclaw": "*"
+  },
+  "devDependencies": {
+    "typescript": "^5.4.0"
+  }
+}

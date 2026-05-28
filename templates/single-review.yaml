@@ -1,0 +1,42 @@
+type: single-review
+display_name: "Anmeldelse af X"
+schema_type: Review
+tone_guidance: "Honest, hands-on reviewer. Balance pros and cons. Give a clear verdict."
+min_products: 1
+max_products: 1
+
+required_sections:
+  - id: intro
+    heading: "Hvad er {product_name}?"
+    purpose: "Brief product intro - what is it, who is it for, why read this review"
+    target_words: 120
+    required_elements: []
+
+  - id: specs
+    heading: "Specifikationer"
+    purpose: "Key technical specs in a table - objective facts, no opinion"
+    target_words: 80
+    required_elements:
+      - html_table
+      - pricerunner_widget
+
+  - id: in_practice
+    heading: "Sadan fungerer det i praksis"
+    purpose: "Real-world use: what works, what doesn't, who it suits"
+    target_words: 400
+    required_elements: []
+
+  - id: pros_cons
+    heading: "Fordele og ulemper"
+    purpose: "Structured pros and cons list"
+    target_words: 100
+    required_elements:
+      - product_pros_cons
+
+  - id: verdict
+    heading: "Vores dom"
+    purpose: "Clear recommendation with score or verdict, CTA to PriceRunner"
+    target_words: 120
+    required_elements:
+      - affiliate_link
+      - cta_button

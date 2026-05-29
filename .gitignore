@@ -1,22 +1,45 @@
-node_modules/
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+*.egg-info/
 dist/
-output/
+build/
+.eggs/
 
-# Runtime data — generated at runtime, not committed
-data/products.json
-data/content-registry.json
-data/content-registry.tmp.json
-runs/
+# Virtual environments
+.venv/
+venv/
+env/
 
-# Secrets
-*.env
+# Databases
+*.db
+*.sqlite
+*.sqlite3
+
+# Environment / secrets
 .env
-.env.*
+*.env.local
+*.env.*.local
 
-# Stale backups
-prompts/*.bak.json
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
 
-# Generated pipeline outputs — prompts/agents/ templates are tracked, root-level outputs are not
-prompts/*.json
-prompts/*.html
-prompts/*-task.md
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+logs/
+
+# Alembic
+migrations/versions/__pycache__/
+
+# Docker volumes
+data/

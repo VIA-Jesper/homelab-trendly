@@ -1,0 +1,66 @@
+{
+  "version": "1.0",
+  "description": "Rules governing call-to-action (CTA) shortcode usage in affiliate posts.",
+  "shortcode_format": "[affiliate_button id=\"<affiliate_id>\" text=\"<danish_cta_text>\"]",
+  "examples": [
+    "[affiliate_button id=\"WC-SONY-1000XM5\" text=\"Se pris på Amazon\"]",
+    "[affiliate_button id=\"WC-LOGIT-MX-KEYS\" text=\"Tjek bedste pris\"]",
+    "[affiliate_button id=\"WC-SAMSUNG-U28\" text=\"Se tilbud her\"]"
+  ],
+  "placement_rules": [
+    {
+      "id": "CTA-001",
+      "severity": "BLOCKER",
+      "rule": "Use shortcode format only. Never embed raw affiliate URLs directly in content."
+    },
+    {
+      "id": "CTA-002",
+      "severity": "BLOCKER",
+      "rule": "The id attribute must match exactly one of the affiliate_ids listed in the brief. No invented IDs."
+    },
+    {
+      "id": "CTA-003",
+      "severity": "BLOCKER",
+      "rule": "CTA text (text attribute) must be written in natural Danish. No English.",
+      "approved_danish_phrases": [
+        "Se pris på Amazon",
+        "Tjek bedste pris",
+        "Se tilbud her",
+        "Køb her",
+        "Se aktuel pris",
+        "Sammenlign priser",
+        "Se anmeldelser og pris",
+        "Gå til tilbud"
+      ]
+    },
+    {
+      "id": "CTA-004",
+      "severity": "WARNING",
+      "rule": "Place at least one CTA after the intro/first section and at least one near the end of the post."
+    },
+    {
+      "id": "CTA-005",
+      "severity": "WARNING",
+      "rule": "Do not place more than one CTA per 200 words. Over-saturation reduces conversion and trust."
+    },
+    {
+      "id": "CTA-006",
+      "severity": "WARNING",
+      "rule": "CTA positions should match the cta_positions array defined in the template (e.g. after_intro, after_pros_cons, before_conclusion)."
+    },
+    {
+      "id": "CTA-007",
+      "severity": "WARNING",
+      "rule": "Use action-oriented but honest language. Do not use urgency phrases like 'Køb nu - tilbuddet udløber snart' unless explicitly provided in the brief."
+    }
+  ],
+  "forbidden_patterns": [
+    "https://",
+    "http://",
+    "amzn.to/",
+    "bit.ly/",
+    "track.",
+    "ref=",
+    "affiliate_url"
+  ]
+}

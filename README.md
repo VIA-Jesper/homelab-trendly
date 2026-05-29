@@ -1,250 +1,208 @@
-# Trendly v2
+# Affiliate Pipeline
 
-Agentic affiliate article pipeline for Danish WordPress sites. Finds content gaps via PriceRunner, generates briefs, writes articles through an AI agent, validates compliance, and publishes to WordPress.
-
-The agent (Augment/Claude) drives everything via CLI commands. Hard compliance gates run server-side on every `validate` and `publish` call and cannot be bypassed.
-
-## Supported sites
-
-| Key | Description |
-|-----|-------------|
-| `techblog` | Danish tech reviews (laptops, phones, headphones, TVs) |
-| `husforbegyndere` | Danish home/garden (coffee machines, robot vacuums, grills) |
+Agentic system for generating Danish affiliate articles at scale.
+One API, stateless agents, unlimited sites.
 
 ---
 
-## Setup
+## The approach
 
-### Prerequisites
+The core idea came from thinking about reliability. The problem with having an AI agent
+orchestrate its own pipeline (read a runbook, retry on failure, write logs) is that you are
+trusting probabilistic reasoning to do structural work. It works, until it doesn't.
 
-- Node.js 20+
-- A WordPress site with REST API enabled (one per site)
-- PriceRunner affiliate partner ID (one per site)
+The solution is a clear separation:
 
-### 1. Install dependencies
+- **The system (Docker API) handles all structure** - step sequencing, retry counts, state,
+  logging. This is deterministic code. It never fails silently.
+- **Agents handle all content** - writing, optimising, reviewing. This is where reasoning
+  actually matters and where an LLM earns its place.
 
-```bash
-npm install
-```
-
-### 2. Configure environment
-
-```bash
-cp .env.example .env
-```
-
-Edit `.env` with your credentials:
-
-```env
-# techblog
-WP_TECHBLOG_USER=your-wp-username
-WP_TECHBLOG_APP_PASSWORD=xxxx xxxx xxxx xxxx xxxx xxxx
-WP_TECHBLOG_BASE_URL=https://your-techblog.dk
-PR_TECHBLOG_PARTNER_ID=your-pricerunner-partner-id
-
-# husforbegyndere
-WP_HUS_USER=your-wp-username
-WP_HUS_PASS=xxxx xxxx xxxx xxxx xxxx xxxx
-WP_HUS_URL=https://husforbegyndere.dk
-PR_HUS_PARTNER_ID=your-pricerunner-partner-id
-```
-
-**WordPress Application Password:** WP Admin - Users - Your Profile - Application Passwords. Create one named "Trendly". Copy the value (spaces and all).
-
-### 3. Run setup check
-
-```bash
-npm run cli -- setup
-```
-
-Validates env vars, creates `data/trendly.db` (SQLite), and tests WP connectivity for each site.
-
-### 4. Optional: install CLI globally
-
-```bash
-npm link
-trendly setup   # now works without npm run cli --
-```
-
-Without `npm link`, prefix all commands with `npm run cli --`:
-
-```bash
-npm run cli -- generate --site techblog
-```
-
-### Upgrading from v1
-
-If you have `data/content-registry.json` or `data/published-log.json` from v1:
-
-```bash
-npm run migrate
-```
-
-Imports the data into SQLite and renames the old files to `.legacy`.
+Agents are fully stateless and replaceable. The system does not care whether you use Claude,
+Augment, or anything else that can make an HTTP call.
 
 ---
 
-## Usage
+## How it runs
 
-### CLI quick reference
+### Orchestrator (runs once or twice a day via cron)
 
-```
-trendly setup                                        check env + DB + WP connectivity
-trendly generate --site <site>                       find content gap, create brief + run_id
-trendly generate --site <site> --category <slug>     force a specific category
-trendly validate --run <id> --article <file>         run compliance check against brief
-trendly publish  --run <id> --article <file>         save as WordPress draft
-trendly publish  --run <id> --article <file> --live  publish live immediately
-trendly runs                                         list recent runs
-trendly runs --site techblog --status published      filter by site or status
-trendly runs show <id>                               full run details + validation result
-```
+A lightweight Python script (not an agent) checks whether there is queued work. If there is,
+it starts a worker agent. If the queue is empty, it exits. The script is the only persistent
+process outside Docker. It requires no AI - it just checks a return value and spawns a process.
 
-Add `--json` to any command for machine-readable output.
+In the future the orchestrator could be replaced by an agent that queries site data, reasons
+about what to write next (based on coverage gaps, seasonality, keyword opportunities), and
+creates jobs via `POST /api/v1/jobs`. That agent makes the strategic decision. The system
+executes it reliably.
 
-### Manual workflow (step by step)
-
-**Step 1 - Find a content gap and get a brief**
-
-```bash
-trendly generate --site techblog
-```
-
-The CLI picks the category with the most fresh (unpublished) products that is not in cooldown. It prints a brief and a **Run ID** - save the Run ID, you need it for every subsequent step.
-
-To force a specific category:
-
-```bash
-trendly generate --site techblog --category laptops
-```
-
-**Step 2 - Write the article**
-
-Use the brief output to write the article. Follow these rules - they are enforced on publish:
-
-- Include affiliate disclosure in the opening paragraph (within first 300 characters)
-  - Example: *"Denne artikel indeholder affiliatelinks - vi tjener kommission uden ekstra omkostninger for dig."*
-- Do not use forbidden superlatives: `bedste på markedet`, `nr. 1 valg`, `billigst i Danmark`, `absolut bedst`
-- Cover every product listed in the brief
-- Stay within the word count range in the brief (`writing_rules.minWords` - `writing_rules.maxWords`)
-
-Save the article as a `.md` file (e.g. `articles/<run_id>.md`).
-
-**Step 3 - Validate**
-
-```bash
-trendly validate --run <id> --article articles/<run_id>.md
-```
-
-Fix all `[ERROR]` items before publishing. `[WARN]` items are optional.
+### Worker (runs until queue is empty)
 
 ```
-Validation: PASSED
-Word count: 1043
-No issues found. Ready to publish.
+python scripts/run_pipeline.py --adapter claude --api-url https://your-domain --api-key secret
 ```
 
-```
-Validation: FAILED
-Errors (2) - must fix before publishing:
-  [ERROR] disclosure_missing: Missing affiliate disclosure in opening 300 characters
-  [ERROR] superlative_found: Forbidden term found: "bedste på markedet"
-```
+The worker loops:
+1. `GET /api/v1/work` - receives one task (prompt + content) or `{ "status": "empty" }`
+2. Passes the task to the agent adapter (Claude CLI, Augment, etc.)
+3. `POST /api/v1/work/{task_id}` - submits the agent output
+4. Repeats until empty, then exits
 
-**Step 4 - Publish**
+Each task is a clean agent invocation with a fresh context. No context window accumulation
+across tasks. If a task fails, the system re-queues it. If the worker crashes mid-run, the
+next cron trigger picks up where it left off - state lives in Postgres, not in the agent.
 
-```bash
-# Save as draft (default - review in WP admin before going live)
-trendly publish --run <id> --article articles/<run_id>.md
+### Pipeline steps (per article)
 
-# Publish live immediately
-trendly publish --run <id> --article articles/<run_id>.md --live
-```
+| Step | What happens |
+|---|---|
+| `write_draft` | Agent writes the full Danish article from brief + prompt |
+| `optimize_seo` | Agent optimises keyword density, meta description, CTA placement |
+| `qa_review` | Agent validates against QA checklist, returns PASS or FAIL + edits_needed |
+| _(retry)_ | On FAIL: system re-queues write_draft with edits_needed injected, up to 3 attempts |
+| _(publish)_ | Not yet implemented - see Roadmap |
 
-Always default to draft. Only use `--live` after reviewing the draft in WordPress.
+Steps are defined in `api/config.py`. Add, remove, or reorder steps without touching routes
+or services.
 
 ---
 
-## Agent workflow
-
-With Augment or Claude, simply ask:
-
-> "Generate an article for techblog"
-
-The agent activates the `trendly-generate` skill and runs the full pipeline automatically:
-
-1. Runs `trendly generate` to find the best gap and get a brief
-2. Writes the article using the `article-generator` subagent prompt
-3. Saves the article and runs `trendly validate`
-4. Self-reviews (SEO, CRO, voice) using the `article-reviewer` subagent
-5. Fixes any blockers and re-validates (max 2 cycles)
-6. Publishes as WordPress draft with `trendly publish`
-
-To go live, confirm explicitly after reviewing the draft in WordPress admin.
-
-**Available skills** (in `.openclaw/skills/`):
-
-| Skill | Trigger |
-|-------|---------|
-| `trendly-generate` | "generate an article for techblog" |
-| `trendly-find-gap` | "what should I write next", "find a gap" |
-| `trendly-publish` | "publish the article", "validate the article" |
-| `trendly-runs` | "show runs", "what was published", "run history" |
-| `trendly-setup` | "check setup", "test WP connection" |
-
----
-
-## Compliance gates
-
-These checks run on every `validate` and `publish` call. They cannot be skipped.
-
-| Gate | Rule |
-|------|------|
-| `disclosure_missing` | Affiliate disclosure must appear in the first 300 characters |
-| `superlative_found` | Forbidden phrases: `bedste på markedet`, `nr. 1 valg`, `billigst i Danmark`, `absolut bedst` |
-| `word_count_low` | Article must meet the minimum word count for its type |
-| `anchor_unresolved` | Every widget placement anchor must match an actual heading in the article |
-
-Rules are configured in `config/compliance-rules.json`.
-
----
-
-## Troubleshooting
-
-| Error | Cause | Fix |
-|-------|-------|-----|
-| `category_exhausted` | All products in category already published | Choose a different category or wait for cooldown |
-| `all_categories_exhausted` | Every category is exhausted or in cooldown | Add categories to `config/categories.json` |
-| `disclosure_missing` | No affiliate disclosure in opening | Add disclosure phrase to first paragraph |
-| `superlative_found` | Forbidden phrase used | Remove or rephrase |
-| `anchor_unresolved` | Widget placement anchor heading not found | Use exact heading text from the article |
-| `run_not_found` | Wrong run ID | Check with `trendly runs` |
-| `WP 401` | Wrong credentials | Check app password in `.env` |
-| `WP 404` | Wrong base URL | Check `WP_*_BASE_URL` in `.env` |
-
----
-
-## Project layout
+## Directory structure
 
 ```
-.openclaw/
-  skills/             Agent skill definitions (one per workflow step)
-  subagents/          Article generator and reviewer prompts
-  taskflows/          Automated YAML pipelines (on-demand + daily cron)
-config/
-  categories.json     PriceRunner category mappings per site
-  compliance-rules.json  Disclosure phrases and forbidden terms
-  article-types.json  Word counts and CRO weights per article type
-data/
-  trendly.db          SQLite: runs, published products, category cooldowns
-docs/
-  INSTALL.md          Detailed installation steps
-  USAGE.md            CLI reference and workflow details
-prompts/agents/       Writing instructions per article type
-src/
-  cli/                CLI commands: generate, validate, publish, runs, setup
-  services/           Core logic: brief, validation, publish gate, widgets
-  store/              SQLite wrapper + migrations
-  scraper/            PriceRunner API client
-  types/              Zod schemas - single source of truth
+docker-compose.yml          api + postgres + caddy proxy
+Caddyfile                   reverse proxy config
+migrations/
+  001_initial.sql           postgres schema
+
+api/
+  main.py                   fastapi app, api key auth
+  config.py                 pipeline step definitions (config-driven)
+  database.py               async sqlalchemy
+  models/                   site, job, step, prompt (jsonb context fields)
+  interfaces/               extension points (see Extensibility below)
+  services/
+    pipeline.py             step sequencing, retry logic, state transitions
+    qa.py                   qa checks registry
+  routes/
+    work.py                 GET /work, POST /work/{id}
+    jobs.py                 POST /jobs, GET /jobs/{id}
+    sites.py                POST /sites, GET /sites/{id}/seed
+
+scripts/
+  run_pipeline.py           worker loop
+  adapters/
+    base.py                 adapter interface
+    claude.py               claude cli adapter
+    augment.py              augment adapter
+
+prompts/                    danish prompt files - load into db on first run
+  generate_v1.txt           article generation
+  optimize_v1.txt           seo optimisation
+  qa_v1.txt                 quality review
 ```
+
+---
+
+## API surface
+
+All routes require `X-API-Key` header. `/health` is public.
+
+| Method | Endpoint | Who uses it | What it does |
+|---|---|---|---|
+| GET | `/health` | anyone | liveness check |
+| POST | `/api/v1/sites` | human setup | register a new site with seed config |
+| GET | `/api/v1/sites/{id}/seed` | orchestrator | read site niche, goals, cadence |
+| GET | `/api/v1/sites` | orchestrator | list active sites |
+| POST | `/api/v1/jobs` | orchestrator | create article job, system queues all steps |
+| GET | `/api/v1/jobs/{id}` | human debug | inspect job state and step history |
+| GET | `/api/v1/work` | worker script | get next task or `{"status":"empty"}` |
+| POST | `/api/v1/work/{id}` | worker script | submit agent output, system advances pipeline |
+
+---
+
+## Extensibility
+
+The system is designed so that adding new capabilities does not require touching core logic.
+Four interfaces define the extension points:
+
+| Interface | File | Add this to... |
+|---|---|---|
+| `IDataProvider` | `api/interfaces/data_provider.py` | Plug in product catalogs, keyword APIs, trend data |
+| `IQACheck` | `api/interfaces/qa_check.py` | Add new content quality checks |
+| `IStepHandler` | `api/interfaces/step_handler.py` | Hook into step completion events |
+| `IPublisher` | `api/interfaces/publisher.py` | Publish to WordPress, CMS, filesystem |
+
+The `job.context` and `step.input` fields are JSONB - add product IDs, SEO data, external
+links, widget config, or anything else without schema migrations.
+
+---
+
+## Getting started
+
+**1. Configure environment**
+
+Copy and edit the env file:
+```
+DATABASE_URL=postgresql+asyncpg://pipeline:pipeline_secret@db:5432/affiliate_pipeline
+API_KEY=your-secret-key
+LOG_LEVEL=INFO
+```
+
+**2. Start the stack**
+```
+docker compose up -d
+```
+
+**3. Load prompts into the database**
+
+The prompt files in `prompts/` are the source of truth. On first run, update the placeholder
+rows inserted by the migration with the actual content from those files.
+
+**4. Create a site**
+```
+POST /api/v1/sites
+{
+  "name": "Bedste Hoeretelefoner",
+  "domain": "bedste-hoeretelefoner.dk",
+  "seed": {
+    "niche": "consumer electronics - audio",
+    "target_audience": "Danish consumers researching headphone purchases",
+    "language": "da",
+    "content_goals": ["SEO traffic", "affiliate conversions"],
+    "publishing_cadence": "3 articles per week"
+  }
+}
+```
+
+**5. Create a job**
+```
+POST /api/v1/jobs
+{
+  "site_id": "<site-uuid>",
+  "context": {
+    "article_type": "review",
+    "target_keyword": "sony wh-1000xm6 test",
+    "affiliate_ids": ["WC-SONY-1000XM6"],
+    "min_words": 1000
+  },
+  "reasoning": "New model released, low keyword competition, gap in site coverage"
+}
+```
+
+**6. Run the worker**
+```
+python scripts/run_pipeline.py --adapter claude --api-url http://localhost --api-key your-secret-key
+```
+
+---
+
+## Roadmap
+
+- [ ] Publisher implementation (WordPress REST API)
+- [ ] Prompt loader script (sync `prompts/*.txt` into DB on startup)
+- [ ] Orchestrator agent (reasons about what to write next based on site data)
+- [ ] Product catalog endpoints (`/products`, `/keywords/gaps`)
+- [ ] Prompt versioning UI (update prompts without touching DB directly)
+- [ ] Multi-site cron setup documentation
+- [ ] OpenClaw adapter

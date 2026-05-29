@@ -1,0 +1,126 @@
+{
+  "version": "1.0",
+  "description": "QA validation checklist for affiliate post pipeline. Each item has a severity: BLOCKER (must fix before publish) or WARNING (flag but allow).",
+  "checks": [
+    {
+      "id": "QA-001",
+      "category": "seo",
+      "severity": "BLOCKER",
+      "description": "Meta description present in Danish",
+      "rule": "The post must include a meta_description field. It must be written in natural Danish.",
+      "validation": "Field meta_description must be non-empty string."
+    },
+    {
+      "id": "QA-002",
+      "category": "seo",
+      "severity": "BLOCKER",
+      "description": "Meta description length 150-160 characters",
+      "rule": "Meta description must be between 150 and 160 characters (inclusive).",
+      "validation": "len(meta_description) >= 150 AND len(meta_description) <= 160"
+    },
+    {
+      "id": "QA-003",
+      "category": "seo",
+      "severity": "BLOCKER",
+      "description": "Primary keyword present in H1 title",
+      "rule": "The article title (H1) must contain the primary_keyword from the brief.",
+      "validation": "primary_keyword appears in title (case-insensitive)"
+    },
+    {
+      "id": "QA-004",
+      "category": "seo",
+      "severity": "WARNING",
+      "description": "Primary keyword in first 100 words",
+      "rule": "The primary keyword should appear in the first 100 words of body content.",
+      "validation": "primary_keyword appears in first 100 words of body"
+    },
+    {
+      "id": "QA-005",
+      "category": "seo",
+      "severity": "WARNING",
+      "description": "Keyword density 0.5-2.5%",
+      "rule": "Primary keyword density should be between 0.5% and 2.5% of total word count.",
+      "validation": "0.005 <= (keyword_count / total_words) <= 0.025"
+    },
+    {
+      "id": "QA-006",
+      "category": "content",
+      "severity": "BLOCKER",
+      "description": "Language is Danish throughout",
+      "rule": "All article content (title, body, meta) must be in natural, high-quality Danish. No English sentences or paragraphs allowed.",
+      "validation": "Detected language = da"
+    },
+    {
+      "id": "QA-007",
+      "category": "content",
+      "severity": "BLOCKER",
+      "description": "No raw URLs in content",
+      "rule": "Raw URLs (http:// or https://) must not appear anywhere in the generated content. Only link shortcodes or IDs are permitted.",
+      "validation": "No regex match for https?://"
+    },
+    {
+      "id": "QA-008",
+      "category": "content",
+      "severity": "BLOCKER",
+      "description": "Minimum word count met",
+      "rule": "Total word count must meet or exceed the minimum defined in the brief (min_words). Default minimum is 800 words.",
+      "validation": "total_words >= brief.min_words OR total_words >= 800"
+    },
+    {
+      "id": "QA-009",
+      "category": "content",
+      "severity": "WARNING",
+      "description": "Maximum word count not exceeded",
+      "rule": "Total word count should not exceed brief.max_words if specified.",
+      "validation": "total_words <= brief.max_words (if set)"
+    },
+    {
+      "id": "QA-010",
+      "category": "affiliate",
+      "severity": "BLOCKER",
+      "description": "At least one CTA present",
+      "rule": "The post must contain at least one CTA shortcode in the format [affiliate_button id=\"...\" text=\"...\"].",
+      "validation": "Regex match for \\[affiliate_button id=\"[^\"]+\" text=\"[^\"]+\"\\] count >= 1"
+    },
+    {
+      "id": "QA-011",
+      "category": "affiliate",
+      "severity": "BLOCKER",
+      "description": "CTA IDs match brief affiliate_ids",
+      "rule": "All affiliate_button IDs used in the post must exist in the brief's affiliate_ids list.",
+      "validation": "Every CTA id value is in brief.affiliate_ids"
+    },
+    {
+      "id": "QA-012",
+      "category": "affiliate",
+      "severity": "WARNING",
+      "description": "CTA text is in Danish",
+      "rule": "The text attribute of every affiliate_button shortcode must be written in Danish.",
+      "validation": "CTA text does not contain English-only phrases"
+    },
+    {
+      "id": "QA-013",
+      "category": "structure",
+      "severity": "BLOCKER",
+      "description": "Required template sections present",
+      "rule": "All sections marked required=true in the template must be present in the post.",
+      "validation": "Each template section with required=true has a corresponding heading in the post"
+    },
+    {
+      "id": "QA-014",
+      "category": "structure",
+      "severity": "WARNING",
+      "description": "Section order matches template",
+      "rule": "Sections should appear in the same order as defined in the template.",
+      "validation": "Section headings appear in template-defined order"
+    },
+    {
+      "id": "QA-015",
+      "category": "compliance",
+      "severity": "BLOCKER",
+      "description": "Affiliate disclosure present",
+      "rule": "The post must include an affiliate disclosure statement. It must be in Danish.",
+      "validation": "Content contains disclosure phrase (e.g. 'affiliate', 'kommissionslink', 'annonce')"
+    }
+  ]
+}

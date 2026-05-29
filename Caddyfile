@@ -1,0 +1,13 @@
+{
+    email admin@example.com
+}
+
+:80 {
+    reverse_proxy api:8000
+
+    header {
+        -Server
+        X-Content-Type-Options nosniff
+        X-Frame-Options DENY
+    }
+}

@@ -12,10 +12,22 @@ class Settings(BaseSettings):
     database_url: str
     api_key: str
     log_level: str = "INFO"
-    # Pipeline steps are config-driven - add/reorder/remove steps without code changes
+
+    # Pipeline steps are config-driven — add/reorder/remove without code changes
     pipeline_steps: list[dict] = Field(default=DEFAULT_PIPELINE_STEPS)
 
-    model_config = {"env_file": ".env", "env_file_encoding": "utf-8"}
+    # ── husforbegyndere.dk ─────────────────────────────────────────────────────
+    # Loaded from .env. pr_hus_partner_id is required for PriceRunner widget
+    # embeds — without it the widget inserter falls back to a plain HTML card.
+    pr_hus_partner_id: str = ""
+    wp_hus_url: str = ""
+    wp_hus_user: str = ""
+    wp_hus_pass: str = ""
+
+    # Load api/.env first (DATABASE_URL, API_KEY), then root .env (WP_*, PR_*).
+    # Values in api/.env take precedence. This keeps DB config local while site
+    # credentials stay in the root .env alongside docker-compose.
+    model_config = {"env_file": ["../.env", ".env"], "env_file_encoding": "utf-8"}
 
 
 settings = Settings()

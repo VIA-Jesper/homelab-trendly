@@ -192,13 +192,19 @@ def build_brief_for_product(product: RawProduct, site_key: str) -> ContentBrief:
     """
     site = get_site_config(site_key)
 
+    # Append ?refsite= to the affiliate URL so all clicks are tracked.
+    # Confirmed with Rune @ PriceRunner (June 2025): ?refsite= works on any
+    # PriceRunner URL — product pages, category pages, search — not just widgets.
+    sep = "&" if "?" in product.affiliate_url else "?"
+    tracked_url = f"{product.affiliate_url}{sep}refsite={site.pricerunner_partner_id}"
+
     product_brief = ProductBrief(
         id=product.id,
         name=product.name,
         category=product.category,
         price_kr=product.price_kr,
         retailer=product.retailer,
-        affiliate_url=product.affiliate_url,
+        affiliate_url=tracked_url,
         specs=product.specs,
     )
 

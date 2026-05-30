@@ -4,7 +4,7 @@ from fastapi import Depends, FastAPI, HTTPException, Security
 from fastapi.security import APIKeyHeader
 
 from config import settings
-from routes import jobs_router, sites_router, work_router
+from routes import jobs_router, publish_router, sites_router, work_router
 
 logging.basicConfig(level=settings.log_level)
 
@@ -27,9 +27,10 @@ async def require_api_key(key: str | None = Security(api_key_header)) -> str:
 
 # --- Routes ---
 
-app.include_router(work_router,  prefix="/api/v1", dependencies=[Depends(require_api_key)])
-app.include_router(jobs_router,  prefix="/api/v1", dependencies=[Depends(require_api_key)])
-app.include_router(sites_router, prefix="/api/v1", dependencies=[Depends(require_api_key)])
+app.include_router(work_router,    prefix="/api/v1", dependencies=[Depends(require_api_key)])
+app.include_router(jobs_router,    prefix="/api/v1", dependencies=[Depends(require_api_key)])
+app.include_router(publish_router, prefix="/api/v1", dependencies=[Depends(require_api_key)])
+app.include_router(sites_router,   prefix="/api/v1", dependencies=[Depends(require_api_key)])
 
 
 @app.get("/health")

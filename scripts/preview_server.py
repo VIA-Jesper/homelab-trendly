@@ -38,6 +38,8 @@ from database import AsyncSessionLocal
 from models.job import Job
 from models.site import Site
 from models.step import Step
+from services.brief_builder import ContentBrief
+from services.widget_inserter import insert_anchored_placements
 
 app = FastAPI(docs_url=None, redoc_url=None)
 
@@ -72,6 +74,10 @@ def _md(src: str) -> str:
         block = block.strip()
         if not block:
             continue
+        # Raw HTML block (widget embeds, figure tags) — pass through unchanged
+        if re.match(r"^<[a-zA-Z!/]", block):
+            out.append(block)
+            continue
         if re.match(r"^[-*_]{3,}$", block):
             out.append("<hr>")
             continue
@@ -105,18 +111,28 @@ def _md(src: str) -> str:
     return "\n".join(out)
 
 
-def _render(raw: str) -> tuple[str, str | None]:
+def _render(
+    raw: str,
+    brief: ContentBrief | None = None,
+    placements: list | None = None,
+) -> tuple[str, str | None]:
     """Convert raw step output to (html, meta_description).
 
     New pipeline format: step.output is a JSON blob {"article": "...", "seo": {"description": ...}}.
     Legacy format: plain markdown with optional META_DESCRIPTION: line at the end.
+
+    If brief and placements are provided, widgets are inserted into the article
+    before rendering so the preview matches what will be published.
     """
     # New JSON format
     try:
         data = json.loads(raw)
         if isinstance(data, dict) and "article" in data:
             meta = data.get("seo", {}).get("description")
-            return _md(data["article"]), meta
+            article = data["article"]
+            if brief and placements is not None:
+                article, _ = insert_anchored_placements(article, brief, placements)
+            return _md(article), meta
     except (json.JSONDecodeError, TypeError):
         pass
 
@@ -451,7 +467,16 @@ async def preview(job_id: str) -> HTMLResponse:
     seo_data = output_data.get("seo", {}) if output_data else {}
     placements = output_data.get("placements", []) if output_data else []
 
-    article_html, meta_desc = _render(raw)
+    # Reconstruct brief for widget insertion (graceful — widgets skipped if brief missing)
+    brief_obj: ContentBrief | None = None
+    brief_dict = job.context.get("brief")
+    if brief_dict:
+        try:
+            brief_obj = ContentBrief.model_validate(brief_dict)
+        except Exception:
+            pass
+
+    article_html, meta_desc = _render(raw, brief=brief_obj, placements=placements)
     content_body, h1_title = _pop_h1(article_html)
     title = h1_title or kw or "Artikel"
     stats = _article_stats(raw)

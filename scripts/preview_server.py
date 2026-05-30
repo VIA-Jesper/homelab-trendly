@@ -27,10 +27,7 @@ from fastapi.responses import HTMLResponse
 from sqlalchemy import select
 from sqlalchemy.orm import selectinload
 
-# config.py loads .env files relative to CWD. Switch to api/ so DATABASE_URL
-# and API_KEY are found, regardless of where the script is launched from.
 _API_DIR = Path(__file__).parent.parent / "api"
-os.chdir(_API_DIR)
 sys.path.insert(0, str(_API_DIR))
 
 import models  # noqa: F401 – registers all ORM classes with Base
@@ -365,7 +362,7 @@ async def list_jobs() -> HTMLResponse:
     async with AsyncSessionLocal() as db:
         result = await db.execute(
             select(Job)
-            .options(selectinload(Job.site))
+            .options(selectinload(Job.site), selectinload(Job.steps))
             .order_by(Job.created_at.desc())
         )
         jobs = result.scalars().unique().all()

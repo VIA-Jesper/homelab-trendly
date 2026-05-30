@@ -1,5 +1,9 @@
+from pathlib import Path
+
 from pydantic import Field
 from pydantic_settings import BaseSettings
+
+_here = Path(__file__).parent  # api/
 
 DEFAULT_PIPELINE_STEPS: list[dict] = [
     {"name": "write_draft",  "prompt_name": "generate_post", "max_attempts": 3, "is_qa_step": False},
@@ -27,7 +31,10 @@ class Settings(BaseSettings):
     # Load api/.env first (DATABASE_URL, API_KEY), then root .env (WP_*, PR_*).
     # Values in api/.env take precedence. This keeps DB config local while site
     # credentials stay in the root .env alongside docker-compose.
-    model_config = {"env_file": ["../.env", ".env"], "env_file_encoding": "utf-8"}
+    model_config = {
+        "env_file": [str(_here.parent / ".env"), str(_here / ".env")],
+        "env_file_encoding": "utf-8",
+    }
 
 
 settings = Settings()

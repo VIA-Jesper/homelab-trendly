@@ -74,13 +74,15 @@ class ClaudeAdapter(BaseAdapter):
             raise RuntimeError("claude returned empty result in JSON envelope")
 
         # Capture usage for the caller to log / store
+        # CLI uses total_cost_usd (not cost_usd); input_tokens is only new tokens —
+        # cache_read_input_tokens holds the bulk of the context on warm runs.
         usage = envelope.get("usage", {})
         self.last_usage = {
             "input_tokens": usage.get("input_tokens", 0),
             "output_tokens": usage.get("output_tokens", 0),
             "cache_read_tokens": usage.get("cache_read_input_tokens", 0),
             "cache_write_tokens": usage.get("cache_creation_input_tokens", 0),
-            "cost_usd": envelope.get("cost_usd", 0.0),
+            "cost_usd": envelope.get("total_cost_usd", 0.0),
         }
 
         return output

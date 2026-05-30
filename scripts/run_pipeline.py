@@ -27,9 +27,11 @@ def _fmt_usage(usage: dict) -> str:
     if not usage:
         return ""
     inp = usage.get("input_tokens", 0)
+    cached = usage.get("cache_read_tokens", 0)
     out = usage.get("output_tokens", 0)
     cost = usage.get("cost_usd", 0.0)
-    return f"{inp:,} in + {out:,} out = {inp + out:,} tokens · ${cost:.4f}"
+    cache_str = f" (+{cached:,} cached)" if cached else ""
+    return f"{inp:,}{cache_str} in + {out:,} out · ${cost:.4f}"
 
 
 def run(api_url: str, api_key: str, adapter_name: str) -> None:

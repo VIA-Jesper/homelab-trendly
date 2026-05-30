@@ -128,11 +128,28 @@ Attribution `href` points to the category page:
 | Article type | Primary widget | Notes |
 |---|---|---|
 | `single-product-review` | `product.js` | 3 stores, in-stock, national |
-| `roundup` | `products.js` | all reviewed products |
-| `brand-vs-brand` | `products.js` | both brand products |
-| `budget-tiers` | `products.js` | one per tier |
+| `roundup` | `singleproduct.js` per product | see note below |
+| `brand-vs-brand` | `singleproduct.js` per product | see note below |
+| `budget-tiers` | `singleproduct.js` per product | see note below |
 | `hero` / `deal` | `singleproduct.js` | single strong CTA |
 | Category sidebar | `category.js` | use category ID from brief |
+
+### Widget size vs. conversion tradeoff
+
+`product.js` (2-3 stores) takes significantly more vertical space than `singleproduct.js`
+(lowest price only). The rule of thumb:
+
+- **One product on the page** → use `product.js`. The extra store options justify the
+  space and give the reader confidence they're getting a fair price. More context = more
+  trust = more clicks on a single decision.
+
+- **Multiple products on the page** → use `singleproduct.js` per product. Stacking
+  full multi-store widgets for 5+ products buries the content and creates visual noise.
+  A compact lowest-price widget per product keeps the page readable while still driving
+  clicks. Each widget is a separate affiliate entry point so total click surface is the same.
+
+`products.js` (multi-product table) is an alternative to stacked `singleproduct.js` for
+roundups — one block instead of N blocks — but gives less per-product detail.
 
 ## Pipeline integration notes
 

@@ -572,9 +572,10 @@ async def preview(job_id: str) -> HTMLResponse:
             f'<div class="info-val" style="font-weight:700">${total_cost:.4f}</div>'
             f"</div>"
         )
+    _no_cost = '<span style="color:#aaa;font-size:12px">No usage data yet</span>'
     cost_widget = (
         f'<div class="widget"><div class="widget-title">Token Cost</div>'
-        f'<div class="widget-body">{cost_rows or "<span style=\'color:#aaa;font-size:12px\'>No usage data yet</span>"}</div></div>'
+        f'<div class="widget-body">{cost_rows or _no_cost}</div></div>'
     )
 
     # Stats widget

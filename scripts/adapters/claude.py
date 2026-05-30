@@ -1,10 +1,27 @@
+import shutil
 import subprocess
 import sys
 
 from adapters.base import BaseAdapter
 
-# On Windows, npm/pipx global binaries are .cmd wrappers
-_CLAUDE = "claude.cmd" if sys.platform == "win32" else "claude"
+
+def _find_claude() -> str:
+    # Try the resolved path first (handles .exe, .cmd, or bare 'claude')
+    resolved = shutil.which("claude")
+    if resolved:
+        return resolved
+    # Fallback: npm global installs on Windows use a .cmd wrapper
+    if sys.platform == "win32":
+        resolved = shutil.which("claude.cmd")
+        if resolved:
+            return resolved
+    raise FileNotFoundError(
+        "claude executable not found on PATH. "
+        "Install with: npm install -g @anthropic-ai/claude-code"
+    )
+
+
+_CLAUDE = _find_claude()
 
 
 class ClaudeAdapter(BaseAdapter):
@@ -17,7 +34,7 @@ class ClaudeAdapter(BaseAdapter):
     shell escaping issues with long prompts.
     """
 
-    def __init__(self, model: str = "claude-sonnet-4-5") -> None:
+    def __init__(self, model: str = "claude-sonnet-4-6") -> None:
         self.model = model
 
     def run(self, prompt: str, content: dict) -> str:
@@ -30,6 +47,7 @@ class ClaudeAdapter(BaseAdapter):
             input=instruction,
             capture_output=True,
             text=True,
+            encoding="utf-8",
             timeout=600,
         )
 

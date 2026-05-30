@@ -23,6 +23,7 @@ class WorkResponse(BaseModel):
 
 class WorkResult(BaseModel):
     output: str
+    usage: dict | None = None
 
 
 class WorkFailure(BaseModel):
@@ -94,6 +95,11 @@ async def submit_work(
     job = job_result.scalar_one_or_none()
     if not job:
         raise HTTPException(status_code=404, detail="Job not found")
+
+    # Store token usage on the step if the worker provided it
+    if result.usage:
+        existing = step.input or {}
+        step.input = {**existing, "usage": result.usage}
 
     status = await pipeline_service.handle_step_result(step, result.output, job, db)
     return status

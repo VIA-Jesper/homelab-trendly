@@ -550,6 +550,33 @@ async def preview(job_id: str) -> HTMLResponse:
     else:
         placements_widget = ""
 
+    # Token cost across all completed steps
+    total_cost = 0.0
+    cost_rows = ""
+    for s in job.steps:
+        if s.status == "complete" and s.input and isinstance(s.input, dict):
+            u = s.input.get("usage", {})
+            if u and u.get("cost_usd"):
+                total_cost += u["cost_usd"]
+                inp, out = u.get("input_tokens", 0), u.get("output_tokens", 0)
+                cost_rows += (
+                    f'<div class="info-row">'
+                    f'<div class="info-label">{_html.escape(s.step_name)}</div>'
+                    f'<div class="info-val">{inp+out:,} tok · ${u["cost_usd"]:.4f}</div>'
+                    f"</div>"
+                )
+    if cost_rows:
+        cost_rows += (
+            f'<div class="info-row" style="border-top:1px solid #eee;margin-top:6px;padding-top:6px">'
+            f'<div class="info-label">Total</div>'
+            f'<div class="info-val" style="font-weight:700">${total_cost:.4f}</div>'
+            f"</div>"
+        )
+    cost_widget = (
+        f'<div class="widget"><div class="widget-title">Token Cost</div>'
+        f'<div class="widget-body">{cost_rows or "<span style=\'color:#aaa;font-size:12px\'>No usage data yet</span>"}</div></div>'
+    )
+
     # Stats widget
     stats_widget = f"""
     <div class="widget">
@@ -665,6 +692,7 @@ async def preview(job_id: str) -> HTMLResponse:
         </div>
       </div>
       {stats_widget}
+      {cost_widget}
       {seo_widget}
       {meta_widget}
       {placements_widget}

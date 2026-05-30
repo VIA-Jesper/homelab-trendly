@@ -109,10 +109,12 @@ async def publish_to_wordpress(
             "content": article_html,
             "slug": post_slug,
             "status": wp_status,
+            # Yoast SEO meta fields — only works if the mu-plugin in
+            # scripts/wp-mu-plugins/register-yoast-meta.php is installed.
             "meta": {
-                "rank_math_title": seo.get("title", ""),
-                "rank_math_description": seo.get("description", ""),
-                "rank_math_focus_keyword": seo.get("focus_keyword", ""),
+                "_yoast_wpseo_title": seo.get("title", ""),
+                "_yoast_wpseo_metadesc": seo.get("description", ""),
+                "_yoast_wpseo_focuskw": seo.get("focus_keyword", ""),
             },
         }
         if category_id:

@@ -23,6 +23,9 @@ class Step(Base):
     attempt: Mapped[int] = mapped_column(Integer, nullable=False, default=1)
     error_message: Mapped[str | None] = mapped_column(Text, nullable=True)
     created_at: Mapped[datetime] = mapped_column(server_default=func.now())
+    # claimed_at: set when a worker takes this step. Used for lease expiry —
+    # if the worker dies before submitting, the step is reset after STEP_LEASE_SECONDS.
+    claimed_at: Mapped[datetime | None] = mapped_column(nullable=True)
     completed_at: Mapped[datetime | None] = mapped_column(nullable=True)
 
     job: Mapped["Job"] = relationship("Job", back_populates="steps")  # noqa: F821

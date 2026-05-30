@@ -25,12 +25,23 @@ class WorkResult(BaseModel):
     output: str
 
 
+class WorkFailure(BaseModel):
+    error: str
+
+
 @router.get("", response_model=WorkResponse)
 async def get_work(db: AsyncSession = Depends(get_db)) -> WorkResponse:
     """
     Worker polls this endpoint. Returns next pending task or {"status": "empty"}.
     Worker script loops until status == "empty", then exits.
+
+    Each poll also expires stale in_progress steps (worker died mid-task). Expired
+    steps are reset to pending and count against max_attempts, so a broken step
+    can't burn tokens indefinitely.
     """
+    # Reclaim any steps whose worker lease expired before looking for new work
+    await pipeline_service.expire_stale_steps(db)
+
     # Find oldest queued/in_progress job with a pending step
     result = await db.execute(
         select(Job)
@@ -47,8 +58,9 @@ async def get_work(db: AsyncSession = Depends(get_db)) -> WorkResponse:
     if not step:
         return WorkResponse(status="empty")
 
-    # Mark step in_progress
+    # Claim: mark in_progress and record lease timestamp
     step.status = "in_progress"
+    step.claimed_at = datetime.now(timezone.utc)
     job.status = "in_progress"
     await db.commit()
 
@@ -85,3 +97,27 @@ async def submit_work(
 
     status = await pipeline_service.handle_step_result(step, result.output, job, db)
     return status
+
+
+@router.post("/{task_id}/fail", response_model=dict)
+async def fail_work(
+    task_id: str,
+    body: WorkFailure,
+    db: AsyncSession = Depends(get_db),
+) -> dict:
+    """
+    Worker calls this when the agent errors out (instead of dying silently).
+    Marks the step failed and creates a new pending attempt if retries remain,
+    otherwise marks the job failed. Prevents steps from getting stuck in_progress.
+    """
+    step_result = await db.execute(select(Step).where(Step.id == uuid.UUID(task_id)))
+    step = step_result.scalar_one_or_none()
+    if not step:
+        raise HTTPException(status_code=404, detail="Task not found")
+
+    job_result = await db.execute(select(Job).where(Job.id == step.job_id))
+    job = job_result.scalar_one_or_none()
+    if not job:
+        raise HTTPException(status_code=404, detail="Job not found")
+
+    return await pipeline_service.fail_step(step, body.error, job, db)

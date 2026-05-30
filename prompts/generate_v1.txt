@@ -66,7 +66,7 @@ articleType in brief is "single-product-review". There is exactly one product. T
 standalone review — opinionated, thorough, and personal.
 
 ### Target word count
-500-1000 words total. No per-section minimum beyond what the structure requires.
+700-1000 words total. Aim for 750+ to give a comfortable buffer above the 700-word minimum.
 
 ### Required structure
 
@@ -75,11 +75,15 @@ standalone review — opinionated, thorough, and personal.
    Example: # Dreame X50 Ultra Kombi Sort anmeldelse — er det en robot, der holder hvad den lover?
    Must contain the product name and "anmeldelse" or "test".
 
-1. Introduction (60-100 words)
-   - FIRST mention of the product name MUST be an affiliate link.
-   - Name the product immediately (linked) and state your overall take.
-   - Hook with the product's defining characteristic (price signal, watcher count, rank — never
-     name PriceRunner, see universal rules).
+1. Introduction (80-120 words)
+   - FIRST sentence MUST contain the product name as a markdown link:
+     [Product Name](affiliateUrl)
+     Do NOT write the product name in bold (**...**) — it must be a hyperlink.
+     Example: Vi har kigget nærmere på [Segway Navimow i105E](https://www.pricerunner.dk/...)...
+   - Immediately after the intro paragraph, insert a standalone affiliate disclaimer line:
+     *Denne artikel indeholder affiliatelinks — vi tjener kommission, hvis du køber via vores links, uden ekstra omkostninger for dig.*
+   - State your overall take and hook with the product's defining characteristic (price signal,
+     watcher count, rank — never name PriceRunner, see universal rules).
 
 2. Hvad er det? (80-150 words, H2)
    - Brief overview: category, price, key specs from brief.

@@ -56,7 +56,18 @@ def run(api_url: str, api_key: str, adapter_name: str) -> None:
             output = adapter.run(prompt, content)
         except RuntimeError as e:
             log.error("Agent error on task %s: %s", task_id, e)
-            sys.exit(1)
+            # Report failure explicitly so the step is reset/retried rather than
+            # left stuck in_progress. The API applies max_attempts logic.
+            try:
+                requests.post(
+                    f"{work_url}/{task_id}/fail",
+                    headers=headers,
+                    json={"error": str(e)},
+                    timeout=10,
+                )
+            except Exception as report_err:
+                log.warning("Could not report failure for task %s: %s", task_id, report_err)
+            continue  # Next poll — don't exit; let max_attempts stop the loop
 
         # Submit result
         try:

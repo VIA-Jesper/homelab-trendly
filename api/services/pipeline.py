@@ -1,5 +1,6 @@
+import logging
 import uuid
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -8,6 +9,12 @@ from config import settings
 from models.job import Job
 from models.prompt import Prompt
 from models.step import Step
+
+log = logging.getLogger(__name__)
+
+# A worker must submit a result within this window or the step is reclaimed.
+# 15 minutes covers even the slowest Claude invocations with margin.
+STEP_LEASE_SECONDS = 900
 
 
 class PipelineService:
@@ -98,6 +105,77 @@ class PipelineService:
         job.updated_at = datetime.now(timezone.utc)
         await db.commit()
         return {"job_status": job.status, "step_status": step.status}
+
+    async def expire_stale_steps(self, db: AsyncSession) -> int:
+        """
+        Reset in_progress steps whose lease has expired (worker died without submitting).
+        Called at the start of every /work poll so stuck steps are reclaimed automatically.
+        Each expiry counts as an attempt — when max_attempts is reached the job fails.
+        """
+        cutoff = datetime.now(timezone.utc) - timedelta(seconds=STEP_LEASE_SECONDS)
+        result = await db.execute(
+            select(Step).where(
+                Step.status == "in_progress",
+                Step.claimed_at.is_not(None),
+                Step.claimed_at < cutoff,
+            )
+        )
+        stale = result.scalars().all()
+        for step in stale:
+            step_cfg = self._get_step_config(step.step_name)
+            max_attempts = step_cfg.get("max_attempts", 1) if step_cfg else 1
+            step.status = "failed"
+            step.error_message = "Lease expired — worker did not complete in time"
+            log.warning(
+                "Expired stale step %s (%s attempt %d/%d)",
+                step.id, step.step_name, step.attempt, max_attempts,
+            )
+            if step.attempt < max_attempts:
+                db.add(Step(
+                    job_id=step.job_id,
+                    step_name=step.step_name,
+                    step_order=step.step_order,
+                    prompt_id=step.prompt_id,
+                    status="pending",
+                    attempt=step.attempt + 1,
+                ))
+            else:
+                job_r = await db.execute(select(Job).where(Job.id == step.job_id))
+                job = job_r.scalar_one_or_none()
+                if job and job.status not in ("complete", "requires_review", "failed"):
+                    job.status = "failed"
+                    job.updated_at = datetime.now(timezone.utc)
+        if stale:
+            await db.commit()
+        return len(stale)
+
+    async def fail_step(self, step: Step, error: str, job: Job, db: AsyncSession) -> dict:
+        """
+        Explicitly fail a step. Called by the worker when the agent errors out.
+        Respects max_attempts: creates a new pending attempt if retries remain,
+        otherwise marks the job failed.
+        """
+        step_cfg = self._get_step_config(step.step_name)
+        max_attempts = step_cfg.get("max_attempts", 1) if step_cfg else 1
+        step.status = "failed"
+        step.error_message = (error or "Agent error")[:500]
+        step.completed_at = datetime.now(timezone.utc)
+        if step.attempt < max_attempts:
+            db.add(Step(
+                job_id=step.job_id,
+                step_name=step.step_name,
+                step_order=step.step_order,
+                prompt_id=step.prompt_id,
+                status="pending",
+                attempt=step.attempt + 1,
+            ))
+            job_status = job.status
+        else:
+            job.status = "failed"
+            job.updated_at = datetime.now(timezone.utc)
+            job_status = "failed"
+        await db.commit()
+        return {"job_status": job_status, "step_status": "failed"}
 
     async def _get_active_prompt(self, name: str, db: AsyncSession) -> Prompt | None:
         result = await db.execute(

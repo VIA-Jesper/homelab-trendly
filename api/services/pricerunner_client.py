@@ -207,8 +207,8 @@ def _compute_popularity_score(p: dict) -> float:
             score += 10
 
     rating = p.get("rating") or {}
-    avg = rating.get("average") or 0
-    cnt = rating.get("count") or 0
+    avg = _parse_num(rating.get("average"))
+    cnt = _parse_num(rating.get("count"))
     if avg >= 4.5 and cnt > 0:
         score += min(20, round(avg * math.log(cnt + 1)))
 
@@ -223,6 +223,21 @@ def _compute_popularity_score(p: dict) -> float:
     return score
 
 
+# ─── Numeric string normaliser ────────────────────────────────────────────────
+def _parse_num(v, default: float = 0.0) -> float:
+    """Convert PriceRunner numeric fields to float.
+
+    The API sometimes returns "1000+" instead of a plain number — strip
+    trailing non-digit characters before parsing.
+    """
+    if v is None:
+        return default
+    try:
+        return float(re.sub(r"[^\d.]", "", str(v)) or default)
+    except (ValueError, TypeError):
+        return default
+
+
 # ─── V4 API response → RawProduct ─────────────────────────────────────────────
 def _map_v4_product(p: dict, base_url: str, category_id: str) -> RawProduct:
     """Map a raw PriceRunner v4 API product dict to our internal RawProduct model."""
@@ -233,9 +248,9 @@ def _map_v4_product(p: dict, base_url: str, category_id: str) -> RawProduct:
 
     price_raw = (p.get("lowestPrice") or {}).get("amount")
     price_kr = (
-        float(price_raw)
+        _parse_num(price_raw)
         if price_raw is not None
-        else float((p.get("cheapestOffer") or {}).get("price", {}).get("amount", 0) or 0)
+        else _parse_num((p.get("cheapestOffer") or {}).get("price", {}).get("amount", 0))
     )
 
     retailer = (
@@ -264,7 +279,7 @@ def _map_v4_product(p: dict, base_url: str, category_id: str) -> RawProduct:
     if ribbon.get("type"):
         specs["ribbon"] = ribbon["type"]
     if ribbon.get("type") == "WATCHED" and ribbon.get("value"):
-        num = abs(float(ribbon["value"]))
+        num = _parse_num(ribbon["value"])
         specs["watchedLabel"] = f"{round(num)}+"
     price_drop = p.get("priceDrop") or {}
     if price_drop.get("percent") is not None:

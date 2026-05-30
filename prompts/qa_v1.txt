@@ -72,7 +72,7 @@ QA-W03 | PARAGRAPH LENGTH
 - No paragraph should have more than 5 sentences.
 
 QA-W04 | ACTIVE CTA IN VERDICT
-- "Vores dom" section should end with an active CTA (contains "forhandlere", "pris", or a link).
+- "Vores vurdering" section should end with an active CTA (contains "pris" or a link).
 
 ## Output format
 

@@ -46,9 +46,8 @@ The section field must exactly match an H2 heading you wrote in the article.
 - **Placements**: Include one "image" AND one "widget" anchor for each product.
 - **Affiliate links**: Wrap each product name in a markdown link using affiliateUrl from the brief.
   Example: [Ninja Luxe Café Premier](https://www.pricerunner.dk/pl/82-3332774746/...)
-- **Never name PriceRunner in the article body.** Reference the signal, not the source:
-  - Instead of "nr. 1 på PriceRunner" → write "topper kategorien"
-  - Instead of "PriceRunner-brugere" → write "interesserede brugere" or "50+ holder øje med prisen"
+- **Never name PriceRunner in the article body.** The widget attribution text is the only exception.
+  Do not reference ratings, watcher counts, shop counts, or rankings from the platform.
   - Widget attribution text (auto-injected) is the only acceptable exception.
 - **External links**: Include 1 link to an authoritative external source (brand site or spec sheet).
   Place it naturally: "Læs mere hos [Brand](https://brand.com)" or inline on a spec claim.
@@ -82,8 +81,9 @@ standalone review — opinionated, thorough, and personal.
      Example: Vi har kigget nærmere på [Segway Navimow i105E](https://www.pricerunner.dk/...)...
    - Immediately after the intro paragraph, insert a standalone affiliate disclaimer line:
      *Denne artikel indeholder affiliatelinks — vi tjener kommission, hvis du køber via vores links, uden ekstra omkostninger for dig.*
-   - State your overall take and hook with the product's defining characteristic (price signal,
-     watcher count, rank — never name PriceRunner, see universal rules).
+   - Hook with the product's defining characteristic — price, a key spec, or build quality.
+     Do NOT mention review counts, watcher counts, or number of shops. These say nothing
+     about the product and make the intro feel like a data dump.
 
 2. Hvad er det? (80-150 words, H2)
    - Brief overview: category, price, key specs from brief.
@@ -104,10 +104,10 @@ standalone review — opinionated, thorough, and personal.
    - "Overve j[specific named alternative] hvis..." — NAME the alternative explicitly.
    - Widget placement anchor goes here: end-of-section "Hvem er den til?"
 
-6. Vores dom (H2: "Vores dom", 60-100 words)
+6. Vores vurdering (H2: "Vores vurdering", 60-100 words)
    - Clear recommendation with a shorthand verdict (e.g., "4 ud af 5" or a sharp closing sentence).
    - Affiliate link on product name.
-   - Active CTA at the end: "Se aktuel pris hos alle [N] forhandlere ->" or similar.
+   - Active CTA at the end: "Se aktuel pris ->" or "Tjek prisen her ->". No shop counts.
 
 ### Tone
 First-person plural ("vi har testet", "vores oplevelse er"). Opinionated. Honest.
@@ -121,5 +121,6 @@ Warmth is good; false enthusiasm kills trust.
 - "Overve j alternativet" without naming the alternative — always name it explicitly
 - Meta-cons like "begraenset specifikationsdata" — only real product limitations
 - Passive CTA in verdict — always use an active click verb
+- Review counts, watcher counts, or number of shops in the article body
 - AI hedge phrases: "Det er alligevel rimeligt at naevne", "man kan argumentere for"
 - "ligeledes", "endvidere", "desuden" as sentence starters

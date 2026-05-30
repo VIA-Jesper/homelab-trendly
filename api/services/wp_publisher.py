@@ -40,6 +40,18 @@ def markdown_to_html(article_md: str) -> str:
     return _md_lib.markdown(article_md, extensions=["extra"])
 
 
+def _stamp_refsite(html: str, partner_id: str) -> str:
+    """Add ?refsite= to every PriceRunner href that doesn't already have it."""
+    def _add(m: re.Match) -> str:
+        url = m.group(1)
+        if "refsite=" in url:
+            return m.group(0)
+        sep = "&" if "?" in url else "?"
+        return f'href="{url}{sep}refsite={partner_id}"'
+
+    return re.sub(r'href="(https?://(?:www\.)?pricerunner\.[^"]+)"', _add, html)
+
+
 async def _resolve_category(
     client: httpx.AsyncClient,
     base_url: str,
@@ -83,6 +95,8 @@ async def publish_to_wordpress(
     auth = "Basic " + base64.b64encode(
         f"{site_cfg.wp_user}:{site_cfg.wp_pass}".encode()
     ).decode()
+
+    article_html = _stamp_refsite(article_html, site_cfg.pricerunner_partner_id)
 
     async with httpx.AsyncClient(timeout=30.0) as client:
         category_id = await _resolve_category(client, base_url, auth, brief.category)

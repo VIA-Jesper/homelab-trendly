@@ -104,18 +104,18 @@ async def publish_to_wordpress(
         title = seo.get("title") or (brief.products[0].name if brief.products else "")
         post_slug = slugify(seo.get("slug") or seo.get("title") or brief.category)
 
+        # Yoast fields are sent as top-level keys, not under "meta".
+        # register_rest_field() in the mu-plugin provides the update_callback
+        # that writes them; this is more reliable than register_meta for
+        # underscore-prefixed keys.
         post_data: dict = {
             "title": title,
             "content": article_html,
             "slug": post_slug,
             "status": wp_status,
-            # Yoast SEO meta fields — only works if the mu-plugin in
-            # scripts/wp-mu-plugins/register-yoast-meta.php is installed.
-            "meta": {
-                "_yoast_wpseo_title": seo.get("title", ""),
-                "_yoast_wpseo_metadesc": seo.get("description", ""),
-                "_yoast_wpseo_focuskw": seo.get("focus_keyword", ""),
-            },
+            "_yoast_wpseo_title": seo.get("title", ""),
+            "_yoast_wpseo_metadesc": seo.get("description", ""),
+            "_yoast_wpseo_focuskw": seo.get("focus_keyword", ""),
         }
         if category_id:
             post_data["categories"] = [category_id]

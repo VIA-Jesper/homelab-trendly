@@ -74,6 +74,11 @@ async def publish_job(
     placements = output.get("placements", [])
     seo = output.get("seo", {})
 
+    # WP theme renders the post title — strip leading H1 to avoid duplication
+    _lines = article_md.splitlines()
+    if _lines and _lines[0].startswith("# "):
+        article_md = "\n".join(_lines[1:]).lstrip("\n")
+
     if not article_md:
         raise HTTPException(status_code=422, detail="No article text in step output.")
 

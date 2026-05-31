@@ -113,6 +113,7 @@ async def publish_to_wordpress(
             "content": article_html,
             "slug": post_slug,
             "status": wp_status,
+            "comment_status": "closed",
             "_yoast_wpseo_title": seo.get("title", ""),
             "_yoast_wpseo_metadesc": seo.get("description", ""),
             "_yoast_wpseo_focuskw": seo.get("focus_keyword", ""),

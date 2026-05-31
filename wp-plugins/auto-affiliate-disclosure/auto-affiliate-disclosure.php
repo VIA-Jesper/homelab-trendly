@@ -2,7 +2,7 @@
 /**
  * Plugin Name:  Auto Affiliate Disclosure
  * Description:  Fixed top-bar affiliate disclosure compliant with Danish Markedsføringsloven §6, stk. 4.
- * Version:      1.0.0
+ * Version:      1.0.1
  * Author:       Trendly
  * License:      GPL-2.0+
  * Text Domain:  auto-affiliate-disclosure
@@ -10,7 +10,7 @@
 
 if ( ! defined( 'ABSPATH' ) ) exit;
 
-define( 'AAD_VERSION',    '1.0.0' );
+define( 'AAD_VERSION',    '1.0.1' );
 define( 'AAD_DIR',        plugin_dir_path( __FILE__ ) );
 define( 'AAD_URL',        plugin_dir_url( __FILE__ ) );
 
@@ -59,6 +59,7 @@ add_action( 'admin_menu', function () {
 
 add_action( 'wp_enqueue_scripts', function () {
     if ( aad_opt( 'enabled' ) !== '1' ) return;
+    if ( ! is_singular( 'post' ) ) return;
 
     wp_enqueue_style(
         'aad-disclosure',
@@ -85,6 +86,7 @@ add_action( 'wp_enqueue_scripts', function () {
 
 function aad_render_bar(): void {
     if ( aad_opt( 'enabled' ) !== '1' ) return;
+    if ( ! is_singular( 'post' ) ) return;
 
     $bg         = esc_attr( aad_opt( 'bg_color' ) );
     $color      = esc_attr( aad_opt( 'text_color' ) );

@@ -78,6 +78,12 @@ This rule has zero exceptions.
 - "faktisk" used as hollow filler ("det er faktisk rigtig godt") — say what you mean
 - "briefen", "analytisk set", "popularityrank", "popularityscore" — raw data artifacts
 
+### Sentence length — Yoast readability requirement
+Keep sentences under 20 words. Maximum 25% of sentences may exceed this limit.
+Long sentences almost always split cleanly into two shorter ones. Do it.
+- Bad: "Den navigerer via GPS og 4G, hvilket betyder at du slipper for at grave en kantledning ned, og det gør installationen markant nemmere end traditionelle robotklippere."
+- Good: "Den navigerer via GPS og 4G. Ingen kantledning, ingen gravning."
+
 ### Sentence patterns to avoid
 - Two consecutive sentences with identical structure ("X er Y. Z er A.")
 - Ending a section by restating what the section already said

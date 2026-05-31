@@ -13,7 +13,9 @@ Category resolution:
 """
 
 import base64
+import mimetypes
 import re
+from urllib.parse import urlparse
 
 import httpx
 import markdown as _md_lib
@@ -80,6 +82,47 @@ async def _resolve_category(
     return None
 
 
+async def _upload_featured_image(
+    client: httpx.AsyncClient,
+    base_url: str,
+    auth: str,
+    image_url: str,
+    alt: str,
+    caption: str,
+) -> int | None:
+    """Download image from URL and upload to WP media library. Returns media ID or None."""
+    try:
+        r = await client.get(image_url, follow_redirects=True, timeout=20.0)
+        if r.status_code != 200:
+            return None
+        image_bytes = r.content
+        content_type = r.headers.get("content-type", "image/jpeg").split(";")[0].strip()
+        ext = mimetypes.guess_extension(content_type) or ".jpg"
+        filename = urlparse(image_url).path.split("/")[-1] or f"featured{ext}"
+        r = await client.post(
+            f"{base_url}/wp-json/wp/v2/media",
+            content=image_bytes,
+            headers={
+                "Authorization": auth,
+                "Content-Type": content_type,
+                "Content-Disposition": f'attachment; filename="{filename}"',
+            },
+        )
+        if r.status_code not in (200, 201):
+            return None
+        media = r.json()
+        media_id = media.get("id")
+        if media_id and (alt or caption):
+            await client.post(
+                f"{base_url}/wp-json/wp/v2/media/{media_id}",
+                json={"alt_text": alt, "caption": caption},
+                headers={"Authorization": auth, "Content-Type": "application/json"},
+            )
+        return media_id
+    except Exception:
+        return None
+
+
 async def publish_to_wordpress(
     article_html: str,
     brief: ContentBrief,
@@ -101,13 +144,23 @@ async def publish_to_wordpress(
     async with httpx.AsyncClient(timeout=30.0) as client:
         category_id = await _resolve_category(client, base_url, auth, brief.category)
 
+        # Resolve featured image from brief using seo.featured_image_product_id
+        featured_media_id: int | None = None
+        featured_product_id = seo.get("featured_image_product_id")
+        if featured_product_id and brief.images:
+            img = next((i for i in brief.images if i.product_id == featured_product_id), brief.images[0])
+        elif brief.images:
+            img = brief.images[0]
+        else:
+            img = None
+        if img:
+            featured_media_id = await _upload_featured_image(
+                client, base_url, auth, img.url, img.alt, img.caption
+            )
+
         title = seo.get("title") or (brief.products[0].name if brief.products else "")
         post_slug = slugify(seo.get("slug") or seo.get("title") or brief.category)
 
-        # Yoast fields are sent as top-level keys, not under "meta".
-        # register_rest_field() in the mu-plugin provides the update_callback
-        # that writes them; this is more reliable than register_meta for
-        # underscore-prefixed keys.
         post_data: dict = {
             "title": title,
             "content": article_html,
@@ -120,6 +173,8 @@ async def publish_to_wordpress(
         }
         if category_id:
             post_data["categories"] = [category_id]
+        if featured_media_id:
+            post_data["featured_media"] = featured_media_id
 
         r = await client.post(
             f"{base_url}/wp-json/wp/v2/posts",

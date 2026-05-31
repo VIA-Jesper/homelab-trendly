@@ -5,6 +5,38 @@ No auth required. All return JSON.
 
 ---
 
+## Navigation / Category discovery
+
+```
+GET https://www.pricerunner.dk/dk/api/seo-edge-rest/public/navigation/menu/DK
+```
+Returns full category tree — all top-level groups (t/ prefix) and subcategories (cl/ prefix).
+
+```
+GET https://www.pricerunner.dk/dk/api/seo-edge-rest/public/navigation/menu/DK/hierarchy/{id}
+```
+Returns subcategory list for a specific top-level group. Use `t{id}` format (e.g. `t14`, `t1424`).
+
+### How to find a category ID
+
+1. Browse to the category on pricerunner.dk — note the URL: `/cl/345/Elvaerktoej` → ID is `cl345`
+2. Or fetch the full tree: `GET .../navigation/menu/DK` → search the JSON for the category name
+3. Or fetch a top-level group: `GET .../navigation/menu/DK/hierarchy/t14` → lists all subcategory IDs and names under that group
+4. Verify the ID works: `GET .../hot/products/v2/DK/cl345?size=3` — empty means wrong ID
+
+**Top-level groups relevant to husforbegyndere.dk:**
+
+| ID    | Name                  |
+|-------|-----------------------|
+| t14   | Køkkenapparater       |
+| t3    | Hvidevarer            |
+| t1424 | Have & Udemiljø       |
+| t1426 | Hus                   |
+| t1550 | Komfur & Ovne         |
+| t1500 | Køleskabe & Fryseskabe|
+
+---
+
 ## Product detail (used by pipeline)
 
 ```
@@ -72,21 +104,53 @@ use product URL to trigger a new article job via `POST /api/v1/jobs/from-url`.
 Future: track `rank` and `watchers` over time to detect rising trends before
 they peak — articles written early rank better than articles written after the spike.
 
-### husforbegyndere.dk category IDs
+### husforbegyndere.dk category IDs (verified)
 
-| Category ID | Name                  | Notes                                      |
-|-------------|-----------------------|--------------------------------------------|
-| cl1595      | Robotplæneklippere    |                                            |
-| cl119       | Plæneklippere         |                                            |
-| cl120       | Havemaskiner          |                                            |
-| cl335       | Grill                 |                                            |
-| cl638       | Højtryksrensere       |                                            |
-| cl1290      | Trampoliner           |                                            |
-| cl348       | Haveredskaber         | Uncertain — may be need-based, not review intent |
-| cl345       | Elværktøj             |                                            |
-| cl1258      | Bore-Skruemaskiner    |                                            |
-| cl1260      | Elsave                |                                            |
-| cl1613      | Robotstøvsugere       |                                            |
-| t14         | Køkkenapparater       | Top-level group — covers ismaskiner, airfryere, kaffemaskiner, etc. |
+All IDs verified via `/navigation/menu/DK` and `/navigation/menu/DK/hierarchy/{id}`.
+
+**Garden & outdoor (t1424):**
+| Category ID | Name                        | Notes |
+|-------------|-----------------------------|-------|
+| cl1595      | Robotplæneklippere          |       |
+| cl119       | Plæneklippere               |       |
+| cl1611      | Havetraktorer               |       |
+| cl120       | Havemaskiner                |       |
+| cl335       | Grill                       |       |
+| cl638       | Højtryks- & Hedvandsrensere |       |
+| cl1290      | Trampoliner                 |       |
+| cl541       | Pools                       |       |
+| cl1388      | Spabade & Vildmarksbade     |       |
+| cl348       | Haveredskaber               | Uncertain — may be need-based, not review intent |
+| cl499       | Havemøbler                  |       |
+
+**Power tools:**
+| Category ID | Name                | Notes |
+|-------------|---------------------|-------|
+| cl345       | Elværktøj           |       |
+| cl1258      | Bore-Skruemaskiner  |       |
+| cl1260      | Elsave              |       |
+
+**Hvidevarer (t3):**
+| Category ID | Name              | Notes |
+|-------------|-------------------|-------|
+| cl1613      | Robotstøvsugere   |       |
+| cl19        | Støvsugere        |       |
+| cl13        | Opvaskemaskiner   |       |
+| cl14        | Vaskemaskiner     |       |
+| cl17        | Tørretumblere     |       |
+| cl101       | Komfurer          |       |
+| cl105       | Ovne              |       |
+| cl106       | Kogeplader        |       |
+| cl3         | Mikrobølgeovne    |       |
+
+**Kitchen appliances — use t14 to fetch all at once:**
+| Category ID | Name                        |
+|-------------|-----------------------------|
+| t14         | Køkkenapparater (alle)      |
+| cl82        | Kaffemaskiner               |
+| cl81        | Frituregryder & Airfryere   |
+| cl250       | Ismaskiner                  |
+| cl84        | Blendere                    |
+| cl1244      | Røremaskiner & Foodprocessorer |
 
 Script: `scripts/fetch_hot_products.py`

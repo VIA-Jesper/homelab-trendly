@@ -26,20 +26,31 @@ LOG_FILE = Path(__file__).parent.parent / "data" / "hot-products.jsonl"
 # Categories relevant to husforbegyndere.dk
 # Prefix cl = specific category, t = top-level category group (broader)
 HUSFORBEGYNDERE_CATEGORIES = {
-    # Garden & outdoor
+    # Garden & outdoor (t1424) — verified
     "cl1595": "Robotplæneklippere",
     "cl119":  "Plæneklippere",
+    "cl1611": "Havetraktorer",
     "cl120":  "Havemaskiner",
     "cl335":  "Grill",
-    "cl638":  "Højtryksrensere",
+    "cl638":  "Højtryks- & Hedvandsrensere",
     "cl1290": "Trampoliner",
-    "cl348":  "Haveredskaber",  # uncertain — trending may be need-based, not review-driven
-    # Power tools
+    "cl541":  "Pools",
+    "cl1388": "Spabade & Vildmarksbade",
+    "cl499":  "Havemøbler",
+    "cl348":  "Haveredskaber",  # uncertain — may be need-based, not review intent
+    # Power tools — verified
     "cl345":  "Elværktøj",
     "cl1258": "Bore-Skruemaskiner",
     "cl1260": "Elsave",
-    # Home appliances
+    # Hvidevarer (t3) — verified
     "cl1613": "Robotstøvsugere",
+    "cl19":   "Støvsugere",
+    "cl13":   "Opvaskemaskiner",
+    "cl14":   "Vaskemaskiner",
+    "cl17":   "Tørretumblere",
+    "cl101":  "Komfurer",
+    "cl105":  "Ovne",
+    "cl106":  "Kogeplader",
     # Kitchen — t14 covers all subcategories (ismaskiner, airfryere, kaffemaskiner, etc.)
     "t14":    "Køkkenapparater",
 }

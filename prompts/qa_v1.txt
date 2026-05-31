@@ -33,11 +33,6 @@ QA-003 | AFFILIATE LINK IN INTRO
 - The first paragraph must contain a markdown link [...](url) on the product name.
 - Failure: "No affiliate link found in introduction paragraph"
 
-QA-005 | AFFILIATE DISCLAIMER
-- The article must contain an affiliate disclaimer in Danish.
-- Accepted terms: "affiliate", "kommission", "annonce", "sponseret", "reklame".
-- Failure: "No affiliate disclaimer found"
-
 QA-006 | DANISH LANGUAGE
 - All article content must be in natural Danish. No English paragraphs or sentences.
 - Failure: "Non-Danish content detected"

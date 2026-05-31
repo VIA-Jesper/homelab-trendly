@@ -39,7 +39,6 @@ The brief is also available in context.brief for product data and keyword refere
 ## What you must NOT change
 
 - The fundamental structure and content of the article.
-- The affiliate disclaimer (if present).
 - Existing affiliate links and their URLs.
 - The placements array — do not add, remove, or modify anchors.
 - The language — the article must remain in natural Danish.

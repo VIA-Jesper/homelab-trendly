@@ -108,8 +108,6 @@ standalone review — opinionated, thorough, and personal.
      [Product Name](affiliateUrl)
      Do NOT write the product name in bold (**...**) — it must be a hyperlink.
      Example: Vi har kigget nærmere på [Segway Navimow i105E](https://www.pricerunner.dk/...)...
-   - Immediately after the intro paragraph, insert a standalone affiliate disclaimer line:
-     *Denne artikel indeholder affiliatelinks — vi tjener kommission, hvis du køber via vores links, uden ekstra omkostninger for dig.*
    - Hook with the product's defining characteristic — price, a key spec, or build quality.
      Do NOT mention review counts, watcher counts, or number of shops. These say nothing
      about the product and make the intro feel like a data dump.

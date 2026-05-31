@@ -3,6 +3,20 @@
 Unofficial endpoints reverse-engineered from the PriceRunner DK frontend.
 No auth required. All return JSON.
 
+Reference: https://github.com/Daniel6702/OpenPriceRunnerAPI (reverse-engineered wrapper, MIT)
+May be worth forking — contains retry logic, price history, reviews, offers, and keyword endpoints
+we haven't explored yet. License is permissive.
+
+## Known base URLs
+
+| Base URL | Used for |
+|----------|----------|
+| `https://www.pricerunner.dk/dk/api/search-compare-gateway/public` | Product data, reviews, price history, offers, hot products (OpenPriceRunnerAPI base) |
+| `https://www.pricerunner.dk/dk/api/search-edge-rest/public` | Hot products (confirmed working) |
+| `https://www.pricerunner.dk/dk/api/seo-edge-rest/public` | Navigation / category tree |
+
+All endpoints below should be prefixed with the appropriate base URL.
+
 ---
 
 ## Navigation / Category discovery
@@ -154,3 +168,44 @@ All IDs verified via `/navigation/menu/DK` and `/navigation/menu/DK/hierarchy/{i
 | cl1244      | Røremaskiner & Foodprocessorer |
 
 Script: `scripts/fetch_hot_products.py`
+
+---
+
+## Additional endpoints (from OpenPriceRunnerAPI — base: search-compare-gateway/public)
+
+These are documented in the reference repo but not yet tested in our pipeline.
+
+### Product endpoints
+
+| Endpoint | Description | Params |
+|----------|-------------|--------|
+| `/productlistings/pl/initial/{subcategoryId}-{productId}/DK` | Full product listing data | — |
+| `/productlistings/rank/DK/{productId}` | Product rank | — |
+| `/keyword/product/DK/{subcategoryId}-{productId}` | SEO keywords for a product | — |
+| `/product-detail/v0/offers/DK/{productId}` | Merchant offers/prices | `af_ORIGIN`, `af_ITEM_CONDITION`, `sortByPreset`, `af_MERCHANT` |
+| `/pricehistory/product/{productId}/DK/DAY` | Price history | `merchantId`, `selectedInterval` (e.g. `THREE_MONTHS`), `filter` |
+| `/reviews/products/overview/DK/{productId}` | User reviews | `count` |
+| `/listings/products/DK` | Batch product listings | `productIds` (comma-separated) |
+| `/productinfo/DK` | Batch product info | `productIds`, `withShipping`, `onlyPayingMerchants`, `onlyCertifiedMerchants` |
+| `/hot/products/v2/DK` | Hot/trending products | `size` |
+
+### Category endpoints
+
+| Endpoint | Description | Params |
+|----------|-------------|--------|
+| `/navigation/menu/DK/items` | Top-level categories | — |
+| `/navigation/menu/DK` | Full category tree | — |
+| `/navigation/menu/DK/hierarchy/{categoryId}` | Subcategories for a group | — |
+| `/navigation/breadcrumbs/DK/{categoryId}` | Breadcrumb trail | — |
+| `/keyword/tree/DK/{categoryId}` | SEO keywords for a category | — |
+| `/keyword/category/DK/{subcategoryId}` | SEO keywords for subcategory | — |
+| `/popularproducts/v2/DK/{categoryId}` | Popular products (all-time vs hot=trending) | — |
+| `/search/category/v3/DK/{subcategoryId}` | Products in category with filters | `size`, dynamic filter pairs |
+| `/search/guidingcontent/v2/DK/{subcategoryId}` | Buying guides for a category | `size` |
+| `/search/board/DK/{subcategoryId}` | Category boards/featured | `size` |
+
+### HTTP client notes (from repo)
+
+- Default headers: `User-Agent: Chrome`, `Accept: application/json`
+- Retry logic: exponential backoff on failure; 60s pause on 429/403
+- No auth required

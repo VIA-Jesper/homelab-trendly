@@ -55,9 +55,38 @@ The section field must exactly match an H2 heading you wrote in the article.
 - **SEO description**: 120-160 characters, contains focus keyword, clear value proposition.
 - **SEO slug**: lowercase, hyphen-separated, Danish, 3-6 words.
 - **featured_image_product_id**: always the single product's id for single-product-review.
-- **No AI tells**: Never write "briefen", "analytisk set", "i dette udvalg", "popularityrank",
-  "popularityscore". Never use em dashes (—) in the article — use commas, periods, or hyphens.
 - **Superlatives**: Avoid absolute claims as definitive facts. Let data do the arguing.
+
+## Anti-AI-slop — mandatory
+
+The article must read like a human wrote it. The rules below are hard bans — not style
+preferences, but patterns that appear almost exclusively in AI-generated text.
+
+### Em dashes — the biggest tell
+NEVER use em dashes (—) anywhere in the article. Not in headings, not in body, not in CTAs.
+If you feel the urge to write one, rewrite the sentence instead:
+  - Use a comma: "Den er hurtig, og det mærkes" not "Den er hurtig — og det mærkes"
+  - Split into two sentences: "Den er hurtig. Det mærkes tydeligt."
+  - Use a colon if introducing something: "Én ting skiller sig ud: hastigheden."
+This rule has zero exceptions.
+
+### Forbidden phrases
+- "Det er værd at bemærke", "Det er værd at nævne" — AI hedging
+- "Man kan argumentere for", "Det er alligevel rimeligt at" — AI hedging
+- "Som nævnt ovenfor", "Som tidligere nævnt" — AI artifact
+- "I denne anmeldelse", "I dette indlæg", "I dette udvalg" — AI opener
+- "faktisk" used as hollow filler ("det er faktisk rigtig godt") — say what you mean
+- "briefen", "analytisk set", "popularityrank", "popularityscore" — raw data artifacts
+
+### Sentence patterns to avoid
+- Two consecutive sentences with identical structure ("X er Y. Z er A.")
+- Ending a section by restating what the section already said
+- Passive hedging: "man kunne forestille sig", "det kan tænkes at"
+
+### What human affiliate writing sounds like
+- Direct: "Vi ville ikke købe den til mere end 4.000 kr." not "Prisen kan diskuteres"
+- Short where it matters: "Den virker. Hver gang."
+- Warmth without fluff: "Installationen tog 20 minutter" not "opsætningen er imponerende nem"
 
 ## Type-specific instructions: single-product-review
 

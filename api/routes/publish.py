@@ -60,8 +60,13 @@ async def publish_job(
     if not content_step or not content_step.output:
         raise HTTPException(status_code=422, detail="No content ready to publish.")
 
+    raw = (content_step.output or "").strip()
+    if raw.startswith("```"):
+        _lines = raw.splitlines()
+        _end = len(_lines) - 1 if _lines[-1].strip() == "```" else len(_lines)
+        raw = "\n".join(_lines[1:_end]).strip()
     try:
-        output = json.loads(content_step.output)
+        output = json.loads(raw)
     except (json.JSONDecodeError, TypeError):
         raise HTTPException(status_code=422, detail="Content step output is not valid JSON.")
 

@@ -6,9 +6,10 @@ from pydantic_settings import BaseSettings
 _here = Path(__file__).parent  # api/
 
 DEFAULT_PIPELINE_STEPS: list[dict] = [
-    {"name": "write_draft",  "prompt_name": "generate_post", "max_attempts": 3, "is_qa_step": False},
-    {"name": "optimize_seo", "prompt_name": "optimize_seo",  "max_attempts": 1, "is_qa_step": False},
-    {"name": "qa_review",    "prompt_name": "qa_review",     "max_attempts": 3, "is_qa_step": True},
+    {"name": "write_draft",   "prompt_name": "generate_post",  "max_attempts": 3, "is_qa_step": False},
+    {"name": "optimize_seo",  "prompt_name": "optimize_seo",   "max_attempts": 1, "is_qa_step": False},
+    {"name": "qa_review",     "prompt_name": "qa_review",      "max_attempts": 3, "is_qa_step": True},
+    {"name": "score_article", "prompt_name": "score_article",  "max_attempts": 1, "is_qa_step": False, "source_step": "optimize_seo"},
 ]
 
 

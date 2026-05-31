@@ -1,0 +1,70 @@
+/* ── Disclosure bar ────────────────────────────────────────────────── */
+
+#aad-bar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 10px 48px 10px 16px;
+    box-sizing: border-box;
+    line-height: 1.4;
+    text-align: center;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    font-weight: 500;
+    letter-spacing: 0.01em;
+}
+
+#aad-bar.aad-hidden {
+    display: none !important;
+}
+
+.aad-text {
+    flex: 1;
+    text-align: center;
+}
+
+.aad-close {
+    position: absolute;
+    right: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: 1px solid currentColor;
+    border-radius: 3px;
+    color: inherit;
+    font-size: 16px;
+    line-height: 1;
+    cursor: pointer;
+    padding: 2px 7px;
+    opacity: 0.6;
+    transition: opacity 0.15s;
+}
+
+.aad-close:hover {
+    opacity: 1;
+}
+
+/* Push body content down so the bar doesn't overlap */
+body.aad-active {
+    padding-top: 44px !important;
+    margin-top: 0 !important;
+}
+
+/* ── Responsive ────────────────────────────────────────────────────── */
+
+@media (max-width: 600px) {
+    #aad-bar {
+        font-size: 13px !important;
+        padding: 8px 40px 8px 12px;
+        text-align: left;
+    }
+
+    body.aad-active {
+        padding-top: 54px !important;
+    }
+}

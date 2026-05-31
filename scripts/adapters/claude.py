@@ -73,6 +73,12 @@ class ClaudeAdapter(BaseAdapter):
         if not output:
             raise RuntimeError("claude returned empty result in JSON envelope")
 
+        # Strip markdown code fences if the model wrapped JSON output in ```json ... ```
+        if output.startswith("```"):
+            lines = output.splitlines()
+            end = len(lines) - 1 if lines[-1].strip() == "```" else len(lines)
+            output = "\n".join(lines[1:end]).strip()
+
         # Capture usage for the caller to log / store
         # CLI uses total_cost_usd (not cost_usd); input_tokens is only new tokens —
         # cache_read_input_tokens holds the bulk of the context on warm runs.

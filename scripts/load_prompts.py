@@ -28,6 +28,7 @@ PROMPT_FILES = {
     "generate_post": PROMPTS_DIR / "generate_v1.txt",
     "optimize_seo":  PROMPTS_DIR / "optimize_v1.txt",
     "qa_review":     PROMPTS_DIR / "qa_v1.txt",
+    "score_article": PROMPTS_DIR / "score_v1.txt",
 }
 
 

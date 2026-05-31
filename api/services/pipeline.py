@@ -51,7 +51,19 @@ class PipelineService:
     async def build_step_input(self, step: Step, job: Job, db: AsyncSession) -> dict:
         """Assemble everything the agent needs for this step."""
         prompt_content = step.prompt.content if step.prompt else ""
-        previous_output = await self._get_previous_output(job, step.step_order, db)
+        step_cfg = self._get_step_config(step.step_name)
+        source_step_name = step_cfg.get("source_step") if step_cfg else None
+        if source_step_name:
+            result = await db.execute(
+                select(Step)
+                .where(Step.job_id == job.id, Step.step_name == source_step_name, Step.status == "complete")
+                .order_by(Step.step_order.desc())
+                .limit(1)
+            )
+            src = result.scalar_one_or_none()
+            previous_output = src.output if src else None
+        else:
+            previous_output = await self._get_previous_output(job, step.step_order, db)
         return {
             "prompt": prompt_content,
             "context": job.context,

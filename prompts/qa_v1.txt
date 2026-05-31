@@ -33,11 +33,6 @@ QA-003 | AFFILIATE LINK IN INTRO
 - The first paragraph must contain a markdown link [...](url) on the product name.
 - Failure: "No affiliate link found in introduction paragraph"
 
-QA-004 | MINIMUM WORD COUNT
-- The article must have at least min_words from context.brief.writing_rules (default 700).
-- Count words in the article body only.
-- Failure: "Word count X is below minimum Y"
-
 QA-005 | AFFILIATE DISCLAIMER
 - The article must contain an affiliate disclaimer in Danish.
 - Accepted terms: "affiliate", "kommission", "annonce", "sponseret", "reklame".
@@ -52,13 +47,20 @@ QA-007 | NO FORBIDDEN SUPERLATIVES
   "nr. 1 valg", "absolut bedst" (case-insensitive).
 - Failure: "Found forbidden superlative: [phrase]"
 
-QA-008 | SEO DESCRIPTION LENGTH
-- seo.description must be 120-160 characters.
-- Failure: "SEO description is X chars (required: 120-160)"
+QA-010 | NO EM DASHES
+- The article must not contain em dashes (—). They are the clearest AI tell and
+  destroy the human feel of the article.
+- Scan the full article field for the — character.
+- Failure: "Em dash found — rewrite affected sentences using commas or periods"
 
-QA-009 | PLACEMENTS ANCHORS RESOLVABLE
+QA-008 | PLACEMENTS ANCHORS RESOLVABLE
 - Each placement anchor section must match an H2 heading in the article.
 - Failure: "Anchor section '[section]' not found as H2 heading in article"
+
+QA-009 | WIDGET PLACEMENT PRESENT
+- The placements array must contain at least one entry with "type": "widget".
+- Without a widget the article generates no affiliate revenue.
+- Failure: "No widget placement defined — article cannot earn revenue"
 
 ### WARNING — flag but do not block
 
@@ -73,6 +75,18 @@ QA-W03 | PARAGRAPH LENGTH
 
 QA-W04 | ACTIVE CTA IN VERDICT
 - "Vores vurdering" section should end with an active CTA (contains "pris" or a link).
+
+QA-W05 | MULTIPLE AFFILIATE LINKS
+- The article body should contain at least 2 affiliate links (not counting the intro link).
+- Single-link articles leave revenue on the table.
+
+QA-W06 | SEO DESCRIPTION LENGTH
+- seo.description should be 120–160 characters.
+- Report actual length if outside range.
+
+QA-W07 | MINIMUM WORD COUNT
+- The article should have at least min_words from context.brief.writing_rules (default 700).
+- Report actual count if below minimum.
 
 ## Output format
 

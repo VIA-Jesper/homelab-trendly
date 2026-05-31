@@ -52,6 +52,12 @@ def _fmt_date(dt) -> str:
     return f"{dt.day}. {DANISH_MONTHS[dt.month - 1]} {dt.year}"
 
 
+def _fmt_datetime(dt) -> str:
+    if dt is None:
+        return "–"
+    return f"{dt.day}. {DANISH_MONTHS[dt.month - 1]} {dt.year} {dt.hour:02d}:{dt.minute:02d}"
+
+
 # ── Markdown renderer ────────────────────────────────────────────────────────
 
 def _inline(t: str) -> str:
@@ -59,7 +65,7 @@ def _inline(t: str) -> str:
     t = re.sub(r"\*\*(.+?)\*\*", r"<strong>\1</strong>", t)
     t = re.sub(r"(?<!\*)\*(?!\*)(.+?)(?<!\*)\*(?!\*)", r"<em>\1</em>", t)
     t = re.sub(r"`([^`]+)`", r"<code>\1</code>", t)
-    t = re.sub(r"\[([^\]]+)\]\(([^)]+)\)", r'<a href="\2">\1</a>', t)
+    t = re.sub(r"\[([^\]]+)\]\(([^)]+)\)", r'<a href="\2" target="_blank" rel="noopener">\1</a>', t)
     return t
 
 
@@ -121,9 +127,18 @@ def _render(
     If brief and placements are provided, widgets are inserted into the article
     before rendering so the preview matches what will be published.
     """
+    # Strip markdown code fences if stored output was wrapped (e.g. ```json ... ```)
+    stripped = raw.strip()
+    if stripped.startswith("```"):
+        lines = stripped.splitlines()
+        end = len(lines) - 1 if lines[-1].strip() == "```" else len(lines)
+        stripped = "\n".join(lines[1:end]).strip()
+    else:
+        stripped = raw
+
     # New JSON format
     try:
-        data = json.loads(raw)
+        data = json.loads(stripped)
         if isinstance(data, dict) and "article" in data:
             meta = data.get("seo", {}).get("description")
             article = data["article"]
@@ -312,10 +327,20 @@ a{color:#2a6496}
 .s-queued{background:#eaf2f8;color:#1a5276}
 .s-requires_review{background:#fdebd0;color:#935116}
 .s-failed{background:#fadbd8;color:#922b21}
+.s-archived{background:#ecf0f1;color:#95a5a6}
+.wp-published{background:#1e8449;color:#fff;display:inline-block;padding:2px 9px;
+  border-radius:10px;font-size:11px;font-weight:700}
+.wp-draft{background:#e67e22;color:#fff;display:inline-block;padding:2px 9px;
+  border-radius:10px;font-size:11px;font-weight:700}
 .btn-preview{background:#2a6496;color:#fff;padding:4px 12px;border-radius:3px;
-  text-decoration:none;font-size:12px;font-weight:600}
+  text-decoration:none;font-size:12px;font-weight:600;white-space:nowrap}
 .btn-preview:hover{background:#1c4966}
 .no-preview{color:#bbb;font-size:12px}
+.btn-archive{background:none;border:1px solid #ddd;color:#aaa;padding:3px 9px;
+  border-radius:3px;font-size:11px;cursor:pointer}
+.btn-archive:hover{border-color:#e74c3c;color:#e74c3c}
+.archived-row{display:none}
+.archived-row td{opacity:0.5}
 
 /* Footer */
 #colophon{background:#23282d;color:#777;text-align:center;
@@ -357,6 +382,21 @@ def _shell(title: str, body: str, site_name: str = "Preview", site_desc: str = "
 
 # ── Routes ───────────────────────────────────────────────────────────────────
 
+from fastapi.responses import JSONResponse
+
+
+@app.post("/archive/{job_id}")
+async def archive_job(job_id: str) -> JSONResponse:
+    async with AsyncSessionLocal() as db:
+        result = await db.execute(select(Job).where(Job.id == _uuid.UUID(job_id)))
+        job = result.scalar_one_or_none()
+        if not job:
+            return JSONResponse({"error": "Job not found"}, status_code=404)
+        job.status = "archived"
+        await db.commit()
+    return JSONResponse({"ok": True})
+
+
 @app.get("/", response_class=HTMLResponse)
 async def list_jobs() -> HTMLResponse:
     async with AsyncSessionLocal() as db:
@@ -377,7 +417,14 @@ async def list_jobs() -> HTMLResponse:
         ) or "–"
         site_name = j.site.name if j.site else "?"
         status_cls = f"s-{j.status}"
-        created = _fmt_date(j.created_at)
+        created = _fmt_datetime(j.created_at)
+
+        total_cost = sum(
+            s.input.get("usage", {}).get("cost_usd", 0.0)
+            for s in j.steps
+            if s.status == "complete" and isinstance(s.input, dict)
+        )
+        cost_str = f"${total_cost:.4f}" if total_cost else "–"
 
         has_content = any(
             s.step_name in ("write_draft", "optimize_seo") and s.status == "complete"
@@ -389,29 +436,69 @@ async def list_jobs() -> HTMLResponse:
             else '<span class="no-preview">no content yet</span>'
         )
 
+        wp_post_url = j.context.get("wp_post_url", "")
+        wp_status = j.context.get("wp_status", "")
+        if wp_post_url and wp_status == "publish":
+            wp_cell = f'<a href="{_html.escape(wp_post_url)}" target="_blank"><span class="wp-published">Published</span></a>'
+        elif wp_post_url and wp_status == "draft":
+            wp_cell = f'<a href="{_html.escape(wp_post_url)}" target="_blank"><span class="wp-draft">Draft</span></a>'
+        else:
+            wp_cell = '<span style="color:#ccc;font-size:12px">—</span>'
+
+        is_archived = j.status == "archived"
+        row_cls = "archived-row" if is_archived else ""
+        archive_btn = (
+            f'<button class="btn-archive" onclick="archiveJob(\'{j.id}\', this)">Archive</button>'
+            if not is_archived else
+            '<span style="color:#bbb;font-size:11px">archived</span>'
+        )
+
         rows += f"""
-        <tr>
+        <tr class="{row_cls}" id="row-{j.id}">
           <td style="font-family:monospace;font-size:12px;color:#888">{str(j.id)[:8]}&hellip;</td>
           <td>{_html.escape(site_name)}</td>
           <td class="kw">{_html.escape(kw)}</td>
           <td><span class="status-badge {status_cls}">{j.status}</span></td>
+          <td>{wp_cell}</td>
           <td>{created}</td>
-          <td>{preview_link}</td>
+          <td style="font-family:monospace;font-size:12px;color:#666">{cost_str}</td>
+          <td style="display:flex;gap:6px;align-items:center">{preview_link} {archive_btn}</td>
         </tr>"""
 
     body = f"""
 <div class="page-wrap">
-  <p class="page-title">Pipeline Jobs</p>
+  <div style="display:flex;align-items:baseline;gap:16px;margin-bottom:20px">
+    <p class="page-title" style="margin-bottom:0">Pipeline Jobs</p>
+    <label style="font-size:13px;color:#888;cursor:pointer">
+      <input type="checkbox" id="show-archived" onchange="toggleArchived(this.checked)" style="margin-right:4px">
+      Show archived
+    </label>
+  </div>
   <table class="jobs-table">
     <thead>
       <tr>
         <th>ID</th><th>Site</th><th>Keyword</th>
-        <th>Status</th><th>Created</th><th></th>
+        <th>Status</th><th>WordPress</th><th>Created</th><th>Cost</th><th></th>
       </tr>
     </thead>
     <tbody>{rows}</tbody>
   </table>
-</div>"""
+</div>
+<script>
+function toggleArchived(show) {{
+  document.querySelectorAll('.archived-row').forEach(r => r.style.display = show ? 'table-row' : 'none');
+}}
+async function archiveJob(jobId, btn) {{
+  if (!confirm('Archive this job?')) return;
+  const r = await fetch('/archive/' + jobId, {{method: 'POST'}});
+  if (r.ok) {{
+    const row = document.getElementById('row-' + jobId);
+    row.classList.add('archived-row');
+    row.style.display = 'none';
+    btn.replaceWith(document.createTextNode('archived'));
+  }}
+}}
+</script>"""
 
     return _resp(_shell("Jobs", body))
 
@@ -421,10 +508,18 @@ async def preview(job_id: str) -> HTMLResponse:
     async with AsyncSessionLocal() as db:
         result = await db.execute(
             select(Job)
-            .options(selectinload(Job.site))
+            .options(selectinload(Job.site), selectinload(Job.steps))
             .where(Job.id == _uuid.UUID(job_id))
         )
         job = result.scalar_one_or_none()
+
+        recent_result = await db.execute(
+            select(Job)
+            .options(selectinload(Job.steps))
+            .order_by(Job.created_at.desc())
+            .limit(6)
+        )
+        recent_jobs = recent_result.scalars().unique().all()
 
     if job is None:
         return _resp("<h1>Job not found</h1>", status_code=404)
@@ -451,6 +546,13 @@ async def preview(job_id: str) -> HTMLResponse:
         return _resp(_shell(kw or "Preview", body, site_name))
 
     raw = content_step.output
+
+    # Strip markdown code fences if the model wrapped output in ```json ... ```
+    _raw = raw.strip()
+    if _raw.startswith("```"):
+        _lines = _raw.splitlines()
+        _end = len(_lines) - 1 if _lines[-1].strip() == "```" else len(_lines)
+        raw = "\n".join(_lines[1:_end]).strip()
 
     # Parse JSON output if present (new pipeline format)
     output_data = None
@@ -547,6 +649,20 @@ async def preview(job_id: str) -> HTMLResponse:
     else:
         placements_widget = ""
 
+    # Article scores
+    score_step = steps_by_name.get("score_article")
+    scores: dict = {}
+    if score_step and score_step.output:
+        try:
+            _raw_score = score_step.output.strip()
+            if _raw_score.startswith("```"):
+                _sl = _raw_score.splitlines()
+                _se = len(_sl) - 1 if _sl[-1].strip() == "```" else len(_sl)
+                _raw_score = "\n".join(_sl[1:_se]).strip()
+            scores = json.loads(_raw_score)
+        except (json.JSONDecodeError, TypeError):
+            pass
+
     # Token cost across all completed steps
     total_cost = 0.0
     cost_rows = ""
@@ -609,16 +725,72 @@ async def preview(job_id: str) -> HTMLResponse:
         "failed": "pv-badge fail",
     }.get(job.status, "pv-badge pending")
 
+    qa_passed = qa_step and "PASS" in (qa_step.output or "").upper()
+    wp_post_url = job.context.get("wp_post_url", "")
+    wp_status = job.context.get("wp_status", "")
+
+    if wp_post_url:
+        _wp_indicator = (
+            f'<span class="pv-badge" style="background:#27ae60">Published</span>'
+            if wp_status == "publish"
+            else f'<span class="pv-badge" style="background:#e67e22">Draft in WP</span>'
+        )
+        _wp_link = f'<a href="{_html.escape(wp_post_url)}" target="_blank" style="color:#8fb3cc;font-size:12px">View in WP →</a>'
+    else:
+        _wp_indicator = ""
+        _wp_link = ""
+
+    _btn_style = "cursor:pointer;border:none;border-radius:3px;padding:4px 12px;font-size:12px;font-weight:600;"
+    _draft_btn = f'<button style="{_btn_style}background:#546e7a;color:#fff" onclick="publishJob(\'{job_id}\',\'draft\')">Push as Draft</button>'
+    _publish_btn = (
+        f'<button style="{_btn_style}background:#27ae60;color:#fff" onclick="publishJob(\'{job_id}\',\'publish\')">Publish Live</button>'
+        if qa_passed else
+        f'<button style="{_btn_style}background:#444;color:#888;cursor:not-allowed" title="QA must pass before publishing" disabled>Publish Live</button>'
+    )
+
     banner = f"""
     <div id="preview-banner">
       <strong>LOCAL PREVIEW</strong>
       <span>{_html.escape(site_domain)}</span>
       <span>{_html.escape(kw)}</span>
       <span class="{jstatus_badge}">{job.status}</span>
-      <span style="margin-left:auto;color:#546e7a">
-        Step: {content_step.step_name} · attempt {content_step.attempt}
+      {_wp_indicator}
+      {_wp_link}
+      <span style="margin-left:auto;display:flex;gap:8px;align-items:center">
+        <span id="publish-msg" style="font-size:12px;color:#8fb3cc"></span>
+        {_draft_btn}
+        {_publish_btn}
       </span>
-    </div>"""
+    </div>
+    <script>
+    async function publishJob(jobId, status) {{
+      const msg = document.getElementById('publish-msg');
+      msg.textContent = 'Publishing…';
+      try {{
+        const r = await fetch('http://localhost:8000/api/v1/jobs/' + jobId + '/publish?status=' + status, {{
+          method: 'POST',
+          headers: {{'X-API-Key': 'changeme'}}
+        }});
+        const data = await r.json();
+        if (!r.ok) {{
+          msg.style.color = '#e74c3c';
+          msg.textContent = 'Error: ' + (data.detail || r.status);
+        }} else {{
+          msg.style.color = '#27ae60';
+          msg.textContent = status === 'publish' ? 'Published! ' : 'Saved as draft! ';
+          if (data.post_url) {{
+            const a = document.createElement('a');
+            a.href = data.post_url; a.target = '_blank';
+            a.style.color = '#27ae60'; a.textContent = 'View →';
+            msg.appendChild(a);
+          }}
+        }}
+      }} catch(e) {{
+        msg.style.color = '#e74c3c';
+        msg.textContent = 'Request failed: ' + e.message;
+      }}
+    }}
+    </script>"""
 
     header = f"""
     <header id="masthead">
@@ -636,42 +808,56 @@ async def preview(job_id: str) -> HTMLResponse:
       </div>
     </nav>"""
 
-    left_sidebar = """
+    article_category = brief_ctx.get("category", "")
+    category_items = (
+        f'<li>{_html.escape(article_category)}</li>' if article_category else ""
+    )
+
+    recent_items = ""
+    for rj in recent_jobs:
+        if str(rj.id) == job_id:
+            continue
+        rj_brief = rj.context.get("brief", {}) or {}
+        rj_products = rj_brief.get("products", [])
+        rj_name = (rj_products[0].get("name") if rj_products else None) or "–"
+        has_content = any(
+            s.step_name in ("write_draft", "optimize_seo") and s.status == "complete"
+            for s in rj.steps
+        )
+        if has_content:
+            recent_items += f'<li><a href="/preview/{rj.id}">{_html.escape(rj_name)}</a></li>'
+
+    left_sidebar = f"""
     <aside class="sidebar">
       <div class="widget">
         <div class="widget-title">Kategorier</div>
-        <div class="widget-body">
-          <ul>
-            <li><a href="#">Støvsugere</a></li>
-            <li><a href="#">Robotstøvsugere</a></li>
-            <li><a href="#">Håndstøvsugere</a></li>
-            <li><a href="#">Opvaskemaskiner</a></li>
-            <li><a href="#">Vaskemaskiner</a></li>
-          </ul>
-        </div>
+        <div class="widget-body"><ul>{category_items}</ul></div>
       </div>
       <div class="widget">
         <div class="widget-title">Seneste Artikler</div>
-        <div class="widget-body">
-          <ul>
-            <li><a href="#">Bedste støvsuger til kæledyr</a></li>
-            <li><a href="#">Guide: Vælg den rette opvaskemaskine</a></li>
-            <li><a href="#">De 5 bedste boremaskiner 2026</a></li>
-            <li><a href="#">Sådan vedligeholder du din vaskemaskine</a></li>
-          </ul>
-        </div>
-      </div>
-      <div class="widget">
-        <div class="widget-title">Arkiv</div>
-        <div class="widget-body">
-          <ul>
-            <li><a href="#">Maj 2026</a></li>
-            <li><a href="#">April 2026</a></li>
-            <li><a href="#">Marts 2026</a></li>
-          </ul>
-        </div>
+        <div class="widget-body"><ul>{recent_items or '<li style="color:#bbb;font-size:12px">Ingen endnu</li>'}</ul></div>
       </div>
     </aside>"""
+
+    _score_dims = [("seo", "SEO"), ("cro", "CRO"), ("readability", "Readability"), ("overall", "Overall")]
+    _score_boxes = "".join(
+        f'<div class="stat-box">'
+        f'<div class="stat-num" style="font-size:16px;color:{"#1c4966" if scores.get(k) is not None else "#aaa"}">'
+        f'{scores.get(k, "–")}</div>'
+        f'<div class="stat-lbl">{label}</div></div>'
+        for k, label in _score_dims
+    )
+    _score_notes = ""
+    if scores.get("notes"):
+        _note_rows = "".join(
+            f'<p style="margin-bottom:4px"><strong>{label}:</strong> {_html.escape(str(scores["notes"].get(k, "")))}</p>'
+            for k, label in [("seo", "SEO"), ("cro", "CRO"), ("readability", "Readability")]
+        )
+        _score_notes = f'<div style="margin-top:10px;font-size:12px;color:#555;line-height:1.5">{_note_rows}</div>'
+    score_widget = (
+        f'<div class="widget"><div class="widget-title">Article Scores</div>'
+        f'<div class="widget-body"><div class="stat-grid">{_score_boxes}</div>{_score_notes}</div></div>'
+    )
 
     right_sidebar = f"""
     <aside class="sidebar">
@@ -694,6 +880,7 @@ async def preview(job_id: str) -> HTMLResponse:
       {seo_widget}
       {meta_widget}
       {placements_widget}
+      {score_widget}
       <div class="widget">
         <div class="widget-title">QA Status</div>
         {qa_html}
@@ -727,4 +914,5 @@ async def preview(job_id: str) -> HTMLResponse:
 
 
 if __name__ == "__main__":
+    print("Preview server: http://localhost:8080")
     uvicorn.run(app, host="0.0.0.0", port=8080, log_level="warning")

@@ -23,14 +23,25 @@ import httpx
 BASE_URL = "https://www.pricerunner.dk/dk/api/search-edge-rest/public/hot/products/v2/DK"
 LOG_FILE = Path(__file__).parent.parent / "data" / "hot-products.jsonl"
 
-# Categories relevant to husforbegyndere.dk — numeric IDs used directly in the API path
+# Categories relevant to husforbegyndere.dk
+# Prefix cl = specific category, t = top-level category group (broader)
 HUSFORBEGYNDERE_CATEGORIES = {
-    "cl82":   "Kaffemaskiner",
-    "cl1613": "Robotstøvsugere",
+    # Garden & outdoor
+    "cl1595": "Robotplæneklippere",
+    "cl119":  "Plæneklippere",
     "cl120":  "Havemaskiner",
     "cl335":  "Grill",
     "cl638":  "Højtryksrensere",
-    "cl1595": "Robotplæneklippere",
+    "cl1290": "Trampoliner",
+    "cl348":  "Haveredskaber",  # uncertain — trending may be need-based, not review-driven
+    # Power tools
+    "cl345":  "Elværktøj",
+    "cl1258": "Bore-Skruemaskiner",
+    "cl1260": "Elsave",
+    # Home appliances
+    "cl1613": "Robotstøvsugere",
+    # Kitchen — t14 covers all subcategories (ismaskiner, airfryere, kaffemaskiner, etc.)
+    "t14":    "Køkkenapparater",
 }
 
 

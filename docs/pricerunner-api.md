@@ -74,13 +74,19 @@ they peak — articles written early rank better than articles written after the
 
 ### husforbegyndere.dk category IDs
 
-| Category ID | Name               |
-|-------------|--------------------|
-| cl82        | Kaffemaskiner      |
-| cl120       | Havemaskiner       |
-| cl335       | Grill              |
-| cl638       | Højtryksrensere    |
-| cl1595      | Robotplæneklippere |
-| cl1613      | Robotstøvsugere    |
+| Category ID | Name                  | Notes                                      |
+|-------------|-----------------------|--------------------------------------------|
+| cl1595      | Robotplæneklippere    |                                            |
+| cl119       | Plæneklippere         |                                            |
+| cl120       | Havemaskiner          |                                            |
+| cl335       | Grill                 |                                            |
+| cl638       | Højtryksrensere       |                                            |
+| cl1290      | Trampoliner           |                                            |
+| cl348       | Haveredskaber         | Uncertain — may be need-based, not review intent |
+| cl345       | Elværktøj             |                                            |
+| cl1258      | Bore-Skruemaskiner    |                                            |
+| cl1260      | Elsave                |                                            |
+| cl1613      | Robotstøvsugere       |                                            |
+| t14         | Køkkenapparater       | Top-level group — covers ismaskiner, airfryere, kaffemaskiner, etc. |
 
 Script: `scripts/fetch_hot_products.py`

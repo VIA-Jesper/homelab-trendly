@@ -1,9 +1,12 @@
 import json
+import logging
 import shutil
 import subprocess
 import sys
 
 from adapters.base import BaseAdapter
+
+log = logging.getLogger(__name__)
 
 
 def _find_claude() -> str:
@@ -39,6 +42,7 @@ class ClaudeAdapter(BaseAdapter):
 
     def run(self, prompt: str, content: dict) -> str:
         instruction = self.build_instruction(prompt, content)
+        log.info("Sending instruction to Claude CLI (size: %d chars)", len(instruction))
 
         proc = subprocess.run(
             [_CLAUDE, "--print", "--model", self.model, "--output-format", "json"],
@@ -46,7 +50,7 @@ class ClaudeAdapter(BaseAdapter):
             capture_output=True,
             text=True,
             encoding="utf-8",
-            timeout=600,
+            timeout=1200,
         )
 
         if proc.returncode != 0:

@@ -45,12 +45,12 @@ class ClaudeAdapter(BaseAdapter):
         log.info("Sending instruction to Claude CLI (size: %d chars)", len(instruction))
 
         proc = subprocess.run(
-            [_CLAUDE, "--print", "--model", self.model, "--output-format", "json"],
+            [_CLAUDE, "--print", "--model", self.model, "--output-format", "json", "--tools", ""],
             input=instruction,
             capture_output=True,
             text=True,
             encoding="utf-8",
-            timeout=1200,
+            timeout=600,
         )
 
         if proc.returncode != 0:

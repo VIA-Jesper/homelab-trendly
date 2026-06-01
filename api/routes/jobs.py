@@ -1,8 +1,9 @@
+import re
 import uuid
 
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
-from sqlalchemy import select
+from sqlalchemy import func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from database import get_db
@@ -11,6 +12,11 @@ from models.site import Site
 from services.brief_builder import build_brief_for_product, get_site_config
 from services.pipeline import pipeline_service
 from services.pricerunner_client import fetch_product_from_url
+
+
+def _extract_product_id(url: str) -> str | None:
+    m = re.search(r'/pl/\d+-(\d+)', url)
+    return m.group(1) if m else None
 
 router = APIRouter(prefix="/jobs", tags=["jobs"])
 
@@ -68,6 +74,7 @@ class CreateJobFromUrlRequest(BaseModel):
     site_key: str       # e.g. "hus" — must match a key in brief_builder.SITE_CONFIGS
     product_url: str    # full PriceRunner listing URL
     reasoning: str | None = None
+    force: bool = False  # bypass duplicate check
 
 
 @router.post("/from-url", response_model=JobResponse, status_code=201)
@@ -119,6 +126,32 @@ async def create_job_from_url(
             status_code=404,
             detail=f"No active site found for domain '{site_cfg.domain}'. Create it via POST /api/v1/sites first.",
         )
+
+    if not request.force:
+        product_id = _extract_product_id(request.product_url)
+        dup_filters = []
+        if product_id:
+            dup_filters.append(
+                func.json_extract(Job.context, "$.product_url").like(f"%{product_id}%")
+            )
+        if brief.products:
+            dup_filters.append(
+                func.json_extract(Job.context, "$.brief.products[0].name") == brief.products[0].name
+            )
+        dup_result = await db.execute(
+            select(Job).where(Job.site_id == site.id, or_(*dup_filters))
+        )
+        duplicate = dup_result.scalar_one_or_none()
+        if duplicate:
+            raise HTTPException(
+                status_code=409,
+                detail={
+                    "error": "duplicate_product",
+                    "message": f"A job for '{brief.products[0].name if brief.products else 'this product'}' already exists. Use force=true to override.",
+                    "existing_job_id": str(duplicate.id),
+                    "existing_status": duplicate.status,
+                },
+            )
 
     job = Job(
         site_id=site.id,

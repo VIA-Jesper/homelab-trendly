@@ -43,21 +43,26 @@ class ClaudeAdapter(BaseAdapter):
     def __init__(self, model: str = "claude-sonnet-4-6") -> None:
         self.model = model
         self.last_usage: dict = {}
+        _LOG_DIR.mkdir(exist_ok=True)
+        self.debug_log = _LOG_DIR / f"claude-debug-{datetime.now():%Y%m%d-%H%M%S}.log"
+        log.info("Claude CLI debug log: %s", self.debug_log)
 
     def run(self, prompt: str, content: dict) -> str:
         instruction = self.build_instruction(prompt, content)
         log.info("Sending instruction to Claude CLI (size: %d chars)", len(instruction))
 
-        _LOG_DIR.mkdir(exist_ok=True)
-        debug_log = _LOG_DIR / f"claude-debug-{datetime.now():%Y%m%d-%H%M%S}.log"
-        log.info("Claude CLI debug log: %s", debug_log)
-
         try:
             proc = subprocess.run(
                 [
                     _CLAUDE, "--print", "--model", self.model, "--output-format", "json",
-                    "--tools", "",
-                    "--debug-file", str(debug_log),
+                    "--no-session-persistence",
+                    "--strict-mcp-config", "--mcp-config", '{"mcpServers": {}}',
+                    "--append-system-prompt", (
+                        "IMPORTANT: You have no tools available in this session. "
+                        "Do not attempt any tool calls. "
+                        "Read the user message and respond with only the requested output."
+                    ),
+                    "--debug-file", str(self.debug_log),
                 ],
                 input=instruction,
                 capture_output=True,
@@ -68,10 +73,10 @@ class ClaudeAdapter(BaseAdapter):
         except subprocess.TimeoutExpired as e:
             stdout_so_far = (e.stdout or b"").decode("utf-8", errors="replace") if isinstance(e.stdout, bytes) else (e.stdout or "")
             stderr_so_far = (e.stderr or b"").decode("utf-8", errors="replace") if isinstance(e.stderr, bytes) else (e.stderr or "")
-            log.error("Claude CLI timed out after 600s — debug log: %s", debug_log)
+            log.error("Claude CLI timed out after 600s — debug log: %s", self.debug_log)
             log.error("stdout so far (%d chars): %s", len(stdout_so_far), stdout_so_far[:500])
             log.error("stderr so far (%d chars): %s", len(stderr_so_far), stderr_so_far[:500])
-            raise RuntimeError(f"claude CLI timed out after 600s — see {debug_log}")
+            raise RuntimeError(f"claude CLI timed out after 600s — see {self.debug_log}")
 
         if proc.returncode != 0:
             raise RuntimeError(

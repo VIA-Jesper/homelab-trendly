@@ -148,7 +148,10 @@ class RawProduct:
 
 # ─── Category ID → internal slug map ──────────────────────────────────────────
 # Matches CATEGORY_ID_MAP in archive/src/scraper/pricerunner-client.ts
+# To find the ID: extract it from any PriceRunner URL → /pl/{categoryId}-{productId}/...
+# Missing IDs cause job creation to fail with a 422 — add the entry here, then retry.
 _CATEGORY_SLUG: dict[str, str] = {
+    "19":   "stovsugere",
     "81":   "frituregryder-airfryere",
     "82":   "kaffemaskiner",
     "250":  "ismaskiner",
@@ -263,7 +266,14 @@ def _map_v4_product(p: dict, base_url: str, category_id: str) -> RawProduct:
     image_url = absolute(image_data.get("url") or image_data.get("path"))
     affiliate_url = absolute(p.get("url"))
 
-    internal_category = _CATEGORY_SLUG.get(category_id, category_id)
+    internal_category = _CATEGORY_SLUG.get(category_id)
+    if internal_category is None:
+        logger.warning(
+            "PriceRunner category ID '%s' is not in _CATEGORY_SLUG — add it to "
+            "api/services/pricerunner_client.py before publishing jobs for this category.",
+            category_id,
+        )
+        internal_category = category_id
 
     specs: dict[str, str] = {}
     brand = (p.get("brand") or {}).get("name")

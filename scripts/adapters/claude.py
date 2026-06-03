@@ -56,12 +56,14 @@ class ClaudeAdapter(BaseAdapter):
                 [
                     _CLAUDE, "--print", "--model", self.model, "--output-format", "json",
                     "--no-session-persistence",
+                    # Disable ALL built-in tools — without this the model goes agentic
+                    # (makes tool calls → double API round-trip → 600s timeout).
+                    "--tools", "",
+                    # low effort suppresses extended thinking, which otherwise burns
+                    # ~10-12K extra output tokens per step with no quality benefit here.
+                    "--effort", "low",
+                    "--verbose",
                     "--strict-mcp-config", "--mcp-config", '{"mcpServers": {}}',
-                    "--append-system-prompt", (
-                        "IMPORTANT: You have no tools available in this session. "
-                        "Do not attempt any tool calls. "
-                        "Read the user message and respond with only the requested output."
-                    ),
                     "--debug-file", str(self.debug_log),
                 ],
                 input=instruction,
@@ -78,6 +80,9 @@ class ClaudeAdapter(BaseAdapter):
             log.error("stderr so far (%d chars): %s", len(stderr_so_far), stderr_so_far[:500])
             raise RuntimeError(f"claude CLI timed out after 600s — see {self.debug_log}")
 
+        if proc.stderr.strip():
+            log.debug("Claude CLI stderr: %s", proc.stderr.strip()[:1000])
+
         if proc.returncode != 0:
             raise RuntimeError(
                 f"claude exited with code {proc.returncode}: {proc.stderr[:400]}"
@@ -87,13 +92,24 @@ class ClaudeAdapter(BaseAdapter):
         if not raw:
             raise RuntimeError("claude returned empty output")
 
-        # Parse the JSON envelope the CLI wraps around the result
+        # Parse the JSON envelope the CLI wraps around the result.
+        # Older CLI versions return a single dict; newer versions return a list of
+        # events where the last item with type="result" holds the envelope fields.
         try:
-            envelope = json.loads(raw)
+            parsed = json.loads(raw)
         except json.JSONDecodeError:
-            # Unexpected: CLI returned plain text, not JSON — treat as raw output
             self.last_usage = {}
             return raw
+
+        if isinstance(parsed, list):
+            # Log any tool_use events for observability
+            for event in parsed:
+                if isinstance(event, dict) and event.get("type") == "tool_use":
+                    log.info("  [tool_use] %s — input: %s", event.get("name"), json.dumps(event.get("input", {}))[:200])
+            result_events = [e for e in parsed if isinstance(e, dict) and e.get("type") == "result"]
+            envelope = result_events[-1] if result_events else {}
+        else:
+            envelope = parsed
 
         if envelope.get("is_error"):
             raise RuntimeError(f"claude reported error: {envelope.get('result', '')[:400]}")

@@ -25,9 +25,15 @@ QA-001 | H1 PRESENT
 - The article must start with an H1 heading (line beginning with "# ").
 - Failure: "No H1 heading found at start of article"
 
-QA-002 | PRODUCT NAME IN H1
-- The product name (from context.brief.products[0].name) must appear in the H1.
-- Failure: "Product name not found in H1"
+QA-002 | PRODUCT CORE NAME IN H1
+- The core product model name must appear in the H1.
+- Colour and variant suffixes at the end of the product name are optional:
+  single-word colour words (Grå, Sort, Hvid, Blå, Rød, Sølv, etc.) and
+  storage/size variants (128GB, 256GB, XL, etc.) do not need to be in H1.
+- Strip the trailing colour/variant token from context.brief.products[0].name
+  before checking. Example: "Dyson V15 Detect Absolute Grå" → check that
+  "Dyson V15 Detect Absolute" appears in H1.
+- Failure: "Core product name not found in H1"
 
 QA-003 | AFFILIATE LINK IN INTRO
 - The first paragraph must contain a markdown link [...](url) on the product name.
@@ -45,8 +51,8 @@ QA-007 | NO FORBIDDEN SUPERLATIVES
 QA-010 | NO EM DASHES
 - The article must not contain em dashes (—). They are the clearest AI tell and
   destroy the human feel of the article.
-- Scan the full article field for the — character.
-- Failure: "Em dash found — rewrite affected sentences using commas or periods"
+- Scan the full article field AND seo.title, seo.description for the — character.
+- Failure: "Em dash found in [field] — rewrite affected sentences using commas or periods"
 
 QA-008 | PLACEMENTS ANCHORS RESOLVABLE
 - Each placement anchor section must match an H2 heading in the article.
@@ -83,6 +89,25 @@ QA-W07 | MINIMUM WORD COUNT
 - The article should have at least min_words from context.brief.writing_rules (default 700).
 - Report actual count if below minimum.
 
+## On retry (when qa_feedback is present)
+
+If `qa_feedback` is provided in the task context, a previous QA run already evaluated
+this article and found blockers. Your job now is to fix AND re-evaluate:
+
+1. Parse the article JSON from `previous_output`.
+2. Apply every edit listed under EDITS_NEEDED from `qa_feedback` to the article field.
+3. Output the corrected article under the CORRECTED_ARTICLE sentinel below.
+4. Then run all checks against the corrected article and output the normal STATUS block.
+
+The CORRECTED_ARTICLE must be the full JSON object (same structure as previous_output):
+
+CORRECTED_ARTICLE:
+```json
+{"article": "...", "placements": [...], "seo": {...}}
+```
+
+Then immediately follow with the STATUS block for the corrected article.
+
 ## Output format
 
 Return exactly this structure:
@@ -104,4 +129,4 @@ EDITS_NEEDED:
 "H1 is missing — add '# [Product name] anmeldelse — [hook]' as the first line"
 not "Add an H1 heading".]
 
-Return nothing except this structure.
+Return nothing except this structure (and the CORRECTED_ARTICLE block on retry).

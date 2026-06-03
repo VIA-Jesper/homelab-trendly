@@ -115,6 +115,15 @@ async def create_job_from_url(
 
     brief = build_brief_for_product(product, request.site_key)
 
+    if brief.category.isdigit():
+        raise HTTPException(
+            status_code=422,
+            detail=(
+                f"Unknown PriceRunner category ID '{brief.category}'. "
+                "Add it to _CATEGORY_SLUG in api/services/pricerunner_client.py and restart the API."
+            ),
+        )
+
     # Verify a matching site row exists in the DB (sites table is the source of truth
     # for WP category IDs and other DB-level config beyond what SITE_CONFIGS holds)
     site_result = await db.execute(

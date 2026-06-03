@@ -56,19 +56,24 @@ async def publish_job(
                 detail="Cannot publish: qa_review has not passed. Use ?status=draft to save as draft.",
             )
 
-    content_step = steps_by_name.get("optimize_seo") or steps_by_name.get("write_draft")
-    if not content_step or not content_step.output:
-        raise HTTPException(status_code=422, detail="No content ready to publish.")
+    # Prefer the QA-corrected article if the qa_review retry produced one
+    qa_corrected = job.context.get("qa_corrected")
+    if qa_corrected:
+        output = qa_corrected
+    else:
+        content_step = steps_by_name.get("optimize_seo") or steps_by_name.get("write_draft")
+        if not content_step or not content_step.output:
+            raise HTTPException(status_code=422, detail="No content ready to publish.")
 
-    raw = (content_step.output or "").strip()
-    if raw.startswith("```"):
-        _lines = raw.splitlines()
-        _end = len(_lines) - 1 if _lines[-1].strip() == "```" else len(_lines)
-        raw = "\n".join(_lines[1:_end]).strip()
-    try:
-        output = json.loads(raw)
-    except (json.JSONDecodeError, TypeError):
-        raise HTTPException(status_code=422, detail="Content step output is not valid JSON.")
+        raw = (content_step.output or "").strip()
+        if raw.startswith("```"):
+            _lines = raw.splitlines()
+            _end = len(_lines) - 1 if _lines[-1].strip() == "```" else len(_lines)
+            raw = "\n".join(_lines[1:_end]).strip()
+        try:
+            output = json.loads(raw)
+        except (json.JSONDecodeError, TypeError):
+            raise HTTPException(status_code=422, detail="Content step output is not valid JSON.")
 
     article_md = output.get("article", "")
     placements = output.get("placements", [])

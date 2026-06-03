@@ -1,4 +1,6 @@
+import json
 import logging
+import re
 import uuid
 from datetime import datetime, timedelta, timezone
 
@@ -54,23 +56,34 @@ class PipelineService:
         step_cfg = self._get_step_config(step.step_name)
         source_step_name = step_cfg.get("source_step") if step_cfg else None
         if source_step_name:
-            result = await db.execute(
-                select(Step)
-                .where(Step.job_id == job.id, Step.step_name == source_step_name, Step.status == "complete")
-                .order_by(Step.step_order.desc())
-                .limit(1)
-            )
-            src = result.scalar_one_or_none()
-            previous_output = src.output if src else None
+            # Prefer the QA-corrected article if one exists (produced by a qa_review retry)
+            qa_corrected = job.context.get("qa_corrected")
+            if qa_corrected and source_step_name == "optimize_seo":
+                previous_output = json.dumps(qa_corrected, ensure_ascii=False)
+            else:
+                result = await db.execute(
+                    select(Step)
+                    .where(Step.job_id == job.id, Step.step_name == source_step_name, Step.status == "complete")
+                    .order_by(Step.step_order.desc())
+                    .limit(1)
+                )
+                src = result.scalar_one_or_none()
+                previous_output = src.output if src else None
         else:
             previous_output = await self._get_previous_output(job, step.step_order, db)
-        return {
+
+        result_dict: dict = {
             "prompt": prompt_content,
             "context": job.context,
             "previous_output": previous_output,
             "step_name": step.step_name,
             "attempt": step.attempt,
         }
+        # On qa_review retry: include previous QA feedback so the model can apply fixes
+        qa_feedback = step.input.get("edits_needed") if step.input else None
+        if qa_feedback:
+            result_dict["qa_feedback"] = qa_feedback
+        return result_dict
 
     async def handle_step_result(
         self, step: Step, output: str, job: Job, db: AsyncSession
@@ -84,9 +97,9 @@ class PipelineService:
         step.completed_at = datetime.now(timezone.utc)
 
         if step_cfg and step_cfg.get("is_qa_step"):
-            passed = "PASS" in output.upper()
+            passed = "STATUS: PASS" in output
             if not passed and step.attempt < step_cfg.get("max_attempts", 3):
-                # Retry: create new step record for next attempt
+                # Retry: create new step record for next attempt, carrying forward QA feedback
                 new_step = Step(
                     job_id=job.id,
                     step_name=step.step_name,
@@ -103,6 +116,10 @@ class PipelineService:
                 job.status = "requires_review"
             else:
                 step.status = "complete"
+                # If the QA retry produced a corrected article, store it for downstream steps
+                corrected = _extract_corrected_article(output)
+                if corrected:
+                    job.context = {**job.context, "qa_corrected": corrected}
         else:
             step.status = "complete"
 
@@ -207,6 +224,17 @@ class PipelineService:
 
     def _get_step_config(self, step_name: str) -> dict | None:
         return next((s for s in settings.pipeline_steps if s["name"] == step_name), None)
+
+
+def _extract_corrected_article(output: str) -> dict | None:
+    """Extract the corrected article JSON from a qa_review retry output."""
+    m = re.search(r'CORRECTED_ARTICLE:\s*```json\s*(\{.*?\})\s*```', output, re.DOTALL)
+    if not m:
+        return None
+    try:
+        return json.loads(m.group(1))
+    except (json.JSONDecodeError, ValueError):
+        return None
 
 
 pipeline_service = PipelineService()

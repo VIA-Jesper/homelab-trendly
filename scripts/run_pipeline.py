@@ -34,8 +34,8 @@ def _fmt_usage(usage: dict) -> str:
     return f"{inp:,}{cache_str} in + {out:,} out · ${cost:.4f}"
 
 
-def run(api_url: str, api_key: str, adapter_name: str) -> None:
-    adapter = get_adapter(adapter_name)
+def run(api_url: str, api_key: str, adapter_name: str, adapter_model: str | None = None) -> None:
+    adapter = get_adapter(adapter_name, model=adapter_model)
     headers = {"X-API-Key": api_key, "Content-Type": "application/json"}
     work_url = f"{api_url.rstrip('/')}/api/v1/work"
 
@@ -106,12 +106,13 @@ def run(api_url: str, api_key: str, adapter_name: str) -> None:
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="Affiliate pipeline worker")
-    parser.add_argument("--adapter",  required=True, help="Agent adapter: claude, augment")
-    parser.add_argument("--api-url",  required=True, help="API base URL")
-    parser.add_argument("--api-key",  required=True, help="API key (X-API-Key header)")
+    parser.add_argument("--adapter",       required=True, help="Agent adapter: claude, gemini, augment")
+    parser.add_argument("--adapter-model", default=None,  help="Override model for the adapter (e.g. gemini-3.5-flash)")
+    parser.add_argument("--api-url",       required=True, help="API base URL")
+    parser.add_argument("--api-key",       required=True, help="API key (X-API-Key header)")
     args = parser.parse_args()
 
-    run(api_url=args.api_url, api_key=args.api_key, adapter_name=args.adapter)
+    run(api_url=args.api_url, api_key=args.api_key, adapter_name=args.adapter, adapter_model=args.adapter_model)
 
 
 if __name__ == "__main__":

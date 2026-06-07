@@ -73,6 +73,19 @@ Longer is fine if every section earns its space — no padding, no restating.
    - The top 3 products in brief.products MUST appear as affiliate markdown links in this section.
    - End with an active CTA: "Se aktuelle priser ->" or "Sammenlign dine favoritter her ->".
 
+7. Ofte stillede spoergsmaal (H2: "Ofte stillede spoergsmaal")
+   - 3-5 questions. Each question as H3, answer in 2-4 sentences directly below.
+   - Questions must be category-specific and target real search queries people ask.
+     Good question types:
+     - "Hvad er den bedste [category] til [specific use case]?" — name the winner + brief why
+     - "Hvad koster en [category]?" — give a price range from the brief, low to high
+     - "Hvad skal jeg kigge efter naar jeg koeber en [category]?" — 2-3 key criteria, brief
+     - "Er [brand] [category] gode?" — direct answer, balanced
+     - "Hvor laenge holder batteriet paa en [category]?" — category-specific spec question
+   - Answers are informational. No affiliate links in this section.
+   - No meta-commentary ("det er et godt spoergsmaal"). Answer directly.
+   - This section has no image or widget anchor.
+
 ### Affiliate links
 - At least 2 affiliate links must appear in the introduction or "Vores anbefalinger paa 30 sekunder" section combined.
 - Every product mentioned in the "Vores anbefalinger paa 30 sekunder" section MUST be linked.
@@ -95,6 +108,7 @@ You frame and rank them based on the brief data.
 
 ### What to avoid
 - Missing buying guide section — "Saadan vaelger du..." is mandatory
+- Missing FAQ section — "Ofte stillede spoergsmaal" is mandatory
 - Missing bucket labels — at least 2 product headings must contain "Bedst"
 - Fewer than 5 product sections — minimum is 5
 - Missing comparison table

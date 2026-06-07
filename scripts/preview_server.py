@@ -95,11 +95,15 @@ def _md(src: str) -> str:
             out.append("<hr>")
             continue
         lines = block.split("\n")
-        # Headings
+        # Headings — render heading line even if followed by text in the same block
         hm = re.match(r"^(#{1,6})\s+(.+)", lines[0])
-        if hm and len(lines) == 1:
+        if hm:
             lvl = len(hm.group(1))
             out.append(f"<h{lvl}>{_inline(hm.group(2))}</h{lvl}>")
+            if len(lines) > 1:
+                rest = " ".join(l for l in lines[1:] if l.strip())
+                if rest:
+                    out.append(f"<p>{_inline(rest)}</p>")
             continue
         # Unordered list
         _ul_pat = r"^[-*+]\s+"
@@ -118,6 +122,20 @@ def _md(src: str) -> str:
                 for l in lines if l.strip()
             )
             out.append(f"<ol>{items}</ol>")
+            continue
+        # Markdown table (lines contain |)
+        if len(lines) >= 2 and "|" in lines[0] and re.match(r"^[\s|:\-]+$", lines[1]):
+            rows = []
+            for i, line in enumerate(lines):
+                if re.match(r"^[\s|:\-]+$", line):
+                    continue
+                cells = [c.strip() for c in line.strip().strip("|").split("|")]
+                tag = "th" if i == 0 else "td"
+                row_html = "".join(f"<{tag}>{_inline(c)}</{tag}>" for c in cells)
+                rows.append(f"<tr>{row_html}</tr>")
+            thead = f"<thead>{rows[0]}</thead>" if rows else ""
+            tbody = f"<tbody>{''.join(rows[1:])}</tbody>" if len(rows) > 1 else ""
+            out.append(f'<table class="ht-table">{thead}{tbody}</table>')
             continue
         # Paragraph
         out.append(f"<p>{_inline(' '.join(lines))}</p>")
@@ -416,6 +434,12 @@ a{color:#2a6496}
 .btn-archive{background:none;border:1px solid #ddd;color:#aaa;padding:3px 9px;
   border-radius:3px;font-size:11px;cursor:pointer}
 .btn-archive:hover{border-color:#e74c3c;color:#e74c3c}
+.btn-retry{background:#e67e22;border:none;color:#fff;padding:3px 9px;
+  border-radius:3px;font-size:11px;font-weight:600;cursor:pointer}
+.btn-retry:hover{background:#d35400}
+.btn-mark-pub{background:#1a5276;border:none;color:#fff;padding:3px 9px;
+  border-radius:3px;font-size:11px;font-weight:600;cursor:pointer;white-space:nowrap}
+.btn-mark-pub:hover{background:#154360}
 .archived-row{display:none}
 .archived-row td{opacity:0.5}
 
@@ -450,6 +474,10 @@ a{color:#2a6496}
   font-weight:normal;border-bottom:2px solid #ebebeb;padding-bottom:6px}
 .ht-article-body h3{font-size:16px;margin:1.2em 0 .4em;font-weight:700}
 .ht-article-body ul,.ht-article-body ol{margin:.2em 0 1em 1.4em}
+.ht-table{border-collapse:collapse;width:100%;margin:1em 0 1.4em;font-size:14px}
+.ht-table th,.ht-table td{border:1px solid #ddd;padding:8px 12px;text-align:left}
+.ht-table th{background:#f5f5f5;font-weight:700}
+.ht-table tr:nth-child(even) td{background:#fafafa}
 .ht-status-card{background:#fff;border:1px solid #ddd;border-radius:3px;
   padding:11px 16px;margin-top:10px;font-size:13px;color:#888;
   display:flex;align-items:center;gap:10px}
@@ -533,6 +561,177 @@ async def archive_job(job_id: str) -> JSONResponse:
     return JSONResponse({"ok": True})
 
 
+@app.post("/mark-published/{job_id}")
+async def mark_published(job_id: str) -> JSONResponse:
+    async with AsyncSessionLocal() as db:
+        result = await db.execute(select(Job).where(Job.id == _uuid.UUID(job_id)))
+        job = result.scalar_one_or_none()
+        if not job:
+            return JSONResponse({"error": "Job not found"}, status_code=404)
+        job.context = {**job.context, "wp_status": "publish"}
+        await db.commit()
+    return JSONResponse({"ok": True})
+
+
+@app.get("/queue-comparison", response_class=HTMLResponse)
+async def queue_comparison_form() -> HTMLResponse:
+    body = """
+<div class="page-wrap" style="max-width:640px;margin:40px auto">
+  <div style="display:flex;align-items:center;gap:12px;margin-bottom:24px">
+    <a href="/" style="color:#8fb3cc;font-size:12px;text-decoration:none">← Jobs</a>
+    <p class="page-title" style="margin:0">New comparison article</p>
+  </div>
+  <form id="cmp-form" style="display:flex;flex-direction:column;gap:14px">
+    <div>
+      <label style="font-size:12px;color:#888;display:block;margin-bottom:4px">Site key</label>
+      <input id="site-key" type="text" value="hus" style="width:100%;box-sizing:border-box;background:#1e1e1e;border:1px solid #444;color:#ddd;padding:7px 10px;border-radius:3px;font-size:13px">
+    </div>
+    <div>
+      <label style="font-size:12px;color:#888;display:block;margin-bottom:4px">Product URL 1 <span style="color:#c0392b">*</span></label>
+      <input class="url-input" type="url" placeholder="https://www.pricerunner.dk/pl/..." style="width:100%;box-sizing:border-box;background:#1e1e1e;border:1px solid #444;color:#ddd;padding:7px 10px;border-radius:3px;font-size:13px">
+    </div>
+    <div>
+      <label style="font-size:12px;color:#888;display:block;margin-bottom:4px">Product URL 2 <span style="color:#c0392b">*</span></label>
+      <input class="url-input" type="url" placeholder="https://www.pricerunner.dk/pl/..." style="width:100%;box-sizing:border-box;background:#1e1e1e;border:1px solid #444;color:#ddd;padding:7px 10px;border-radius:3px;font-size:13px">
+    </div>
+    <div id="extra-urls"></div>
+    <div>
+      <button type="button" id="add-url-btn" onclick="addUrl()" style="background:none;border:1px solid #555;color:#8fb3cc;font-size:12px;padding:4px 10px;border-radius:3px;cursor:pointer">+ Add product (optional)</button>
+    </div>
+    <div>
+      <label style="font-size:12px;color:#888;display:block;margin-bottom:4px">Reasoning (optional)</label>
+      <textarea id="reasoning" rows="2" placeholder="Why compare these products?" style="width:100%;box-sizing:border-box;background:#1e1e1e;border:1px solid #444;color:#ddd;padding:7px 10px;border-radius:3px;font-size:13px;resize:vertical"></textarea>
+    </div>
+    <div style="display:flex;align-items:center;gap:12px">
+      <button type="submit" style="background:#27ae60;border:none;color:#fff;padding:8px 20px;border-radius:3px;font-size:13px;font-weight:600;cursor:pointer">Queue job</button>
+      <span id="cmp-msg" style="font-size:12px;color:#8fb3cc"></span>
+    </div>
+  </form>
+</div>
+<script>
+let extraCount = 0;
+function addUrl() {
+  if (extraCount >= 2) { document.getElementById('add-url-btn').disabled = true; return; }
+  extraCount++;
+  const div = document.createElement('div');
+  div.innerHTML = `<label style="font-size:12px;color:#888;display:block;margin-bottom:4px">Product URL ${extraCount + 2} (optional)</label>
+    <input class="url-input" type="url" placeholder="https://www.pricerunner.dk/pl/..." style="width:100%;box-sizing:border-box;background:#1e1e1e;border:1px solid #444;color:#ddd;padding:7px 10px;border-radius:3px;font-size:13px">`;
+  document.getElementById('extra-urls').appendChild(div);
+  if (extraCount >= 2) document.getElementById('add-url-btn').disabled = true;
+}
+document.getElementById('cmp-form').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const urls = [...document.querySelectorAll('.url-input')]
+    .map(i => i.value.trim()).filter(Boolean);
+  if (urls.length < 2) { alert('Enter at least 2 product URLs.'); return; }
+  const body = {
+    site_key: document.getElementById('site-key').value.trim(),
+    product_urls: urls,
+    reasoning: document.getElementById('reasoning').value.trim() || null,
+  };
+  const msg = document.getElementById('cmp-msg');
+  msg.textContent = 'Creating job...';
+  try {
+    const r = await fetch('http://localhost:8000/api/v1/jobs/from-urls', {
+      method: 'POST',
+      headers: {'X-API-Key': 'changeme', 'Content-Type': 'application/json'},
+      body: JSON.stringify(body),
+    });
+    const data = await r.json();
+    if (!r.ok) {
+      msg.style.color = '#e74c3c';
+      msg.textContent = data.detail?.message || data.detail || 'Error: ' + r.status;
+    } else {
+      msg.style.color = '#27ae60';
+      msg.textContent = 'Job queued!';
+      setTimeout(() => { window.location.href = '/preview/' + data.job_id; }, 800);
+    }
+  } catch(err) {
+    msg.style.color = '#e74c3c';
+    msg.textContent = 'Request failed: ' + err.message;
+  }
+});
+</script>"""
+    return _resp(_shell("New comparison", body))
+
+
+@app.get("/queue-hero", response_class=HTMLResponse)
+async def queue_hero_form() -> HTMLResponse:
+    body = """
+<div class="page-wrap" style="max-width:640px;margin:40px auto">
+  <div style="display:flex;align-items:center;gap:12px;margin-bottom:24px">
+    <a href="/" style="color:#8fb3cc;font-size:12px;text-decoration:none">← Jobs</a>
+    <p class="page-title" style="margin:0">New hero article (category roundup)</p>
+  </div>
+  <p style="color:#888;font-size:12px;margin:0 0 18px">5-10 products from the same category. Targets "bedste [category]" head terms.</p>
+  <form id="hero-form" style="display:flex;flex-direction:column;gap:14px">
+    <div>
+      <label style="font-size:12px;color:#888;display:block;margin-bottom:4px">Site key</label>
+      <input id="site-key" type="text" value="hus" style="width:100%;box-sizing:border-box;background:#1e1e1e;border:1px solid #444;color:#ddd;padding:7px 10px;border-radius:3px;font-size:13px">
+    </div>
+    <div>
+      <label style="font-size:12px;color:#888;display:block;margin-bottom:4px">Category name <span style="color:#c0392b">*</span></label>
+      <input id="category-name" type="text" placeholder="robotplæneklipper, varmepumper, espressomaskiner..." style="width:100%;box-sizing:border-box;background:#1e1e1e;border:1px solid #444;color:#ddd;padding:7px 10px;border-radius:3px;font-size:13px">
+      <p style="color:#666;font-size:11px;margin:4px 0 0">Used in H1 ("Bedste [category] 2026") and SEO slug. Lowercase, Danish.</p>
+    </div>
+    <div>
+      <label style="font-size:12px;color:#888;display:block;margin-bottom:4px">Product URLs (5-10) <span style="color:#c0392b">*</span></label>
+      <textarea id="product-urls" rows="10" placeholder="One PriceRunner product URL per line&#10;https://www.pricerunner.dk/pl/...&#10;https://www.pricerunner.dk/pl/..." style="width:100%;box-sizing:border-box;background:#1e1e1e;border:1px solid #444;color:#ddd;padding:7px 10px;border-radius:3px;font-size:13px;font-family:monospace;resize:vertical"></textarea>
+      <p style="color:#666;font-size:11px;margin:4px 0 0">Order matters — first URL becomes "Bedst overall" pick by default.</p>
+    </div>
+    <div>
+      <label style="font-size:12px;color:#888;display:block;margin-bottom:4px">Reasoning (optional)</label>
+      <textarea id="reasoning" rows="2" placeholder="Why this category, what trend you're targeting?" style="width:100%;box-sizing:border-box;background:#1e1e1e;border:1px solid #444;color:#ddd;padding:7px 10px;border-radius:3px;font-size:13px;resize:vertical"></textarea>
+    </div>
+    <div style="display:flex;align-items:center;gap:12px">
+      <button type="submit" style="background:#27ae60;border:none;color:#fff;padding:8px 20px;border-radius:3px;font-size:13px;font-weight:600;cursor:pointer">Queue job</button>
+      <span id="hero-msg" style="font-size:12px;color:#8fb3cc"></span>
+    </div>
+  </form>
+</div>
+<script>
+document.getElementById('hero-form').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const urls = document.getElementById('product-urls').value
+    .split('\\n').map(s => s.trim()).filter(Boolean);
+  if (urls.length < 5 || urls.length > 10) {
+    alert('Enter 5-10 product URLs (one per line). You entered ' + urls.length + '.');
+    return;
+  }
+  const categoryName = document.getElementById('category-name').value.trim();
+  if (!categoryName) { alert('Category name is required.'); return; }
+  const body = {
+    site_key: document.getElementById('site-key').value.trim(),
+    product_urls: urls,
+    category_name: categoryName,
+    reasoning: document.getElementById('reasoning').value.trim() || null,
+  };
+  const msg = document.getElementById('hero-msg');
+  msg.textContent = 'Creating job (fetching ' + urls.length + ' products)...';
+  try {
+    const r = await fetch('http://localhost:8000/api/v1/jobs/from-hero', {
+      method: 'POST',
+      headers: {'X-API-Key': 'changeme', 'Content-Type': 'application/json'},
+      body: JSON.stringify(body),
+    });
+    const data = await r.json();
+    if (!r.ok) {
+      msg.style.color = '#e74c3c';
+      msg.textContent = data.detail?.message || data.detail || 'Error: ' + r.status;
+    } else {
+      msg.style.color = '#27ae60';
+      msg.textContent = 'Job queued!';
+      setTimeout(() => { window.location.href = '/preview/' + data.job_id; }, 800);
+    }
+  } catch(err) {
+    msg.style.color = '#e74c3c';
+    msg.textContent = 'Request failed: ' + err.message;
+  }
+});
+</script>"""
+    return _resp(_shell("New hero", body))
+
+
 @app.get("/", response_class=HTMLResponse)
 async def list_jobs() -> HTMLResponse:
     async with AsyncSessionLocal() as db:
@@ -589,6 +788,23 @@ async def list_jobs() -> HTMLResponse:
             '<span style="color:#bbb;font-size:11px">archived</span>'
         )
 
+        failed_step_name = None
+        if j.status == "failed":
+            _failed = [s for s in j.steps if s.status == "failed"]
+            if _failed:
+                failed_step_name = min(_failed, key=lambda s: s.step_order).step_name
+        retry_btn = (
+            f'<button class="btn-retry" onclick="retryJob(\'{j.id}\',\'{failed_step_name}\',this)">↻ Retry</button>'
+            if failed_step_name else ''
+        )
+
+        _jwp_url = j.context.get("wp_post_url", "")
+        _jwp_status = j.context.get("wp_status", "")
+        list_mark_btn = (
+            f'<button class="btn-mark-pub" onclick="markPublishedList(\'{j.id}\',this)">✓ Published</button>'
+            if _jwp_url and _jwp_status != "publish" else ''
+        )
+
         rows += f"""
         <tr class="{row_cls}" id="row-{j.id}">
           <td style="font-family:monospace;font-size:12px;color:#888">{str(j.id)[:8]}&hellip;</td>
@@ -598,7 +814,7 @@ async def list_jobs() -> HTMLResponse:
           <td>{wp_cell}</td>
           <td>{created}</td>
           <td style="font-family:monospace;font-size:12px;color:#666">{cost_str}</td>
-          <td style="display:flex;gap:6px;align-items:center">{preview_link} {archive_btn}</td>
+          <td style="display:flex;gap:6px;align-items:center">{preview_link} {retry_btn} {list_mark_btn} {archive_btn}</td>
         </tr>"""
 
     body = f"""
@@ -609,6 +825,8 @@ async def list_jobs() -> HTMLResponse:
       <input type="checkbox" id="show-archived" onchange="toggleArchived(this.checked)" style="margin-right:4px">
       Show archived
     </label>
+    <a href="/queue-comparison" style="margin-left:auto;font-size:12px;font-weight:600;color:#8fb3cc;text-decoration:none;border:1px solid #444;padding:4px 10px;border-radius:3px">＋ New comparison</a>
+    <a href="/queue-hero" style="font-size:12px;font-weight:600;color:#8fb3cc;text-decoration:none;border:1px solid #444;padding:4px 10px;border-radius:3px">＋ New hero</a>
   </div>
   <table class="jobs-table">
     <thead>
@@ -632,6 +850,42 @@ async function archiveJob(jobId, btn) {{
     row.classList.add('archived-row');
     row.style.display = 'none';
     btn.replaceWith(document.createTextNode('archived'));
+  }}
+}}
+async function markPublishedList(jobId, btn) {{
+  const origText = btn.textContent;
+  btn.disabled = true;
+  const r = await fetch('/mark-published/' + jobId, {{method: 'POST'}});
+  if (r.ok) {{
+    btn.textContent = '✓ Done';
+    const row = document.getElementById('row-' + jobId);
+    const wpCell = row ? row.querySelector('td:nth-child(5)') : null;
+    if (wpCell) wpCell.innerHTML = '<span class="wp-published">Published</span>';
+  }} else {{
+    btn.disabled = false; btn.textContent = origText;
+  }}
+}}
+async function retryJob(jobId, fromStep, btn) {{
+  const body = fromStep ? JSON.stringify({{from_step: fromStep}}) : '{{}}';
+  const origText = btn ? btn.textContent : '';
+  if (btn) btn.disabled = true;
+  try {{
+    const r = await fetch('http://localhost:8000/api/v1/jobs/' + jobId + '/reset', {{
+      method: 'POST',
+      headers: {{'X-API-Key': 'changeme', 'Content-Type': 'application/json'}},
+      body: body
+    }});
+    const data = await r.json();
+    if (!r.ok) {{
+      alert('Retry failed: ' + (data.detail || r.status));
+      if (btn) {{ btn.disabled = false; btn.textContent = origText; }}
+    }} else {{
+      if (btn) btn.textContent = 'Queued ✓';
+      setTimeout(() => location.reload(), 1200);
+    }}
+  }} catch(e) {{
+    alert('Request failed: ' + e.message);
+    if (btn) {{ btn.disabled = false; btn.textContent = origText; }}
   }}
 }}
 </script>"""
@@ -674,6 +928,14 @@ async def preview(job_id: str) -> HTMLResponse:
 
     # Pick best content step — prefer QA-corrected article if one was produced
     steps_by_name = {s.step_name: s for s in job.steps if s.status == "complete"}
+
+    # Build step list for retry selector (ordered)
+    _all_steps_ordered = sorted(job.steps, key=lambda s: s.step_order)
+    _failed_steps = [s for s in _all_steps_ordered if s.status == "failed"]
+    _default_retry_step = (
+        _failed_steps[0].step_name if _failed_steps
+        else (_all_steps_ordered[0].step_name if _all_steps_ordered else "write_draft")
+    )
     content_step = steps_by_name.get("optimize_seo") or steps_by_name.get("write_draft")
     qa_step = steps_by_name.get("qa_review")
 
@@ -884,12 +1146,27 @@ async def preview(job_id: str) -> HTMLResponse:
         _wp_indicator = ""
         _wp_link = ""
 
-    _btn_style = "cursor:pointer;border:none;border-radius:3px;padding:4px 12px;font-size:12px;font-weight:600;"
+    _btn_style = "cursor:pointer;border:none;border-radius:3px;padding:4px 12px;font-size:12px;font-weight:600;white-space:nowrap;"
     _draft_btn = f'<button style="{_btn_style}background:#546e7a;color:#fff" onclick="publishJob(\'{job_id}\',\'draft\')">Push as Draft</button>'
     _publish_btn = (
         f'<button style="{_btn_style}background:#27ae60;color:#fff" onclick="publishJob(\'{job_id}\',\'publish\')">Publish Live</button>'
         if qa_passed else
         f'<button style="{_btn_style}background:#444;color:#888;cursor:not-allowed" title="QA must pass before publishing" disabled>Publish Live</button>'
+    )
+    _retry_options = "".join(
+        f'<option value="{s.step_name}"{" selected" if s.step_name == _default_retry_step else ""}>{s.step_name}</option>'
+        for s in _all_steps_ordered
+    )
+    _retry_btn = (
+        f'<select id="retry-step-sel" style="font-size:11px;padding:3px 6px;border-radius:3px;border:1px solid #555;background:#2a2a2a;color:#ccc;cursor:pointer">{_retry_options}</select>'
+        f'<button id="retry-btn" style="{_btn_style}background:#e67e22;color:#fff" '
+        f'onclick="retryJob(\'{job_id}\',document.getElementById(\'retry-step-sel\').value,document.getElementById(\'retry-btn\'))">↻ Re-run</button>'
+        if wp_status != "publish" else ''
+    )
+    _mark_published_btn = (
+        f'<button style="{_btn_style}background:#1a5276;color:#fff" '
+        f'onclick="markPublished(\'{job_id}\',this)">✓ Mark Published</button>'
+        if wp_post_url and wp_status != "publish" else ''
     )
 
     banner = f"""
@@ -903,11 +1180,58 @@ async def preview(job_id: str) -> HTMLResponse:
       <span style="margin-left:auto;display:flex;gap:8px;align-items:center">
         <span id="publish-msg" style="font-size:12px;color:#8fb3cc"></span>
         <a href="#pipeline-history" style="{_btn_style}background:#37474f;color:#cfd8dc;text-decoration:none;display:inline-block">↓ Pipeline</a>
+        {_retry_btn}
+        {_mark_published_btn}
         {_draft_btn}
         {_publish_btn}
       </span>
     </div>
     <script>
+    async function markPublished(jobId, btn) {{
+      const origText = btn.textContent;
+      btn.disabled = true;
+      const msg = document.getElementById('publish-msg');
+      const r = await fetch('/mark-published/' + jobId, {{method: 'POST'}});
+      if (r.ok) {{
+        msg.style.color = '#27ae60';
+        msg.textContent = 'Marked as published';
+        btn.textContent = '✓ Published';
+        setTimeout(() => location.reload(), 1000);
+      }} else {{
+        msg.style.color = '#e74c3c';
+        msg.textContent = 'Failed to update';
+        btn.disabled = false; btn.textContent = origText;
+      }}
+    }}
+    async function retryJob(jobId, fromStep, btn) {{
+      const origText = btn ? btn.textContent : '';
+      if (btn) btn.disabled = true;
+      const msg = document.getElementById('publish-msg');
+      msg.style.color = '#f39c12';
+      msg.textContent = 'Queuing retry…';
+      try {{
+        const r = await fetch('http://localhost:8000/api/v1/jobs/' + jobId + '/reset', {{
+          method: 'POST',
+          headers: {{'X-API-Key': 'changeme', 'Content-Type': 'application/json'}},
+          body: JSON.stringify({{from_step: fromStep}})
+        }});
+        const data = await r.json();
+        if (!r.ok) {{
+          msg.style.color = '#e74c3c';
+          msg.textContent = 'Error: ' + (data.detail || r.status);
+          if (btn) {{ btn.disabled = false; btn.textContent = origText; }}
+        }} else {{
+          msg.style.color = '#f39c12';
+          msg.textContent = 'Queued from ' + fromStep + ' — run the worker to continue';
+          if (btn) btn.textContent = 'Queued ✓';
+          setTimeout(() => location.reload(), 2000);
+        }}
+      }} catch(e) {{
+        msg.style.color = '#e74c3c';
+        msg.textContent = 'Request failed: ' + e.message;
+        if (btn) {{ btn.disabled = false; btn.textContent = origText; }}
+      }}
+    }}
     async function publishJob(jobId, status) {{
       const msg = document.getElementById('publish-msg');
       msg.textContent = 'Publishing…';
@@ -1494,4 +1818,4 @@ async def preview_history(job_id: str) -> HTMLResponse:
 
 if __name__ == "__main__":
     print("Preview server: http://localhost:8080")
-    uvicorn.run(app, host="0.0.0.0", port=8080, log_level="warning")
+    uvicorn.run("preview_server:app", host="0.0.0.0", port=8080, log_level="warning", reload=True)

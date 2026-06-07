@@ -54,6 +54,24 @@ QA-010 | NO EM DASHES
 - Scan the full article field AND seo.title, seo.description for the — character.
 - Failure: "Em dash found in [field] — rewrite affected sentences using commas or periods"
 
+QA-011 | NO FORBIDDEN OPENER PHRASES
+- The article body must not begin with any of these patterns (case-insensitive):
+  "Velkommen til", "I denne anmeldelse", "I dette indlæg", "I dette udvalg"
+- Check the first sentence of the article (after the H1 heading).
+- Failure: "Article opens with forbidden phrase: [phrase] — rewrite the opening sentence"
+
+QA-012 | NUMERICAL RATING IN VERDICT [single-product-review only]
+- Skip this check if context.brief.article_type is not "single-product-review".
+- The "Vores vurdering" section must contain a rating in exactly this format:
+  "Vi giver den **X ud af 5**" where X is a whole number 1-5.
+- Failure: "No numerical rating found in Vores vurdering — add 'Vi giver den **X ud af 5**'"
+
+QA-004 | AFFILIATE REF ON ALL PRICERUNNER LINKS
+- Every markdown link whose URL contains "pricerunner.dk" must include the query parameter
+  "refsite=adrunner_dk_husforbegyndere" (exact string, case-sensitive).
+- Links without this ref earn no commission and silently leak revenue.
+- Failure: "PriceRunner link missing affiliate ref: [url]"
+
 QA-008 | PLACEMENTS ANCHORS RESOLVABLE
 - Each placement anchor section must match an H2 heading in the article.
 - Failure: "Anchor section '[section]' not found as H2 heading in article"
@@ -62,6 +80,63 @@ QA-009 | WIDGET PLACEMENT PRESENT
 - The placements array must contain at least one entry with "type": "widget".
 - Without a widget the article generates no affiliate revenue.
 - Failure: "No widget placement defined — article cannot earn revenue"
+
+QA-013 | MINIMUM WORD COUNT
+- The article must have at least min_words from context.brief.writing_rules (default 700).
+- Count words in the article field only (exclude JSON keys and SEO fields).
+- Failure: "Article is N words — minimum is M. Expand sections to meet the word count requirement."
+
+### Comparison-specific BLOCKERS (article_type: comparison only)
+Skip these checks entirely if context.brief.article_type is not "comparison".
+
+QA-C01 | BOTH PRODUCTS IN H1 OR INTRO
+- The H1 heading or the first paragraph must name the first two products (or their brands).
+- Failure: "First two products not identified in H1 or introduction"
+
+QA-C02 | COMPARISON TABLE PRESENT
+- Applies when context.brief.article_type is "comparison" OR "hero".
+- The article must contain a markdown table (a line with | characters) under an H2 heading.
+- Failure: "No comparison table found — add a markdown table under an H2 heading"
+
+QA-C03 | DIRECT VERDICT
+- The conclusion/verdict section must contain a direct recommendation by use case.
+- Must contain "vælg" followed by a product name, or equivalent direct choice language.
+- "Det afhænger af" is only acceptable if immediately followed by a specific choice.
+- Failure: "Verdict is too vague — add a specific 'vælg [product]' recommendation"
+
+QA-C04 | AFFILIATE LINKS ON ALL PRODUCTS IN VERDICT
+- Every product name in context.brief.products must appear as a markdown link in the
+  conclusion/verdict section (the last H2 section).
+- Failure: "Product '[name]' not linked in verdict section"
+
+### Hero-specific BLOCKERS (article_type: hero only)
+Skip these checks entirely if context.brief.article_type is not "hero".
+
+QA-H01 | BUYING GUIDE SECTION PRESENT
+- The article must contain an H2 heading whose text starts with "Sådan vælger" or contains "vælg"
+  (case-insensitive). This is the mandatory buying guide section.
+- The section must contain at least 3 bullet points (lines starting with "-" or "*").
+- Failure: "Buying guide section missing — add an H2 'Sådan vælger du...' with 3-5 evaluation criteria"
+
+QA-H02 | MINIMUM PRODUCT COUNT
+- Count H2 headings whose text matches the pattern "^\d+\.\s" (e.g. "## 1. Dreame X50", "## 2. Roborock S8").
+- Must be at least 5.
+- Failure: "Hero article has N numbered product sections — minimum is 5"
+
+QA-H03 | BUCKET LABELS PRESENT
+- At least 2 of the numbered product H2 headings must contain "bedst" (case-insensitive).
+  Examples: "## 1. Dreame X50 — Bedst i test", "## 3. Roborock Q5 — Bedst på pris".
+- Failure: "Fewer than 2 product headings contain 'Bedst' bucket labels — assign bucket labels like 'Bedst i test', 'Bedst budget'"
+
+QA-H04 | TOP-3 PRODUCTS LINKED IN CONCLUSION
+- The final H2 section of the article must contain markdown links on the first three product names
+  from context.brief.products.
+- Failure: "Top-3 product '[name]' not linked in conclusion section"
+
+QA-H05 | QUICK-GLANCE RECOMMENDATIONS SECTION
+- The article must contain an H2 heading whose text contains "anbefalinger" (case-insensitive).
+- That section must contain at least 2 affiliate markdown links.
+- Failure: "Quick-glance recommendations section missing or has fewer than 2 affiliate links"
 
 ### WARNING — flag but do not block
 
@@ -84,10 +159,6 @@ QA-W05 | MULTIPLE AFFILIATE LINKS
 QA-W06 | SEO DESCRIPTION LENGTH
 - seo.description should be 120–160 characters.
 - Report actual length if outside range.
-
-QA-W07 | MINIMUM WORD COUNT
-- The article should have at least min_words from context.brief.writing_rules (default 700).
-- Report actual count if below minimum.
 
 ## On retry (when qa_feedback is present)
 

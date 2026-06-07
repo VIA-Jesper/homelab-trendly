@@ -1,0 +1,70 @@
+## Type-specific instructions: comparison
+
+articleType in brief is "comparison". There are 2-4 products in context.brief.products.
+This is a head-to-head article. The reader has already picked a category and needs the
+final nudge to choose between specific options. Be direct. They are close to buying.
+
+### Target word count
+Scales with product count: 700 + (N × 250) words, where N = number of products in brief.products.
+2-product: ~1200 words. 3-product: ~1450 words. 4-product: ~1700 words.
+Aim for the middle of that range. Every product must receive equal depth — no secret favourite in the body.
+
+### Required structure
+
+0. H1 (MANDATORY — first line of article)
+   Format: # [Product A] vs [Product B] — [one-line verdict angle]
+   Must name the first two products (or their brand+model). No "anmeldelse" in H1.
+   Example: # Makita DUH523 vs Bosch AHS 55-20 — hvilken hækklipper passer til din have?
+
+1. Introduction (80-120 words)
+   - Frame the rivalry: name all products and the core choice the reader faces.
+   - FIRST sentence must contain an affiliate link on at least one product name.
+   - Tell the reader what question this article answers.
+   - Do NOT mention review counts, watcher counts, or number of shops.
+
+2. One H2 section per product (200-280 words each)
+   Heading format: "[Product name] — [hvad den gør bedst]"
+   - First sentence: product's strongest argument (concrete, spec-backed from brief).
+   - Pros: 3 bullets, each with a specific number or spec. No vague "god ydelse".
+   - One honest weakness (real product limitation, not a meta-comment).
+   - Closing line: "Passer bedst til: [specific buyer profile]."
+   - Image anchor: after-heading on this section's H2.
+   - Widget anchor: end-of-section on this section's H2.
+   - Neutral tone — do NOT favour one product over another in the body sections.
+     Save your opinion for the conclusion.
+
+3. Comparison table (H2: "Sammenligning på et øjeblik")
+   - Markdown table, max 6 rows: Pris, then 2-3 key specs that differ between products, then Bedst til.
+   - One column per product. Scannable — no prose in the table cells.
+   - This section has no image or widget anchor.
+
+4. Conclusion section (H2 — pick a natural heading that fits: "Hvem vinder?",
+   "Vores konklusion", "Det endelige valg", "Hvad skal du vælge?" — vary it, never forced)
+   - 80-120 words.
+   - Declare a winner for specific use cases. Never "det afhænger af" without resolution.
+   - Format: "Vil du have [X], vælg [Product A]. Har du brug for [Y], er [Product B] svaret."
+   - Affiliate links on ALL product names in this section.
+   - End with an active CTA — link to the recommended product or invite the reader to compare prices.
+
+### Affiliate links
+- At least 2 affiliate links must appear before the 500-word mark (CRO). Subsequent product affiliate links can fall later in the article.
+- Every pricerunner.dk URL must have ?refsite=adrunner_dk_husforbegyndere.
+
+### SEO
+- Focus keyword: "[Category] sammenligning" or "[Product A] vs [Product B]"
+- SEO title: 50-60 chars, contains both product names or brands + "vs" or "sammenligning"
+- SEO slug: "[product-a]-vs-[product-b]" (lowercase, hyphenated)
+- featured_image_product_id: first product in brief.products
+
+### Tone
+Neutral and fact-driven in the body sections. Opinionated and direct in the conclusion.
+"Du"-form. The reader trusts you to cut through the marketing — deliver a real verdict.
+
+### What to avoid
+- Favouring one product in the body sections (save opinion for conclusion)
+- Vague pros like "god ydelse" — every claim needs a spec or number
+- Wishy-washy conclusion ("begge er gode valg") — always name a winner per use case
+- Missing comparison table — it is mandatory
+- "I dette udvalg", "i denne sammenligning" as opener phrases
+- Passive CTA — always use an active click verb
+- "ligeledes", "endvidere", "desuden" as sentence starters

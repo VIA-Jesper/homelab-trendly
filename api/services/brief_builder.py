@@ -27,6 +27,7 @@ SITE CONFIG
 """
 
 import uuid
+from datetime import datetime
 from typing import Optional
 
 from pydantic import BaseModel
@@ -176,6 +177,129 @@ def _build_article_hook(product: RawProduct) -> str:
     if rank == "1":
         return f"{product.name}: Kategoritopper — men holder den hvad den lover?"
     return f"{product.name} anmeldelse — er det pengene værd?"
+
+
+def build_brief_for_comparison(products: list[RawProduct], site_key: str) -> ContentBrief:
+    """
+    Assemble a ContentBrief for a comparison article with 2-4 products.
+    """
+    site = get_site_config(site_key)
+
+    product_briefs = []
+    image_refs = []
+    for product in products:
+        sep = "&" if "?" in product.affiliate_url else "?"
+        tracked_url = f"{product.affiliate_url}{sep}refsite={site.pricerunner_partner_id}"
+        product_briefs.append(ProductBrief(
+            id=product.id,
+            name=product.name,
+            category=product.category,
+            price_kr=product.price_kr,
+            retailer=product.retailer,
+            affiliate_url=tracked_url,
+            specs=product.specs,
+        ))
+        brand = product.specs.get("brand", "")
+        alt_text = f"{product.name} — {brand}".strip(" —") if brand else product.name
+        caption = f"{product.name} hos {product.retailer} — {product.price_kr:,.0f} kr.".replace(",", ".")
+        image_refs.append(ImageRef(
+            product_id=product.id,
+            url=product.image_url,
+            alt=alt_text,
+            caption=caption,
+        ))
+
+    names = [p.name for p in products]
+    hook = f"{names[0]} vs {names[1]} — hvad er det rigtige valg for dig?"
+
+    # 3-4 product comparisons need more room: 700 + N*250 words.
+    max_words = max(site.max_words, 1600) if len(products) >= 3 else site.max_words
+
+    return ContentBrief(
+        brief_id=str(uuid.uuid4()),
+        site_key=site_key,
+        category=products[0].category,
+        products=product_briefs,
+        images=image_refs,
+        writing_rules=WritingRules(
+            tone=site.tone,
+            min_words=site.min_words,
+            max_words=max_words,
+            include_pros_cons=site.include_pros_cons,
+            include_verdict=site.include_verdict,
+        ),
+        compliance=_DEFAULT_COMPLIANCE,
+        article_type="comparison",
+        article_hook=hook,
+    )
+
+
+def build_brief_for_hero(
+    products: list[RawProduct],
+    category_name: str,
+    site_key: str,
+) -> ContentBrief:
+    """
+    Assemble a ContentBrief for a hero (category roundup) article with 5-10 products.
+
+    Targets high-volume "bedste [category]" head terms. Includes a mandatory
+    buying guide section so the article can rank on informational queries, not
+    just product names.
+
+    Word count is overridden to 1500-2800 — site defaults (700-1200) are too low
+    for a 5-10 product roundup with a buying guide.
+    """
+    if not (5 <= len(products) <= 10):
+        raise ValueError(
+            f"Hero articles require 5-10 products, got {len(products)}"
+        )
+
+    site = get_site_config(site_key)
+
+    product_briefs = []
+    image_refs = []
+    for product in products:
+        sep = "&" if "?" in product.affiliate_url else "?"
+        tracked_url = f"{product.affiliate_url}{sep}refsite={site.pricerunner_partner_id}"
+        product_briefs.append(ProductBrief(
+            id=product.id,
+            name=product.name,
+            category=product.category,
+            price_kr=product.price_kr,
+            retailer=product.retailer,
+            affiliate_url=tracked_url,
+            specs=product.specs,
+        ))
+        brand = product.specs.get("brand", "")
+        alt_text = f"{product.name} — {brand}".strip(" —") if brand else product.name
+        caption = f"{product.name} hos {product.retailer} — {product.price_kr:,.0f} kr.".replace(",", ".")
+        image_refs.append(ImageRef(
+            product_id=product.id,
+            url=product.image_url,
+            alt=alt_text,
+            caption=caption,
+        ))
+
+    year = datetime.now().year
+    hook = f"Bedste {category_name} {year} — vores guide til at vælge rigtigt"
+
+    return ContentBrief(
+        brief_id=str(uuid.uuid4()),
+        site_key=site_key,
+        category=category_name,
+        products=product_briefs,
+        images=image_refs,
+        writing_rules=WritingRules(
+            tone=site.tone,
+            min_words=1500,
+            max_words=2800,
+            include_pros_cons=site.include_pros_cons,
+            include_verdict=site.include_verdict,
+        ),
+        compliance=_DEFAULT_COMPLIANCE,
+        article_type="hero",
+        article_hook=hook,
+    )
 
 
 def build_brief_for_product(product: RawProduct, site_key: str) -> ContentBrief:

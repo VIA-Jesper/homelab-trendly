@@ -1,0 +1,69 @@
+## Type-specific instructions: single-product-review
+
+articleType in brief is "single-product-review". There is exactly one product. This is a
+standalone review — opinionated, thorough, and personal.
+
+### Target word count
+700-1000 words total. Aim for 750+ to give a comfortable buffer above the 700-word minimum.
+
+### Required structure
+
+0. H1 heading (MANDATORY — first line of article)
+   Format: # [Product name] anmeldelse — [one-line verdict or hook]
+   Example: # Dreame X50 Ultra Kombi Sort anmeldelse — er det en robot, der holder hvad den lover?
+   Must contain the product name and "anmeldelse" or "test".
+
+1. Introduction (80-120 words)
+   - FIRST sentence MUST contain the product name as a markdown link:
+     [Product Name](affiliateUrl)
+     Do NOT write the product name in bold (**...**) — it must be a hyperlink.
+     Example: Vi har kigget nærmere på [Segway Navimow i105E](https://www.pricerunner.dk/...)...
+   - Hook with the product's defining characteristic — price, a key spec, or build quality.
+     Do NOT mention review counts, watcher counts, or number of shops. These say nothing
+     about the product and make the intro feel like a data dump.
+
+2. Hvad er det? (80-150 words, H2)
+   - Brief overview: category, price, key specs from brief.
+   - Who it is designed for — be specific, not "den travle husstand".
+   - Image placement anchor goes here: after-heading "Hvad er det?"
+
+3. Det vi kan lide (150-200 words, H2: "Det vi kan lide")
+   - Bullet list with 4-5 concrete pros (spec-backed, from brief).
+   - Each bullet: one thing + why it matters in practice. No vague "god ydelse".
+   - Short conversational paragraph after the list.
+
+4. Det vi ville ændre (80-120 words, H2: "Det vi ville ændre")
+   - Bullet list with 2-3 honest cons — REAL product limitations, not meta-comments.
+   - No sugarcoating. A review with no cons loses credibility.
+
+5. Hvem er den til? (60-100 words, H2: "Hvem er den til?")
+   - "Koeb den hvis..." — specific reason with data.
+   - "Overvej [specific named alternative] hvis..." — NAME the alternative explicitly. You may link it to its PriceRunner product page, but ONLY if you append "?refsite=adrunner_dk_husforbegyndere" to the URL. Never use a bare PriceRunner URL without this ref — it earns nothing.
+   - Widget placement anchor goes here: end-of-section "Hvem er den til?"
+
+6. Vores vurdering (H2: "Vores vurdering", 60-100 words)
+   - MANDATORY: include a numerical rating using exactly this format: "Vi giver den **X ud af 5**" where X is a whole number 1-5.
+   - Rating calibration: 5/5 means near-perfect with no meaningful cons. If "Det vi ville ændre"
+     lists 2+ real cons, the rating must be 4 or lower. A product with genuine limitations cannot
+     score 5/5 — that would contradict the review itself and kill reader trust.
+   - Affiliate link on product name.
+   - Active CTA at the end: "Se aktuel pris ->" or "Tjek prisen her ->". No shop counts.
+
+### Tone
+First-person plural and opinionated. Warmth is good; false enthusiasm kills trust.
+IMPORTANT: You write from product specifications in the brief — NOT from personal testing.
+Never claim to have used, tested, owned, or experienced the product over time.
+Write "Batteritiden på 220 min rækker til store boliger" not "Vi testede den over en uge".
+Specs argue the case. Your voice frames and interprets them.
+
+### What to avoid
+- Missing H1 — every article MUST start with a # heading
+- Vague pros like "god ydelse" — every claim needs a spec or concrete reason
+- "I dette udvalg", "i denne anmeldelse" as opening phrases
+- Artificial hedging — take a position
+- "Overve j alternativet" without naming the alternative — always name it explicitly
+- Meta-cons like "begraenset specifikationsdata" — only real product limitations
+- Passive CTA in verdict — always use an active click verb
+- Review counts, watcher counts, or number of shops in the article body
+- AI hedge phrases: "Det er alligevel rimeligt at naevne", "man kan argumentere for"
+- "ligeledes", "endvidere", "desuden" as sentence starters

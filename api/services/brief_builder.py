@@ -33,7 +33,7 @@ from typing import Optional
 from pydantic import BaseModel
 
 from config import settings
-from services.pricerunner_client import RawProduct
+from services.pricerunner_client import RawProduct, get_category_display
 
 
 # ─── Site configuration ────────────────────────────────────────────────────────
@@ -236,7 +236,6 @@ def build_brief_for_comparison(products: list[RawProduct], site_key: str) -> Con
 
 def build_brief_for_hero(
     products: list[RawProduct],
-    category_name: str,
     site_key: str,
 ) -> ContentBrief:
     """
@@ -246,6 +245,10 @@ def build_brief_for_hero(
     buying guide section so the article can rank on informational queries, not
     just product names.
 
+    Category is auto-inferred from products[0].category (the PriceRunner slug).
+    All products must share the same category — mixing categories in a single
+    hero article would confuse the H1, SEO slug, and buying guide section.
+
     Word count is overridden to 1500-2800 — site defaults (700-1200) are too low
     for a 5-10 product roundup with a buying guide.
     """
@@ -254,6 +257,16 @@ def build_brief_for_hero(
             f"Hero articles require 5-10 products, got {len(products)}"
         )
 
+    category_slug = products[0].category
+    mismatched = [p for p in products if p.category != category_slug]
+    if mismatched:
+        names = ", ".join(f"{p.name} ({p.category})" for p in mismatched[:3])
+        raise ValueError(
+            f"Hero products must all share the same category. "
+            f"Expected '{category_slug}'; mismatched: {names}"
+        )
+
+    category_display = get_category_display(category_slug)
     site = get_site_config(site_key)
 
     product_briefs = []
@@ -281,12 +294,12 @@ def build_brief_for_hero(
         ))
 
     year = datetime.now().year
-    hook = f"Bedste {category_name} {year} — vores guide til at vælge rigtigt"
+    hook = f"Bedste {category_display} {year} — vores guide til at vælge rigtigt"
 
     return ContentBrief(
         brief_id=str(uuid.uuid4()),
         site_key=site_key,
-        category=category_name,
+        category=category_display,
         products=product_briefs,
         images=image_refs,
         writing_rules=WritingRules(

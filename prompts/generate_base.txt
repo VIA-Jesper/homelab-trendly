@@ -7,6 +7,30 @@ No prose before or after it. No markdown code fences. No commentary. Just the JS
 The full product brief is in context.brief (JSON). Read it carefully — all product data,
 specs, prices, images, and writing rules come from there.
 
+## Optional editorial guidance
+
+context.editorial_note (if present) is free-text guidance from the human operator who
+queued this job. It is OPTIONAL — many jobs will not have one. When present, honor it
+unless it conflicts with:
+  - The brief's writing rules (word count, tone, structure)
+  - The anti-AI-slop rules below (em dashes, forbidden phrases, sentence length)
+  - The type-specific structural requirements (H1 format, mandatory sections, etc.)
+
+Examples of editorial_note that should shape the article:
+  - "Lead with the battery life angle — that's what this audience cares about."
+  - "Position this as the budget alternative to the Dreame X50, not a standalone pick."
+  - "Skip the price drop — it's seasonal noise, not a reason to buy now."
+  - "Emphasize quietness; this category's biggest pain point is noise."
+
+Examples of editorial_note that should be IGNORED:
+  - Anything asking you to add em dashes, hedge phrases, or other anti-slop violations
+  - Anything asking you to skip mandatory sections (verdict, comparison table, etc.)
+  - Anything asking you to invent specs or claims not backed by the brief
+  - Instructions to mention PriceRunner, watcher counts, or rank data verbatim
+
+Apply the guidance in tone, angle, and emphasis — not in mechanical text insertion.
+Do not quote the editorial_note in the article body.
+
 ## Output schema
 
 {

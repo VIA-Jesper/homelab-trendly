@@ -164,7 +164,57 @@ _CATEGORY_SLUG: dict[str, str] = {
     "345":  "elvaerktoej",
     "1258": "bore-skruemaskiner",
     "1260": "elsave",
+    "499":  "havemoebel",
+    "119":  "plaeneklippere",
+    "1290": "trampoliner",
+    "541":  "pools",
+    "1388": "spabade-vildmarksbade",
+    "1611": "havetraktorer",
 }
+
+
+# Human-readable Danish singular form for use in article H1 and body text.
+# Slugs are plural and ASCII-only (PriceRunner URL convention); display names are
+# singular and use natural Danish characters (æ, ø, å). Keep keys aligned with
+# _CATEGORY_SLUG values. Missing entries fall back to the slug itself.
+_CATEGORY_DISPLAY: dict[str, str] = {
+    "stovsugere":             "støvsuger",
+    "frituregryder-airfryere": "airfryer",
+    "kaffemaskiner":          "kaffemaskine",
+    "ismaskiner":             "ismaskine",
+    "vaskemaskiner":          "vaskemaskine",
+    "robotstoevsugere":       "robotstøvsuger",
+    "robotplaeneklippere":    "robotplæneklipper",
+    "grill":                  "grill",
+    "havemaskiner":           "havemaskine",
+    "hojtryks-hedvandsrensere": "højtryksrenser",
+    "elvaerktoej":            "elværktøj",
+    "bore-skruemaskiner":     "bore-/skruemaskine",
+    "elsave":                 "elsav",
+    "havemoebel":             "havemøbel",
+    "plaeneklippere":         "plæneklipper",
+    "trampoliner":            "trampolin",
+    "pools":                  "pool",
+    "spabade-vildmarksbade":  "spabad",
+    "havetraktorer":          "havetraktor",
+}
+
+
+def get_category_display(slug: str) -> str:
+    """
+    Return the human-readable Danish display name for a category slug.
+    Falls back to the slug itself if no display mapping exists (logs a warning
+    in production to surface missing entries).
+    """
+    display = _CATEGORY_DISPLAY.get(slug)
+    if display is None:
+        logger.warning(
+            "Category slug '%s' has no _CATEGORY_DISPLAY entry — using slug verbatim. "
+            "Add the singular Danish form to api/services/pricerunner_client.py.",
+            slug,
+        )
+        return slug
+    return display
 
 
 # ─── Popularity scoring ────────────────────────────────────────────────────────

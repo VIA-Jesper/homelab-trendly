@@ -599,8 +599,13 @@ async def queue_comparison_form() -> HTMLResponse:
       <button type="button" id="add-url-btn" onclick="addUrl()" style="background:none;border:1px solid #555;color:#8fb3cc;font-size:12px;padding:4px 10px;border-radius:3px;cursor:pointer">+ Add product (optional)</button>
     </div>
     <div>
-      <label style="font-size:12px;color:#888;display:block;margin-bottom:4px">Reasoning (optional)</label>
-      <textarea id="reasoning" rows="2" placeholder="Why compare these products?" style="width:100%;box-sizing:border-box;background:#1e1e1e;border:1px solid #444;color:#ddd;padding:7px 10px;border-radius:3px;font-size:13px;resize:vertical"></textarea>
+      <label style="font-size:12px;color:#888;display:block;margin-bottom:4px">Editorial note (optional, shapes the article)</label>
+      <textarea id="editorial-note" rows="2" placeholder="e.g. 'Lead with battery life — this audience cares most about runtime.'" style="width:100%;box-sizing:border-box;background:#1e1e1e;border:1px solid #444;color:#ddd;padding:7px 10px;border-radius:3px;font-size:13px;resize:vertical"></textarea>
+      <p style="color:#666;font-size:11px;margin:4px 0 0">Guidance threaded into the generator. Used for angle/emphasis, not mechanical text.</p>
+    </div>
+    <div>
+      <label style="font-size:12px;color:#888;display:block;margin-bottom:4px">Reasoning (optional, audit-only)</label>
+      <textarea id="reasoning" rows="2" placeholder="Why compare these products? (not shown to the writer)" style="width:100%;box-sizing:border-box;background:#1e1e1e;border:1px solid #444;color:#ddd;padding:7px 10px;border-radius:3px;font-size:13px;resize:vertical"></textarea>
     </div>
     <div style="display:flex;align-items:center;gap:12px">
       <button type="submit" style="background:#27ae60;border:none;color:#fff;padding:8px 20px;border-radius:3px;font-size:13px;font-weight:600;cursor:pointer">Queue job</button>
@@ -626,13 +631,15 @@ document.getElementById('cmp-form').addEventListener('submit', async (e) => {
   if (urls.length < 2) { alert('Enter at least 2 product URLs.'); return; }
   const body = {
     site_key: document.getElementById('site-key').value.trim(),
+    article_type: 'comparison',
     product_urls: urls,
+    editorial_note: document.getElementById('editorial-note').value.trim() || null,
     reasoning: document.getElementById('reasoning').value.trim() || null,
   };
   const msg = document.getElementById('cmp-msg');
   msg.textContent = 'Creating job...';
   try {
-    const r = await fetch('http://localhost:8000/api/v1/jobs/from-urls', {
+    const r = await fetch('http://localhost:8000/api/v1/jobs/from-products', {
       method: 'POST',
       headers: {'X-API-Key': 'changeme', 'Content-Type': 'application/json'},
       body: JSON.stringify(body),
@@ -663,25 +670,25 @@ async def queue_hero_form() -> HTMLResponse:
     <a href="/" style="color:#8fb3cc;font-size:12px;text-decoration:none">← Jobs</a>
     <p class="page-title" style="margin:0">New hero article (category roundup)</p>
   </div>
-  <p style="color:#888;font-size:12px;margin:0 0 18px">5-10 products from the same category. Targets "bedste [category]" head terms.</p>
+  <p style="color:#888;font-size:12px;margin:0 0 18px">5-10 products from the same category. Targets "bedste [category]" head terms. Category is auto-detected from the products.</p>
   <form id="hero-form" style="display:flex;flex-direction:column;gap:14px">
     <div>
       <label style="font-size:12px;color:#888;display:block;margin-bottom:4px">Site key</label>
       <input id="site-key" type="text" value="hus" style="width:100%;box-sizing:border-box;background:#1e1e1e;border:1px solid #444;color:#ddd;padding:7px 10px;border-radius:3px;font-size:13px">
     </div>
     <div>
-      <label style="font-size:12px;color:#888;display:block;margin-bottom:4px">Category name <span style="color:#c0392b">*</span></label>
-      <input id="category-name" type="text" placeholder="robotplæneklipper, varmepumper, espressomaskiner..." style="width:100%;box-sizing:border-box;background:#1e1e1e;border:1px solid #444;color:#ddd;padding:7px 10px;border-radius:3px;font-size:13px">
-      <p style="color:#666;font-size:11px;margin:4px 0 0">Used in H1 ("Bedste [category] 2026") and SEO slug. Lowercase, Danish.</p>
-    </div>
-    <div>
       <label style="font-size:12px;color:#888;display:block;margin-bottom:4px">Product URLs (5-10) <span style="color:#c0392b">*</span></label>
       <textarea id="product-urls" rows="10" placeholder="One PriceRunner product URL per line&#10;https://www.pricerunner.dk/pl/...&#10;https://www.pricerunner.dk/pl/..." style="width:100%;box-sizing:border-box;background:#1e1e1e;border:1px solid #444;color:#ddd;padding:7px 10px;border-radius:3px;font-size:13px;font-family:monospace;resize:vertical"></textarea>
-      <p style="color:#666;font-size:11px;margin:4px 0 0">Order matters — first URL becomes "Bedst overall" pick by default.</p>
+      <p style="color:#666;font-size:11px;margin:4px 0 0">Order matters — first URL becomes "Bedst overall" pick by default. All URLs must share the same category (auto-detected from product data).</p>
     </div>
     <div>
-      <label style="font-size:12px;color:#888;display:block;margin-bottom:4px">Reasoning (optional)</label>
-      <textarea id="reasoning" rows="2" placeholder="Why this category, what trend you're targeting?" style="width:100%;box-sizing:border-box;background:#1e1e1e;border:1px solid #444;color:#ddd;padding:7px 10px;border-radius:3px;font-size:13px;resize:vertical"></textarea>
+      <label style="font-size:12px;color:#888;display:block;margin-bottom:4px">Editorial note (optional, shapes the article)</label>
+      <textarea id="editorial-note" rows="2" placeholder="e.g. 'Emphasize quietness — biggest pain point in this category.'" style="width:100%;box-sizing:border-box;background:#1e1e1e;border:1px solid #444;color:#ddd;padding:7px 10px;border-radius:3px;font-size:13px;resize:vertical"></textarea>
+      <p style="color:#666;font-size:11px;margin:4px 0 0">Guidance threaded into the generator. Used for angle/emphasis, not mechanical text.</p>
+    </div>
+    <div>
+      <label style="font-size:12px;color:#888;display:block;margin-bottom:4px">Reasoning (optional, audit-only)</label>
+      <textarea id="reasoning" rows="2" placeholder="Why this category, what trend you're targeting? (not shown to the writer)" style="width:100%;box-sizing:border-box;background:#1e1e1e;border:1px solid #444;color:#ddd;padding:7px 10px;border-radius:3px;font-size:13px;resize:vertical"></textarea>
     </div>
     <div style="display:flex;align-items:center;gap:12px">
       <button type="submit" style="background:#27ae60;border:none;color:#fff;padding:8px 20px;border-radius:3px;font-size:13px;font-weight:600;cursor:pointer">Queue job</button>
@@ -698,18 +705,17 @@ document.getElementById('hero-form').addEventListener('submit', async (e) => {
     alert('Enter 5-10 product URLs (one per line). You entered ' + urls.length + '.');
     return;
   }
-  const categoryName = document.getElementById('category-name').value.trim();
-  if (!categoryName) { alert('Category name is required.'); return; }
   const body = {
     site_key: document.getElementById('site-key').value.trim(),
+    article_type: 'hero',
     product_urls: urls,
-    category_name: categoryName,
+    editorial_note: document.getElementById('editorial-note').value.trim() || null,
     reasoning: document.getElementById('reasoning').value.trim() || null,
   };
   const msg = document.getElementById('hero-msg');
   msg.textContent = 'Creating job (fetching ' + urls.length + ' products)...';
   try {
-    const r = await fetch('http://localhost:8000/api/v1/jobs/from-hero', {
+    const r = await fetch('http://localhost:8000/api/v1/jobs/from-products', {
       method: 'POST',
       headers: {'X-API-Key': 'changeme', 'Content-Type': 'application/json'},
       body: JSON.stringify(body),

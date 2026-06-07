@@ -1,5 +1,4 @@
 import asyncio
-import re
 import uuid
 
 from fastapi import APIRouter, Depends, HTTPException
@@ -21,11 +20,15 @@ from services.pipeline import pipeline_service
 from services.pricerunner_client import fetch_product_from_url
 
 
-def _extract_product_id(url: str) -> str | None:
-    m = re.search(r'/pl/\d+-(\d+)', url)
-    return m.group(1) if m else None
-
 router = APIRouter(prefix="/jobs", tags=["jobs"])
+
+# Article type → (min_urls, max_urls). Validated at the unified endpoint
+# before fetching from PriceRunner so bad payloads fail fast.
+ARTICLE_TYPE_URL_COUNTS: dict[str, tuple[int, int]] = {
+    "single-product-review": (1, 1),
+    "comparison":             (2, 4),
+    "hero":                   (5, 10),
+}
 
 
 class CreateJobRequest(BaseModel):
@@ -77,57 +80,97 @@ async def create_job(
     )
 
 
-class CreateJobFromUrlRequest(BaseModel):
-    site_key: str       # e.g. "hus" — must match a key in brief_builder.SITE_CONFIGS
-    product_url: str    # full PriceRunner listing URL
-    reasoning: str | None = None
-    force: bool = False  # bypass duplicate check
+class CreateJobFromProductsRequest(BaseModel):
+    site_key: str            # e.g. "hus" — must match a key in brief_builder.SITE_CONFIGS
+    article_type: str        # single-product-review | comparison | hero
+    product_urls: list[str]  # 1 for single, 2-4 for comparison, 5-10 for hero
+    editorial_note: str | None = None  # optional in-band guidance threaded to the generator
+    reasoning: str | None = None       # optional audit metadata, not seen by the generator
+    force: bool = False                # bypass duplicate check
 
 
-@router.post("/from-url", response_model=JobResponse, status_code=201)
-async def create_job_from_url(
-    request: CreateJobFromUrlRequest,
+@router.post("/from-products", response_model=JobResponse, status_code=201)
+async def create_job_from_products(
+    request: CreateJobFromProductsRequest,
     db: AsyncSession = Depends(get_db),
 ) -> JobResponse:
     """
-    Create an article job from a PriceRunner product URL.
+    Create an article job from a list of PriceRunner product URLs.
 
-    This is the primary entry point for single-product-review generation.
-    The brief is built synchronously at job creation so the worker only ever
-    handles agent steps — no fetch_brief step in the queue.
+    Single entry point for all article types. The article_type field discriminates:
+      - single-product-review: 1 URL → review one product
+      - comparison: 2-4 URLs → head-to-head article
+      - hero: 5-10 URLs → category roundup with buying guide
 
     Flow:
-      1. Validate site_key → resolve site config
-      2. Fetch product data from PriceRunner (live, ~1s)
-      3. Build ContentBrief
-      4. Create Job with brief in context
-      5. Queue write_draft → optimize_seo → qa_review steps
+      1. Validate article_type + URL count
+      2. Resolve site config
+      3. Fetch all products from PriceRunner in parallel
+      4. Build ContentBrief via the type-specific brief builder
+      5. Validate category mapping is known
+      6. Check for duplicate jobs (same article_type + overlapping products)
+      7. Create Job with brief + optional editorial_note in context
+      8. Queue pipeline steps (write_draft → optimize_seo → qa_review → score)
+
+    editorial_note: free-text guidance threaded into the generator's prompt context
+    as `context.editorial_note`. Use to steer angle, framing, or constraints that
+    aren't derivable from product specs. Example: "Lead with battery life — that
+    matters most to this audience."
     """
-    # Validate site key before hitting the network
+    if request.article_type not in ARTICLE_TYPE_URL_COUNTS:
+        raise HTTPException(
+            status_code=422,
+            detail=(
+                f"Unknown article_type '{request.article_type}'. "
+                f"Supported: {sorted(ARTICLE_TYPE_URL_COUNTS)}"
+            ),
+        )
+
+    min_n, max_n = ARTICLE_TYPE_URL_COUNTS[request.article_type]
+    n_urls = len(request.product_urls)
+    if not (min_n <= n_urls <= max_n):
+        raise HTTPException(
+            status_code=422,
+            detail=(
+                f"article_type '{request.article_type}' requires {min_n}-{max_n} URLs; "
+                f"got {n_urls}."
+            ),
+        )
+
     try:
         site_cfg = get_site_config(request.site_key)
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
 
-    # Fetch product from PriceRunner — this is a live HTTP call
-    product = await fetch_product_from_url(request.product_url, country=site_cfg.pricerunner_country)
-    if product is None:
-        raise HTTPException(
-            status_code=422,
-            detail=(
-                f"Could not fetch product from URL: {request.product_url}. "
-                "Check that it is a valid PriceRunner product listing URL."
-            ),
-        )
+    # Parallel fetch — same path for 1 URL or 10
+    results = await asyncio.gather(
+        *[fetch_product_from_url(url, country=site_cfg.pricerunner_country)
+          for url in request.product_urls],
+        return_exceptions=True,
+    )
+    products = []
+    for url, result in zip(request.product_urls, results):
+        if isinstance(result, Exception) or result is None:
+            raise HTTPException(
+                status_code=422,
+                detail=(
+                    f"Could not fetch product from URL: {url}. "
+                    "Check that it is a valid PriceRunner product listing URL."
+                ),
+            )
+        products.append(result)
 
-    brief = build_brief_for_product(product, request.site_key)
-
-    SUPPORTED_ARTICLE_TYPES = {"single-product-review", "comparison", "hero"}
-    if brief.article_type not in SUPPORTED_ARTICLE_TYPES:
-        raise HTTPException(
-            status_code=422,
-            detail=f"Article type '{brief.article_type}' is not implemented yet. Supported: {sorted(SUPPORTED_ARTICLE_TYPES)}",
-        )
+    # Dispatch to the right brief builder
+    try:
+        if request.article_type == "single-product-review":
+            brief = build_brief_for_product(products[0], request.site_key)
+        elif request.article_type == "comparison":
+            brief = build_brief_for_comparison(products, request.site_key)
+        else:  # hero
+            brief = build_brief_for_hero(products, request.site_key)
+    except ValueError as e:
+        # Hero raises on cross-category mixes; surface as 422.
+        raise HTTPException(status_code=422, detail=str(e))
 
     if brief.category.isdigit():
         raise HTTPException(
@@ -138,8 +181,6 @@ async def create_job_from_url(
             ),
         )
 
-    # Verify a matching site row exists in the DB (sites table is the source of truth
-    # for WP category IDs and other DB-level config beyond what SITE_CONFIGS holds)
     site_result = await db.execute(
         select(Site).where(Site.domain == site_cfg.domain, Site.is_active.is_(True))
     )
@@ -151,222 +192,7 @@ async def create_job_from_url(
         )
 
     if not request.force:
-        product_id = _extract_product_id(request.product_url)
-        dup_filters = []
-        if product_id:
-            dup_filters.append(
-                func.json_extract(Job.context, "$.product_url").like(f"%{product_id}%")
-            )
-        if brief.products:
-            dup_filters.append(
-                func.json_extract(Job.context, "$.brief.products[0].name") == brief.products[0].name
-            )
-        dup_result = await db.execute(
-            select(Job).where(Job.site_id == site.id, or_(*dup_filters))
-        )
-        duplicate = dup_result.scalar_one_or_none()
-        if duplicate:
-            raise HTTPException(
-                status_code=409,
-                detail={
-                    "error": "duplicate_product",
-                    "message": f"A job for '{brief.products[0].name if brief.products else 'this product'}' already exists (status: {duplicate.status}). Add \"force\": true to the request body to create a new job anyway.",
-                    "existing_job_id": str(duplicate.id),
-                    "existing_status": duplicate.status,
-                },
-            )
-
-    job = Job(
-        site_id=site.id,
-        status="queued",
-        context={
-            "product_url": request.product_url,
-            "brief": brief.model_dump(),
-            "article_type": brief.article_type,
-            "site_key": request.site_key,
-        },
-        reasoning=request.reasoning,
-    )
-    db.add(job)
-    await db.flush()
-
-    await pipeline_service.create_steps_for_job(job, db)
-
-    return JobResponse(
-        job_id=str(job.id),
-        status=job.status,
-        site_id=str(job.site_id),
-        context=job.context,
-    )
-
-
-class CreateComparisonJobRequest(BaseModel):
-    site_key: str
-    product_urls: list[str]   # 2-4 PriceRunner product URLs
-    reasoning: str | None = None
-    force: bool = False
-
-
-@router.post("/from-urls", response_model=JobResponse, status_code=201)
-async def create_comparison_job(
-    request: CreateComparisonJobRequest,
-    db: AsyncSession = Depends(get_db),
-) -> JobResponse:
-    """
-    Create a comparison article job from 2-4 PriceRunner product URLs.
-
-    All products are fetched in parallel and assembled into a single ContentBrief
-    with article_type="comparison". The same pipeline steps run as for single-product
-    jobs — the type-specific generate prompt is selected automatically.
-    """
-    if not (2 <= len(request.product_urls) <= 4):
-        raise HTTPException(status_code=422, detail="product_urls must contain 2-4 URLs")
-
-    try:
-        site_cfg = get_site_config(request.site_key)
-    except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e))
-
-    # Fetch all products in parallel
-    results = await asyncio.gather(
-        *[fetch_product_from_url(url, country=site_cfg.pricerunner_country) for url in request.product_urls],
-        return_exceptions=True,
-    )
-    products = []
-    for url, result in zip(request.product_urls, results):
-        if isinstance(result, Exception) or result is None:
-            raise HTTPException(
-                status_code=422,
-                detail=f"Could not fetch product from URL: {url}. Check that it is a valid PriceRunner product listing URL.",
-            )
-        products.append(result)
-
-    brief = build_brief_for_comparison(products, request.site_key)
-
-    if brief.category.isdigit():
-        raise HTTPException(
-            status_code=422,
-            detail=f"Unknown PriceRunner category ID '{brief.category}'. Add it to _CATEGORY_SLUG in api/services/pricerunner_client.py.",
-        )
-
-    site_result = await db.execute(
-        select(Site).where(Site.domain == site_cfg.domain, Site.is_active.is_(True))
-    )
-    site = site_result.scalar_one_or_none()
-    if not site:
-        raise HTTPException(
-            status_code=404,
-            detail=f"No active site found for domain '{site_cfg.domain}'. Create it via POST /api/v1/sites first.",
-        )
-
-    if not request.force:
-        # Duplicate: any existing job that shares 2+ of the same products
-        product_names = [p.name for p in brief.products]
-        dup_filters = [
-            func.json_extract(Job.context, f"$.brief.products[{i}].name") == name
-            for i, name in enumerate(product_names)
-        ]
-        dup_result = await db.execute(
-            select(Job).where(Job.site_id == site.id, or_(*dup_filters))
-        )
-        duplicate = dup_result.scalar_one_or_none()
-        if duplicate:
-            names_str = " vs ".join(product_names[:2])
-            raise HTTPException(
-                status_code=409,
-                detail={
-                    "error": "duplicate_comparison",
-                    "message": f"A job comparing '{names_str}' already exists (status: {duplicate.status}). Add \"force\": true to create a new job anyway.",
-                    "existing_job_id": str(duplicate.id),
-                    "existing_status": duplicate.status,
-                },
-            )
-
-    job = Job(
-        site_id=site.id,
-        status="queued",
-        context={
-            "product_urls": request.product_urls,
-            "brief": brief.model_dump(),
-            "article_type": brief.article_type,
-            "site_key": request.site_key,
-        },
-        reasoning=request.reasoning,
-    )
-    db.add(job)
-    await db.flush()
-
-    await pipeline_service.create_steps_for_job(job, db)
-
-    return JobResponse(
-        job_id=str(job.id),
-        status=job.status,
-        site_id=str(job.site_id),
-        context=job.context,
-    )
-
-
-class CreateHeroJobRequest(BaseModel):
-    site_key: str
-    product_urls: list[str]   # 5-10 PriceRunner product URLs
-    category_name: str        # human-readable category, e.g. "robotplæneklipper"
-    reasoning: str | None = None
-    force: bool = False
-
-
-@router.post("/from-hero", response_model=JobResponse, status_code=201)
-async def create_hero_job(
-    request: CreateHeroJobRequest,
-    db: AsyncSession = Depends(get_db),
-) -> JobResponse:
-    """
-    Create a hero (category roundup) article job from 5-10 PriceRunner product URLs.
-
-    Hero articles target high-volume "bedste [category]" head terms. They include
-    a mandatory buying guide section so the article can rank on informational queries.
-    All products are fetched in parallel and assembled into a single ContentBrief
-    with article_type="hero". The same pipeline steps run as for other types — the
-    type-specific generate prompt is selected automatically.
-    """
-    if not (5 <= len(request.product_urls) <= 10):
-        raise HTTPException(status_code=422, detail="product_urls must contain 5-10 URLs")
-
-    if not request.category_name.strip():
-        raise HTTPException(status_code=422, detail="category_name is required for hero articles")
-
-    try:
-        site_cfg = get_site_config(request.site_key)
-    except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e))
-
-    # Fetch all products in parallel
-    results = await asyncio.gather(
-        *[fetch_product_from_url(url, country=site_cfg.pricerunner_country) for url in request.product_urls],
-        return_exceptions=True,
-    )
-    products = []
-    for url, result in zip(request.product_urls, results):
-        if isinstance(result, Exception) or result is None:
-            raise HTTPException(
-                status_code=422,
-                detail=f"Could not fetch product from URL: {url}. Check that it is a valid PriceRunner product listing URL.",
-            )
-        products.append(result)
-
-    brief = build_brief_for_hero(products, request.category_name, request.site_key)
-
-    site_result = await db.execute(
-        select(Site).where(Site.domain == site_cfg.domain, Site.is_active.is_(True))
-    )
-    site = site_result.scalar_one_or_none()
-    if not site:
-        raise HTTPException(
-            status_code=404,
-            detail=f"No active site found for domain '{site_cfg.domain}'. Create it via POST /api/v1/sites first.",
-        )
-
-    if not request.force:
-        # Duplicate: any existing hero job that shares 3+ of the same products
+        # Duplicate: same article_type with any overlapping product name on this site.
         product_names = [p.name for p in brief.products]
         dup_filters = [
             func.json_extract(Job.context, f"$.brief.products[{i}].name") == name
@@ -375,34 +201,42 @@ async def create_hero_job(
         dup_result = await db.execute(
             select(Job).where(
                 Job.site_id == site.id,
-                func.json_extract(Job.context, "$.article_type") == "hero",
+                func.json_extract(Job.context, "$.article_type") == request.article_type,
                 or_(*dup_filters),
             )
         )
-        # Heuristic: surface the most recent matching hero job. Strict 3+ overlap
-        # would require post-fetch comparison; use first hit as a close-enough signal.
         duplicate = dup_result.scalars().first()
         if duplicate:
+            if len(product_names) == 1:
+                summary = f"'{product_names[0]}'"
+            else:
+                summary = f"'{product_names[0]}' (+ {len(product_names) - 1} more)"
             raise HTTPException(
                 status_code=409,
                 detail={
-                    "error": "duplicate_hero",
-                    "message": f"A hero job for '{request.category_name}' or overlapping products already exists (status: {duplicate.status}). Add \"force\": true to create a new job anyway.",
+                    "error": "duplicate_job",
+                    "message": (
+                        f"A {request.article_type} job for {summary} already exists "
+                        f"(status: {duplicate.status}). Add \"force\": true to create a new job anyway."
+                    ),
                     "existing_job_id": str(duplicate.id),
                     "existing_status": duplicate.status,
                 },
             )
 
+    context: dict = {
+        "product_urls": request.product_urls,
+        "brief": brief.model_dump(),
+        "article_type": brief.article_type,
+        "site_key": request.site_key,
+    }
+    if request.editorial_note and request.editorial_note.strip():
+        context["editorial_note"] = request.editorial_note.strip()
+
     job = Job(
         site_id=site.id,
         status="queued",
-        context={
-            "product_urls": request.product_urls,
-            "category_name": request.category_name,
-            "brief": brief.model_dump(),
-            "article_type": brief.article_type,
-            "site_key": request.site_key,
-        },
+        context=context,
         reasoning=request.reasoning,
     )
     db.add(job)

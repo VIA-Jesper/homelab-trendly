@@ -13,8 +13,11 @@ class MetaDescriptionLengthCheck(IQACheck):
         return "BLOCKER"
 
     def evaluate(self, content: str, context: dict) -> dict:
+        # meta_description is injected by _run_python_qa from the optimize_seo seo.description field
         meta = context.get("meta_description", "")
         length = len(meta)
+        if not meta:
+            return {"passed": False, "message": "Meta description missing or empty"}
         passed = 150 <= length <= 160
         return {
             "passed": passed,
@@ -32,11 +35,14 @@ class NoRawUrlsCheck(IQACheck):
         return "BLOCKER"
 
     def evaluate(self, content: str, context: dict) -> dict:
-        urls = re.findall(r"https?://", content)
+        # Strip markdown links [text](url) — those are intentional and get converted at publish time.
+        # Only flag URLs that appear as bare text outside of link syntax.
+        stripped = re.sub(r'\[[^\]]*\]\(https?://[^)]+\)', '', content)
+        urls = re.findall(r"https?://", stripped)
         passed = len(urls) == 0
         return {
             "passed": passed,
-            "message": f"Found {len(urls)} raw URL(s) - use shortcodes only" if not passed else "OK",
+            "message": f"Found {len(urls)} bare URL(s) in article body" if not passed else "OK",
         }
 
 

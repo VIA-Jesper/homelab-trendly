@@ -11,6 +11,7 @@ from config import settings
 from models.job import Job
 from models.prompt import Prompt
 from models.step import Step
+from services.qa import qa_service
 
 log = logging.getLogger(__name__)
 
@@ -27,8 +28,18 @@ class PipelineService:
 
     async def create_steps_for_job(self, job: Job, db: AsyncSession) -> None:
         """Create all pipeline steps for a new job based on config."""
+        article_type = job.context.get("article_type", "single-product-review")
+        type_key = article_type.replace("-", "_")
+
         for order, step_cfg in enumerate(settings.pipeline_steps):
-            prompt = await self._get_active_prompt(step_cfg["prompt_name"], db)
+            prompt_name = step_cfg["prompt_name"]
+            # For write_draft, use the type-specific generate prompt when one exists
+            if prompt_name == "generate_post":
+                typed_name = f"generate_post_{type_key}"
+                typed_prompt = await self._get_active_prompt(typed_name, db)
+                prompt_name = typed_name if typed_prompt else "generate_post"
+
+            prompt = await self._get_active_prompt(prompt_name, db)
             step = Step(
                 job_id=job.id,
                 step_name=step_cfg["name"],
@@ -93,11 +104,23 @@ class PipelineService:
         Returns updated job status.
         """
         step_cfg = self._get_step_config(step.step_name)
-        step.output = output
         step.completed_at = datetime.now(timezone.utc)
 
         if step_cfg and step_cfg.get("is_qa_step"):
             passed = "STATUS: PASS" in output
+            # Extract any corrected article the LLM produced (present on retries).
+            # Run Python QA against it (not the original optimize_seo output) so
+            # retries are actually checked against the updated content.
+            corrected = _extract_corrected_article(output)
+            if passed:
+                python_result = await self._run_python_qa(job, db, corrected_article=corrected)
+                if not python_result["passed"]:
+                    failures = "; ".join(
+                        r["message"] for r in python_result["results"] if not r["passed"]
+                    )
+                    passed = False
+                    output = f"STATUS: FAIL\n\nPython QA gate:\n{failures}\n\n---\n\n{output}"
+            step.output = output
             if not passed and step.attempt < step_cfg.get("max_attempts", 3):
                 # Retry: create new step record for next attempt, carrying forward QA feedback
                 new_step = Step(
@@ -116,11 +139,10 @@ class PipelineService:
                 job.status = "requires_review"
             else:
                 step.status = "complete"
-                # If the QA retry produced a corrected article, store it for downstream steps
-                corrected = _extract_corrected_article(output)
                 if corrected:
                     job.context = {**job.context, "qa_corrected": corrected}
         else:
+            step.output = output
             step.status = "complete"
 
         # Advance job if all steps complete
@@ -205,6 +227,50 @@ class PipelineService:
             job_status = "failed"
         await db.commit()
         return {"job_status": job_status, "step_status": "failed"}
+
+    async def _run_python_qa(self, job: Job, db: AsyncSession, corrected_article: dict | None = None) -> dict:
+        """Run hard Python QA checks against the article. Used as a gate after the LLM QA passes.
+
+        Prefers corrected_article (from LLM retry output) over the stored optimize_seo output,
+        so retries are checked against the content the LLM actually produced.
+        """
+        # Fetch optimize_seo output — needed for meta description regardless of which
+        # article version we're checking (corrected or original).
+        result = await db.execute(
+            select(Step)
+            .where(
+                Step.job_id == job.id,
+                Step.step_name == "optimize_seo",
+                Step.status == "complete",
+            )
+            .order_by(Step.step_order.desc())
+            .limit(1)
+        )
+        seo_step = result.scalar_one_or_none()
+        seo_data: dict = {}
+        seo_article = ""
+        if seo_step and seo_step.output:
+            try:
+                seo_data = json.loads(seo_step.output)
+                seo_article = seo_data.get("article", "")
+            except (json.JSONDecodeError, ValueError):
+                seo_article = seo_step.output
+
+        if corrected_article:
+            article = corrected_article.get("article", "")
+            # Use meta description from the corrected output if available, else fall back to seo step
+            meta_description = corrected_article.get("seo", {}).get("description", "") or seo_data.get("seo", {}).get("description", "")
+        else:
+            qa_corrected = job.context.get("qa_corrected")
+            if qa_corrected:
+                article = qa_corrected.get("article", "")
+                meta_description = qa_corrected.get("seo", {}).get("description", "") or seo_data.get("seo", {}).get("description", "")
+            else:
+                article = seo_article
+                meta_description = seo_data.get("seo", {}).get("description", "")
+
+        qa_context = {**job.context, "meta_description": meta_description}
+        return qa_service.run(article, qa_context)
 
     async def _get_active_prompt(self, name: str, db: AsyncSession) -> Prompt | None:
         result = await db.execute(

@@ -17,7 +17,7 @@ import time
 import requests
 
 sys.path.insert(0, __file__.replace("run_pipeline.py", ""))
-from adapters import get_adapter
+from adapters import get_adapter, RoutingAdapter
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
 log = logging.getLogger(__name__)
@@ -34,8 +34,26 @@ def _fmt_usage(usage: dict) -> str:
     return f"{inp:,}{cache_str} in + {out:,} out · ${cost:.4f}"
 
 
-def run(api_url: str, api_key: str, adapter_name: str, adapter_model: str | None = None) -> None:
-    adapter = get_adapter(adapter_name, model=adapter_model)
+def _build_adapter(adapter_name: str, adapter_model: str | None, step_overrides: list[str]):
+    default = get_adapter(adapter_name, model=adapter_model)
+    if not step_overrides:
+        return default
+    overrides = {}
+    for spec in step_overrides:
+        # Format: step_name=adapter_name:model  or  step_name=adapter_name
+        if "=" not in spec:
+            raise ValueError(f"--step-adapter must be STEP=ADAPTER or STEP=ADAPTER:MODEL, got: {spec!r}")
+        step, adapter_spec = spec.split("=", 1)
+        if ":" in adapter_spec:
+            name, model = adapter_spec.split(":", 1)
+        else:
+            name, model = adapter_spec, None
+        overrides[step.strip()] = get_adapter(name.strip(), model=model.strip() if model else None)
+    return RoutingAdapter(default=default, step_overrides=overrides)
+
+
+def run(api_url: str, api_key: str, adapter_name: str, adapter_model: str | None = None, step_overrides: list[str] | None = None) -> None:
+    adapter = _build_adapter(adapter_name, adapter_model, step_overrides or [])
     headers = {"X-API-Key": api_key, "Content-Type": "application/json"}
     work_url = f"{api_url.rstrip('/')}/api/v1/work"
 
@@ -106,13 +124,16 @@ def run(api_url: str, api_key: str, adapter_name: str, adapter_model: str | None
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="Affiliate pipeline worker")
-    parser.add_argument("--adapter",       required=True, help="Agent adapter: claude, gemini, augment")
-    parser.add_argument("--adapter-model", default=None,  help="Override model for the adapter (e.g. gemini-3.5-flash)")
+    parser.add_argument("--adapter",       required=True, help="Default adapter: claude, gemini, augment")
+    parser.add_argument("--adapter-model", default=None,  help="Override model for the default adapter (e.g. gemini-3.5-flash)")
+    parser.add_argument("--step-adapter",  action="append", default=[], metavar="STEP=ADAPTER[:MODEL]",
+                        help="Per-step adapter override, e.g. write_draft=claude:claude-opus-4-7. Repeatable.")
     parser.add_argument("--api-url",       required=True, help="API base URL")
     parser.add_argument("--api-key",       required=True, help="API key (X-API-Key header)")
     args = parser.parse_args()
 
-    run(api_url=args.api_url, api_key=args.api_key, adapter_name=args.adapter, adapter_model=args.adapter_model)
+    run(api_url=args.api_url, api_key=args.api_key, adapter_name=args.adapter,
+        adapter_model=args.adapter_model, step_overrides=args.step_adapter)
 
 
 if __name__ == "__main__":

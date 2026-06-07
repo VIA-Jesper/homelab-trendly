@@ -115,7 +115,7 @@ def main():
     if site_only:
         for cat_id, cat_name in HUSFORBEGYNDERE_CATEGORIES.items():
             print(f"Fetching {cat_name} ({cat_id})...")
-            products = fetch(category_id=cat_id, size=25)
+            products = fetch(category_id=cat_id, size=50)
             all_rows.extend(normalise(p, fetched_at, fetched_for=cat_id) for p in products)
     else:
         print("Fetching top 25 hot products (all categories)...")

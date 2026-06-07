@@ -21,6 +21,9 @@ class Settings(BaseSettings):
     # Pipeline steps are config-driven — add/reorder/remove without code changes
     pipeline_steps: list[dict] = Field(default=DEFAULT_PIPELINE_STEPS)
 
+    gemini_api_key: str = ""
+    mistral_api_key: str = ""
+
     # ── husforbegyndere.dk ─────────────────────────────────────────────────────
     # Loaded from .env. pr_hus_partner_id is required for PriceRunner widget
     # embeds — without it the widget inserter falls back to a plain HTML card.

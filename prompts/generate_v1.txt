@@ -46,11 +46,17 @@ The section field must exactly match an H2 heading you wrote in the article.
 - **Placements**: Include one "image" AND one "widget" anchor for each product.
 - **Affiliate links**: Wrap each product name in a markdown link using affiliateUrl from the brief.
   Example: [Ninja Luxe Café Premier](https://www.pricerunner.dk/pl/82-3332774746/...)
+  Every pricerunner.dk URL in the article — including links to alternative products — MUST contain
+  the query parameter "refsite=adrunner_dk_husforbegyndere". A PriceRunner link without it earns nothing.
 - **Never name PriceRunner in the article body.** The widget attribution text is the only exception.
-  Do not reference ratings, watcher counts, shop counts, or rankings from the platform.
+  Do not reference ratings, watcher counts, shop counts, or rankings from the platform by number or label.
   - Widget attribution text (auto-injected) is the only acceptable exception.
-- **External links**: Include 1 link to an authoritative external source (brand site or spec sheet).
-  Place it naturally: "Læs mere hos [Brand](https://brand.com)" or inline on a spec claim.
+- **Translate demand signals into editorial language.** Watcher counts and rank data are signals
+  for your confidence and tone, not facts to quote. A product with 500+ watchers and rank 1 is
+  "et af de mest populære valg i kategorien" or "danskernes foretrukne valg". A price drop with
+  high watchers is "prisen har aldrig været lavere". Never write "X+ danskere holder øje med prisen"
+  or any phrasing that implies a price-comparison platform or bargain-hunting behavior.
+- **External links**: Optional. Only link to a manufacturer or spec page if it adds genuine value (e.g. a spec not covered in the brief). Use rel="nofollow" on the anchor. Never required — if in doubt, skip it and link to the affiliate URL instead.
 - **SEO title**: 50-60 characters, contains focus keyword (product name + "anmeldelse" or category).
 - **SEO description**: 120-160 characters, contains focus keyword, clear value proposition.
 - **SEO slug**: lowercase, hyphen-separated, Danish, 3-6 words.
@@ -77,6 +83,7 @@ This rule has zero exceptions.
 - "I denne anmeldelse", "I dette indlæg", "I dette udvalg" — AI opener
 - "faktisk" used as hollow filler ("det er faktisk rigtig godt") — say what you mean
 - "briefen", "analytisk set", "popularityrank", "popularityscore" — raw data artifacts
+- "Velkommen til" as an opener — never start an article like a product landing page
 
 ### Sentence length — Yoast readability requirement
 Keep sentences under 20 words. Maximum 25% of sentences may exceed this limit.
@@ -134,17 +141,23 @@ standalone review — opinionated, thorough, and personal.
 
 5. Hvem er den til? (60-100 words, H2: "Hvem er den til?")
    - "Koeb den hvis..." — specific reason with data.
-   - "Overve j[specific named alternative] hvis..." — NAME the alternative explicitly.
+   - "Overvej [specific named alternative] hvis..." — NAME the alternative explicitly. You may link it to its PriceRunner product page, but ONLY if you append "?refsite=adrunner_dk_husforbegyndere" to the URL. Never use a bare PriceRunner URL without this ref — it earns nothing.
    - Widget placement anchor goes here: end-of-section "Hvem er den til?"
 
 6. Vores vurdering (H2: "Vores vurdering", 60-100 words)
-   - Clear recommendation with a shorthand verdict (e.g., "4 ud af 5" or a sharp closing sentence).
+   - MANDATORY: include a numerical rating using exactly this format: "Vi giver den **X ud af 5**" where X is a whole number 1-5.
+   - Rating calibration: 5/5 means near-perfect with no meaningful cons. If "Det vi ville ændre"
+     lists 2+ real cons, the rating must be 4 or lower. A product with genuine limitations cannot
+     score 5/5 — that would contradict the review itself and kill reader trust.
    - Affiliate link on product name.
    - Active CTA at the end: "Se aktuel pris ->" or "Tjek prisen her ->". No shop counts.
 
 ### Tone
-First-person plural ("vi har testet", "vores oplevelse er"). Opinionated. Honest.
-Warmth is good; false enthusiasm kills trust.
+First-person plural and opinionated. Warmth is good; false enthusiasm kills trust.
+IMPORTANT: You write from product specifications in the brief — NOT from personal testing.
+Never claim to have used, tested, owned, or experienced the product over time.
+Write "Batteritiden på 220 min rækker til store boliger" not "Vi testede den over en uge".
+Specs argue the case. Your voice frames and interprets them.
 
 ### What to avoid
 - Missing H1 — every article MUST start with a # heading

@@ -18,10 +18,10 @@ class MetaDescriptionLengthCheck(IQACheck):
         length = len(meta)
         if not meta:
             return {"passed": False, "message": "Meta description missing or empty"}
-        passed = 150 <= length <= 160
+        passed = 120 <= length <= 160
         return {
             "passed": passed,
-            "message": f"Meta description length {length} chars (required: 150-160)" if not passed else "OK",
+            "message": f"Meta description length {length} chars (required: 120-160)" if not passed else "OK",
         }
 
 

@@ -62,8 +62,9 @@ Specs argue the case. Your voice frames and interprets them.
 - "I dette udvalg", "i denne anmeldelse" as opening phrases
 - Artificial hedging — take a position
 - "Overve j alternativet" without naming the alternative — always name it explicitly
-- Meta-cons like "begraenset specifikationsdata" — only real product limitations
+- Meta-cons like "begrænset specifikationsdata" — only real product limitations
 - Passive CTA in verdict — always use an active click verb
 - Review counts, watcher counts, or number of shops in the article body
-- AI hedge phrases: "Det er alligevel rimeligt at naevne", "man kan argumentere for"
+- AI hedge phrases: "Det er alligevel rimeligt at nævne", "man kan argumentere for"
 - "ligeledes", "endvidere", "desuden" as sentence starters
+- ASCII substitutes for Danish characters (aa→å, ae→æ, oe→ø) — always use the real characters

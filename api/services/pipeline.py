@@ -270,6 +270,11 @@ class PipelineService:
                 meta_description = seo_data.get("seo", {}).get("description", "")
 
         qa_context = {**job.context, "meta_description": meta_description}
+        # Thread min_words from brief.writing_rules so Python QA uses the same
+        # threshold as the LLM prompt (which reads context.brief.writing_rules.min_words).
+        brief_min_words = job.context.get("brief", {}).get("writing_rules", {}).get("min_words")
+        if brief_min_words is not None:
+            qa_context["min_words"] = brief_min_words
         return qa_service.run(article, qa_context)
 
     async def _get_active_prompt(self, name: str, db: AsyncSession) -> Prompt | None:

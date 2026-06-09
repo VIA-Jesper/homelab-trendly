@@ -242,6 +242,17 @@ def _strip_corrected_article(qa_text: str) -> str:
     return re.sub(r'CORRECTED_ARTICLE:\s*```json.*?```\s*', '', qa_text, flags=re.DOTALL).strip()
 
 
+def _qa_verdict(output: str) -> bool:
+    """Return True if QA passed. Checks the FIRST STATUS: line only.
+
+    When Python QA overrides a passing LLM verdict it prepends 'STATUS: FAIL'
+    before a --- separator. A plain substring search would find 'STATUS: PASS'
+    in the original LLM section below the separator and return the wrong result.
+    """
+    m = re.search(r'STATUS:\s*(PASS|FAIL)', output, re.IGNORECASE)
+    return bool(m and m.group(1).upper() == "PASS")
+
+
 def _parse_step_output(raw: str) -> dict | None:
     """Strip markdown fences and JSON-parse step output. Returns dict or None."""
     stripped = raw.strip()
@@ -991,7 +1002,7 @@ async def preview(job_id: str) -> HTMLResponse:
     # QA widget
     if qa_step and qa_step.output:
         qa_txt = qa_step.output.strip()
-        qa_passed = "STATUS: PASS" in qa_txt.upper()
+        qa_passed = _qa_verdict(qa_txt)
         # Strip CORRECTED_ARTICLE block (article JSON from retry) — not QA feedback
         qa_display = _strip_corrected_article(qa_txt)
         qa_badge_cls = "pv-badge" if qa_passed else "pv-badge fail"
@@ -1137,7 +1148,7 @@ async def preview(job_id: str) -> HTMLResponse:
         "failed": "pv-badge fail",
     }.get(job.status, "pv-badge pending")
 
-    qa_passed = qa_step and "PASS" in (qa_step.output or "").upper()
+    qa_passed = qa_step and _qa_verdict(qa_step.output or "")
     wp_post_url = job.context.get("wp_post_url", "")
     wp_status = job.context.get("wp_status", "")
 
@@ -1538,7 +1549,7 @@ def _ht_status_card(step) -> str:
 
 def _ht_qa_bubble(step) -> str:
     qa_txt = _strip_corrected_article(step.output.strip())
-    passed = "STATUS: PASS" in qa_txt.upper()
+    passed = _qa_verdict(qa_txt)
     cls = "ht-bubble qa-pass" if passed else "ht-bubble qa-fail"
     badge = f'<span class="pv-badge{"" if passed else " fail"}">{"PASS" if passed else "FAIL"}</span>'
     attempt_str = f" · forsøg {step.attempt}" if step.attempt > 1 else ""

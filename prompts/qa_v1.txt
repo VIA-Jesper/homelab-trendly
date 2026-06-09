@@ -26,6 +26,8 @@ QA-001 | H1 PRESENT
 - Failure: "No H1 heading found at start of article"
 
 QA-002 | PRODUCT CORE NAME IN H1
+- Skip this check if context.brief.article_type is "hero". Hero H1 is a category
+  heading ("Bedste [category] [year]"), not a product name.
 - The core product model name must appear in the H1.
 - Colour and variant suffixes at the end of the product name are optional:
   single-word colour words (Grå, Sort, Hvid, Blå, Rød, Sølv, etc.) and

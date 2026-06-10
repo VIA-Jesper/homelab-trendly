@@ -76,11 +76,11 @@ def execute(jobs: list[dict], api_url: str, api_key: str):
             )
             if r.status_code in (200, 201):
                 data = r.json()
-                print(f"    → job_id: {data.get('job_id')}  status: {data.get('status')}")
+                print(f"    -> job_id: {data.get('job_id')}  status: {data.get('status')}")
             else:
-                print(f"    → ERROR {r.status_code}: {r.text[:200]}")
+                print(f"    -> ERROR {r.status_code}: {r.text[:200]}")
         except httpx.RequestError as e:
-            print(f"    → REQUEST ERROR: {e}")
+            print(f"    -> REQUEST ERROR: {e}")
 
     print()
 

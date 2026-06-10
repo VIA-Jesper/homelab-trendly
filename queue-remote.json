@@ -1,466 +1,391 @@
-{
-  "generated_at": "2026-06-10T15:46:05Z",
-  "note": "Prioritized job list for a remote Trendly instance with a clean DB. Heroes first (uncovered categories with 5+ candidates), then top singles per category. POST each job to /api/v1/jobs/from-products with site_key='hus'.",
-  "local_published_categories": {
-    "robotplaeneklippere": 1,
-    "stovsugere": 2,
-    "grill": 1,
-    "robotstoevsugere": 2,
-    "ismaskiner": 1,
-    "havemoebel": 1,
-    "hojtryks-hedvandsrensere": 1,
-    "havetraktorer": 1
-  },
-  "jobs": [
-    {
-      "priority": 1,
-      "article_type": "hero",
-      "category": "roeremaskiner-foodprocessorer",
-      "category_display": "Røremaskiner & Foodprocessorer",
-      "product_urls": [
-        "https://www.pricerunner.dk/pl/1244-5294281/Koekkenmaskiner-Foodprocessorer/Ninja-BN800EU-Sammenlign-Priser",
-        "https://www.pricerunner.dk/pl/1244-3403294740/Koekkenmaskiner-Foodprocessorer/Ooni-Halo-Pro-Graa-Sammenlign-Priser",
-        "https://www.pricerunner.dk/pl/1244-3209765720/Koekkenmaskiner-Foodprocessorer/Ankarsrum-Assistent-AKM-6230-Matt-Black-Sammenlign-Priser",
-        "https://www.pricerunner.dk/pl/1244-3200319669/Koekkenmaskiner-Foodprocessorer/Kenwood-Titanium-Chef-Baker-XL-KVL85.004SI-Sammenlign-Priser",
-        "https://www.pricerunner.dk/pl/1244-3200197754/Koekkenmaskiner-Foodprocessorer/Wilfa-Probaker-Sammenlign-Priser",
-        "https://www.pricerunner.dk/pl/1244-3906954/Koekkenmaskiner-Foodprocessorer/Ankarsrum-Assistent-AKM-6230-Cream-Sammenlign-Priser",
-        "https://www.pricerunner.dk/pl/1244-4443849/Koekkenmaskiner-Foodprocessorer/Magimix-CS-5200-XL-Sammenlign-Priser"
-      ],
-      "product_names": [
-        "Ninja Auto-IQ BN800EU",
-        "Ooni Halo Pro Charcoal Grey",
-        "Ankarsrum AKM 6230 Matt Black",
-        "Kenwood Titanium Chef Baker XL KVL85.004SI",
-        "Wilfa Probaker KM1B-70",
-        "Ankarsrum AKM 6230 Cream",
-        "Magimix CS 5200 XL"
-      ],
-      "reasoning": "Hero: 198 candidates in 'roeremaskiner-foodprocessorer', 0 existing articles. Top: Ninja Auto-IQ BN800EU, Ooni Halo Pro Charcoal Grey, Ankarsrum AKM 6230 Matt Black..."
-    },
-    {
-      "priority": 2,
-      "article_type": "hero",
-      "category": "frituregryder-airfryere",
-      "category_display": "Frituregryder & Airfryere",
-      "product_urls": [
-        "https://www.pricerunner.dk/pl/81-3208440524/Frituregryder/Ninja-Foodi-FlexDrawer-AF500EU-Sammenlign-Priser",
-        "https://www.pricerunner.dk/pl/81-3206566758/Frituregryder/Ninja-AF451EU-Sammenlign-Priser",
-        "https://www.pricerunner.dk/pl/81-3005671/Frituregryder/Tefal-Oleoclean-Pro-Sammenlign-Priser",
-        "https://www.pricerunner.dk/pl/81-5193476/Frituregryder/Philips-Premium-XXL-Sammenlign-Priser",
-        "https://www.pricerunner.dk/pl/81-3200338672/Frituregryder/Ninja-Foodi-Max-AF400-Sammenlign-Priser",
-        "https://www.pricerunner.dk/pl/81-3320113707/Frituregryder/Cosori-CAF-TF101S-Sammenlign-Priser",
-        "https://www.pricerunner.dk/pl/81-5164206/Frituregryder/Ninja-AF160EU-Sammenlign-Priser"
-      ],
-      "product_names": [
-        "Ninja Foodi FlexDrawer AF500EU",
-        "Ninja AF451EU",
-        "Tefal Oleoclean Pro",
-        "Philips Premium XXL HD9867/90",
-        "Ninja Foodi Max Dual Zone AF400 Black",
-        "Cosori CAF-TF101S",
-        "Ninja AF160EU"
-      ],
-      "reasoning": "Hero: 198 candidates in 'frituregryder-airfryere', 0 existing articles. Top: Ninja Foodi FlexDrawer AF500EU, Ninja AF451EU, Tefal Oleoclean Pro..."
-    },
-    {
-      "priority": 3,
-      "article_type": "hero",
-      "category": "elvaerktoej",
-      "category_display": "Elværktøj",
-      "product_urls": [
-        "https://www.pricerunner.dk/pl/345-3200231573/Elvaerktoej/Makita-DTM52Z-Solo-Sammenlign-Priser",
-        "https://www.pricerunner.dk/pl/345-5170341/Elvaerktoej/Makita-DMP180Z-Sammenlign-Priser",
-        "https://www.pricerunner.dk/pl/345-3132071/Elvaerktoej/Dewalt-DCS355N-Solo-Sammenlign-Priser",
-        "https://www.pricerunner.dk/pl/345-3325056/Elvaerktoej/Dewalt-DW733-QS-Sammenlign-Priser",
-        "https://www.pricerunner.dk/pl/345-3251633/Elvaerktoej/Bosch-PBD-40-Soejleboremaskine-Sammenlign-Priser",
-        "https://www.pricerunner.dk/pl/345-5072667/Elvaerktoej/Makita-DFN350Z-Solo-Sammenlign-Priser",
-        "https://www.pricerunner.dk/pl/345-3202629108/Elvaerktoej/Ryobi-R18GN18-0-Solo-Sammenlign-Priser"
-      ],
-      "product_names": [
-        "Makita DTM52Z Solo",
-        "Makita DMP180Z Solo",
-        "Dewalt DCS355N-XJ Solo",
-        "Dewalt DW733-QS",
-        "Bosch PBD 40",
-        "Makita DFN350Z Solo",
-        "Ryobi One+ R18GN18-0 Solo"
-      ],
-      "reasoning": "Hero: 200 candidates in 'elvaerktoej', 0 existing articles. Top: Makita DTM52Z Solo, Makita DMP180Z Solo, Dewalt DCS355N-XJ Solo..."
-    },
-    {
-      "priority": 4,
-      "article_type": "hero",
-      "category": "elsave",
-      "category_display": "Elsave",
-      "product_urls": [
-        "https://www.pricerunner.dk/pl/1260-5028847/Elsave/Dewalt-%E2%80%8EDCS335N-XJ-Sammenlign-Priser",
-        "https://www.pricerunner.dk/pl/1260-3068252/Elsave/Makita-DHS680Z-Solo-Sammenlign-Priser",
-        "https://www.pricerunner.dk/pl/1260-5013251/Elsave/Makita-DSP600Z-Solo-Sammenlign-Priser",
-        "https://www.pricerunner.dk/pl/1260-2895341/Elsave/Bosch-GCM-8-SJL-Professional-Sammenlign-Priser",
-        "https://www.pricerunner.dk/pl/1260-3272012921/Elsave/Makita-kap-geringssav-LS1110F-1450W-260-mm-LS1110F-Sammenlign-Priser",
-        "https://www.pricerunner.dk/pl/1260-2852651/Elsave/Metabo-KGS-254-M-Sammenlign-Priser",
-        "https://www.pricerunner.dk/pl/1260-5021976/Elsave/Dewalt-DWE7492-Sammenlign-Priser"
-      ],
-      "product_names": [
-        "Dewalt ‎DCS335N-XJ Solo",
-        "Makita DHS680Z Solo",
-        "Makita DSP600Z Solo",
-        "Bosch GCM 8 SJL Professional (0601B19100)",
-        "Makita LS1110F",
-        "Metabo KGS 254 M",
-        "Dewalt DWE7492-QS"
-      ],
-      "reasoning": "Hero: 200 candidates in 'elsave', 0 existing articles. Top: Dewalt ‎DCS335N-XJ Solo, Makita DHS680Z Solo, Makita DSP600Z Solo..."
-    },
-    {
-      "priority": 5,
-      "article_type": "hero",
-      "category": "plaeneklippere",
-      "category_display": "Plæneklippere",
-      "product_urls": [
-        "https://www.pricerunner.dk/pl/119-5231483/Plaeneklippere/Makita-DLM432Z-Solo-Batteridrevet-plaeneklipper-Sammenlign-Priser",
-        "https://www.pricerunner.dk/pl/119-5211776/Plaeneklippere/Makita-DLM432PT2-%282x5.0Ah%29-Batteridrevet-plaeneklipper-Sammenlign-Priser",
-        "https://www.pricerunner.dk/pl/119-4897681/Plaeneklippere/Ryobi-OLM1833B-Solo-Batteridrevet-plaeneklipper-Sammenlign-Priser",
-        "https://www.pricerunner.dk/pl/119-5213163/Plaeneklippere/Makita-DLM382Z-Solo-Batteridrevet-plaeneklipper-Sammenlign-Priser",
-        "https://www.pricerunner.dk/pl/119-3393493933/Plaeneklippere/Bosch-EasyRotak-32-235-Batteridrevet-plaeneklipper-Sammenlign-Priser",
-        "https://www.pricerunner.dk/pl/119-5142793/Plaeneklippere/AL-KO-Comfort-51.0-SP-A-Benzindrevet-plaeneklipper-Sammenlign-Priser",
-        "https://www.pricerunner.dk/pl/119-3070783/Plaeneklippere/AL-KO-Gudenaa-GU-400-Haandskubber-Sammenlign-Priser"
-      ],
-      "product_names": [
-        "Makita DLM432Z Solo Batteridrevet plæneklipper",
-        "Makita DLM432PT2 (2x5.0Ah) Batteridrevet plæneklipper",
-        "Ryobi OLM1833B Solo Batteridrevet plæneklipper",
-        "Makita DLM382Z Solo Batteridrevet plæneklipper",
-        "Bosch EasyRotak 32-235 Batteridrevet plæneklipper",
-        "AL-KO Comfort 51.0 SP-A Benzindrevet plæneklipper",
-        "AL-KO Gudenaa GU 400 Håndskubber"
-      ],
-      "reasoning": "Hero: 200 candidates in 'plaeneklippere', 0 existing articles. Top: Makita DLM432Z Solo Batteridrevet plæneklipper, Makita DLM432PT2 (2x5.0Ah) Batteridrevet plæneklipper, Ryobi OLM1833B Solo Batteridrevet plæneklipper..."
-    },
-    {
-      "priority": 6,
-      "article_type": "hero",
-      "category": "blendere",
-      "category_display": "Blendere",
-      "product_urls": [
-        "https://www.pricerunner.dk/pl/84-5260903/Blendere/Ninja-Auto-IQ-BN750EU-Sammenlign-Priser",
-        "https://www.pricerunner.dk/pl/84-3202193226/Blendere/Braun-JB9040BK-Sammenlign-Priser",
-        "https://www.pricerunner.dk/pl/84-4931437/Blendere/Sage-The-Super-Q-Sammenlign-Priser",
-        "https://www.pricerunner.dk/pl/84-4834843/Blendere/Vitamix-Ascent-A2500i-Sammenlign-Priser",
-        "https://www.pricerunner.dk/pl/84-3200264793/Blendere/Ninja-Foodi-3-in-1-CB350EU-Sammenlign-Priser",
-        "https://www.pricerunner.dk/pl/84-3385670828/Blendere/Ninja-Detect-TB301EU-Blender-Pro-Sammenlign-Priser",
-        "https://www.pricerunner.dk/pl/84-3209982599/Blendere/Vitamix-Ascent-A3500i-Stainless-Steel-Sammenlign-Priser"
-      ],
-      "product_names": [
-        "Ninja 2-in-1 Auto-IQ BN750EU",
-        "Braun PowerBlend 9 JB9040BK",
-        "Sage The Super Q",
-        "Vitamix Ascent A2500i Black",
-        "Ninja Foodi 3-in-1 CB350EU",
-        "Ninja Detect Power Pro TB301EU",
-        "Vitamix Ascent A3500i Brushed Stainless"
-      ],
-      "reasoning": "Hero: 199 candidates in 'blendere', 0 existing articles. Top: Ninja 2-in-1 Auto-IQ BN750EU, Braun PowerBlend 9 JB9040BK, Sage The Super Q..."
-    },
-    {
-      "priority": 7,
-      "article_type": "hero",
-      "category": "trampoliner",
-      "category_display": "Trampoliner",
-      "product_urls": [
-        "https://www.pricerunner.dk/pl/1290-4882254/Trampoliner/Berg-Grand-Champion-InGround-520cm-Sammenlign-Priser",
-        "https://www.pricerunner.dk/pl/1290-3205081342/Trampoliner/Salta-Cosmos-Trampoline-427cm-Safety-Net-Ladder-Sammenlign-Priser",
-        "https://www.pricerunner.dk/pl/1290-3832703/Trampoliner/Berg-Favorit-InGround-380cm-Sammenlign-Priser",
-        "https://www.pricerunner.dk/pl/1290-3827019/Trampoliner/Berg-Favorit-430cm-Safety-Net-Comfort-Sammenlign-Priser",
-        "https://www.pricerunner.dk/pl/1290-3205388813/Trampoliner/Salta-Cosmos-Trampoline-305cm-Safety-Net-Ladder-Sammenlign-Priser",
-        "https://www.pricerunner.dk/pl/1290-5163539/Trampoliner/Salta-Comfort-Edition-Ground-396cm-Safety-Net-Sammenlign-Priser",
-        "https://www.pricerunner.dk/pl/1290-3205064248/Trampoliner/Salta-Cosmos-Trampoline-366cm-Safety-Net-Ladder-Sammenlign-Priser"
-      ],
-      "product_names": [
-        "BERG Grand Champion InGround Oval 520cm",
-        "Salta Cosmos Trampoline 427cm + Safety Net + Ladder",
-        "BERG Sports Favorite InGround 380cm Green",
-        "BERG Favorit Regular 430cm + Safety Net Comfort Grey",
-        "Salta Cosmos Trampoline 305cm + Safety Net + Ladder",
-        "Salta Comfort Edition Ground Trampoline 396cm + Safety Net Grey",
-        "Salta Cosmos Trampoline 366cm + Safety Net + Ladder"
-      ],
-      "reasoning": "Hero: 195 candidates in 'trampoliner', 0 existing articles. Top: BERG Grand Champion InGround Oval 520cm, Salta Cosmos Trampoline 427cm + Safety Net + Ladder, BERG Sports Favorite InGround 380cm Green..."
-    },
-    {
-      "priority": 8,
-      "article_type": "hero",
-      "category": "bore-skruemaskiner",
-      "category_display": "Bore- & Skruemaskiner",
-      "product_urls": [
-        "https://www.pricerunner.dk/pl/1258-5301986/Bore-Skruemaskiner/Makita-DTW300Z-Solo-Sammenlign-Priser",
-        "https://www.pricerunner.dk/pl/1258-4015474/Bore-Skruemaskiner/Makita-DHP484RTJ-%282x5.0Ah%29-Sammenlign-Priser",
-        "https://www.pricerunner.dk/pl/1258-3143026/Bore-Skruemaskiner/Dewalt-DCF887N-XJ-Solo-Sammenlign-Priser",
-        "https://www.pricerunner.dk/pl/1258-5314320/Bore-Skruemaskiner/Makita-DTW700Z-Solo-Sammenlign-Priser",
-        "https://www.pricerunner.dk/pl/1258-3200551854/Bore-Skruemaskiner/Dewalt-DCF850N-XJ-Sammenlign-Priser",
-        "https://www.pricerunner.dk/pl/1258-3500190/Bore-Skruemaskiner/Makita-DTD154Z-Solo-Sammenlign-Priser",
-        "https://www.pricerunner.dk/pl/1258-4000152/Bore-Skruemaskiner/Makita-DDF484RTJ-%282x5.0Ah%29-Sammenlign-Priser"
-      ],
-      "product_names": [
-        "Makita DTW300Z Solo",
-        "Makita DHP484RTJ (2x5.0Ah)",
-        "Dewalt DCF887N-XJ Solo",
-        "Makita DTW700Z Solo",
-        "Dewalt DCF850N-XJ Solo",
-        "Makita DTD154Z Solo",
-        "Makita DDF484RTJ (2x5.0Ah)"
-      ],
-      "reasoning": "Hero: 200 candidates in 'bore-skruemaskiner', 0 existing articles. Top: Makita DTW300Z Solo, Makita DHP484RTJ (2x5.0Ah), Dewalt DCF887N-XJ Solo..."
-    },
-    {
-      "priority": 9,
-      "article_type": "hero",
-      "category": "havemaskiner",
-      "category_display": "Havemaskiner",
-      "product_urls": [
-        "https://www.pricerunner.dk/pl/120-3202818907/Havemaskiner/Makita-DUR193Z-Solo-Sammenlign-Priser",
-        "https://www.pricerunner.dk/pl/120-3204878200/Havemaskiner/Makita-DUB187Z-Sammenlign-Priser",
-        "https://www.pricerunner.dk/pl/120-5204339/Havemaskiner/Dewalt-DCMST561N-Solo-Sammenlign-Priser",
-        "https://www.pricerunner.dk/pl/120-4865091/Havemaskiner/Makita-DUH601Z-Solo-Sammenlign-Priser",
-        "https://www.pricerunner.dk/pl/120-5023269/Havemaskiner/Makita-DUX60-Sammenlign-Priser",
-        "https://www.pricerunner.dk/pl/120-3801467/Havemaskiner/Makita-DUC353Z-Solo-Sammenlign-Priser",
-        "https://www.pricerunner.dk/pl/120-3057217/Havemaskiner/Bosch-AXT-25-TC-Sammenlign-Priser"
-      ],
-      "product_names": [
-        "Makita DUR193Z Solo",
-        "Makita DUB187Z Solo",
-        "Dewalt DCMST561N Solo",
-        "Makita DUH601Z Solo",
-        "Makita DUX60Z Solo",
-        "Makita DUC353Z Solo",
-        "Bosch AXT 25 TC"
-      ],
-      "reasoning": "Hero: 200 candidates in 'havemaskiner', 0 existing articles. Top: Makita DUR193Z Solo, Makita DUB187Z Solo, Dewalt DCMST561N Solo..."
-    },
-    {
-      "priority": 10,
-      "article_type": "hero",
-      "category": "kaffemaskiner",
-      "category_display": "Kaffemaskiner",
-      "product_urls": [
-        "https://www.pricerunner.dk/pl/82-3332774746/Kaffemaskiner/Ninja-Luxe-Cafe-Premier-ES601EU-Sammenlign-Priser",
-        "https://www.pricerunner.dk/pl/82-3332818140/Kaffemaskiner/Ninja-ES701EU-Luxe-Espressomaskine-Sammenlign-Priser",
-        "https://www.pricerunner.dk/pl/82-3042458/Kaffemaskiner/Sage-The-Barista-Express-Stainless-Steel-Sammenlign-Priser",
-        "https://www.pricerunner.dk/pl/82-3673343/Kaffemaskiner/DeLonghi-Magnifica-S-ECAM-21.117.B-Sammenlign-Priser",
-        "https://www.pricerunner.dk/pl/82-3204980858/Kaffemaskiner/De-Longhi-Eletta-Explore-ECAM450.65.G-Sammenlign-Priser",
-        "https://www.pricerunner.dk/pl/82-3204519810/Kaffemaskiner/Sage-SES878-Sammenlign-Priser",
-        "https://www.pricerunner.dk/pl/82-3254502058/Kaffemaskiner/Philips-5500-Series-EP5547-90-Sammenlign-Priser"
-      ],
-      "product_names": [
-        "Ninja Luxe Café Premier ES601EU",
-        "Ninja ES701EU Luxe Espressomaskine",
-        "Sage The Barista Express Børstet Rustfrit stål",
-        "De'Longhi Magnifica S ECAM 21.117.B",
-        "De'Longhi Eletta Explore ECAM450.65.G",
-        "Sage The Barista Pro Rustfrit stål",
-        "Philips 5500 Series EP5547/90"
-      ],
-      "reasoning": "Hero: 200 candidates in 'kaffemaskiner', 0 existing articles. Top: Ninja Luxe Café Premier ES601EU, Ninja ES701EU Luxe Espressomaskine, Sage The Barista Express Børstet Rustfrit stål..."
-    },
-    {
-      "priority": 11,
-      "article_type": "hero",
-      "category": "spabade-vildmarksbade",
-      "category_display": "Spabade & Vildmarksbade",
-      "product_urls": [
-        "https://www.pricerunner.dk/pl/1388-3200050472/Spabade-Vildmarksbade/Bestway-Oppusteligt-spabad-Lay-Z-Spa-Miami-Rapid-Sammenlign-Priser",
-        "https://www.pricerunner.dk/pl/1388-3290958980/Spabade-Vildmarksbade/Bestway-Oppusteligt-spabad-Lay-Z-Spa-Miami-Aufblasbarer-Koerper-Sammenlign-Priser",
-        "https://www.pricerunner.dk/pl/1388-4712765/Spabade-Vildmarksbade/Bestway-Oppusteligt-spabad-Lay-Z-Spa-Helsinki-Airjet-Sammenlign-Priser",
-        "https://www.pricerunner.dk/pl/1388-3400848156/Spabade-Vildmarksbade/Bestway-Oppusteligt-spabad-Lay-Z-Spa-Glacial-Dip-Ovali-Pripu%C4%8Diama-Vonia-152x92x71cm-Sammenlign-Priser",
-        "https://www.pricerunner.dk/pl/1388-3396898093/Spabade-Vildmarksbade/Mspa-Udendoers-Spa-Semi-Rigid-6-Personer-160-x-160-x-65-cm-Sammenlign-Priser",
-        "https://www.pricerunner.dk/pl/1388-3396366021/Spabade-Vildmarksbade/Denform-Udendoers-Spa-Udespa-California-UV-6-Personer-Sammenlign-Priser",
-        "https://www.pricerunner.dk/pl/1388-3396364722/Spabade-Vildmarksbade/Bestway-Oppusteligt-spabad-Lay-Z-170-x-65-cm-Carrara-ThermaCore-Smart-AirJet-6-Sammenlign-Priser"
-      ],
-      "product_names": [
-        "Bestway Oppusteligt spabad Lay-Z-Spa Miami AirJet 60001",
-        "Bestway Oppusteligt spabad Lay Z Spa Miami Aufblasbarer Körper",
-        "Bestway Oppusteligt spabad Lay-Z-Spa Helsinki Airjet",
-        "Bestway Oppusteligt spabad Lay-Z Spa Inflatable Ice Bath",
-        "Mspa Udendørs Spa Semi-Rigid 6 Personer 160 x 160 x 65 cm",
-        "Denform Udendørs Spa Udespa California UV 6 Personer",
-        "Bestway Oppusteligt spabad Lay-Z 170 x 65 cm Carrara ThermaCore Smart AirJet 6"
-      ],
-      "reasoning": "Hero: 202 candidates in 'spabade-vildmarksbade', 0 existing articles. Top: Bestway Oppusteligt spabad Lay-Z-Spa Miami AirJet 60001, Bestway Oppusteligt spabad Lay Z Spa Miami Aufblasbarer Körper, Bestway Oppusteligt spabad Lay-Z-Spa Helsinki Airjet..."
-    },
-    {
-      "priority": 12,
-      "article_type": "hero",
-      "category": "ovne",
-      "category_display": "Ovne",
-      "product_urls": [
-        "https://www.pricerunner.dk/pl/105-3207526508/Ovne/Siemens-Kombiovn-CM724G1B1-Sort-Sammenlign-Priser",
-        "https://www.pricerunner.dk/pl/105-3385548781/Ovne/Siemens-HR776G3B1-Innbyggingsovn-Svart-Sammenlign-Priser",
-        "https://www.pricerunner.dk/pl/105-3272014315/Ovne/Siemens-Hb774g2b3s-Indbygningsovn-Sort-Sammenlign-Priser",
-        "https://www.pricerunner.dk/pl/105-5236440/Ovne/Sage-SPZ820BSS4EEU1-Rustfri-staal-Sammenlign-Priser",
-        "https://www.pricerunner.dk/pl/105-3209983332/Ovne/Siemens-HB774G2B1S-Sort-Sammenlign-Priser",
-        "https://www.pricerunner.dk/pl/105-3385713413/Ovne/Bosch-HBA571BB3-Indbygningsovn-Sort-Rustfri-staal-Sammenlign-Priser",
-        "https://www.pricerunner.dk/pl/105-3216379835/Ovne/Siemens-IQ700-HS736G1B1-Sammenlign-Priser"
-      ],
-      "product_names": [
-        "Siemens CM724G1B1 Sort",
-        "Siemens HR776G3B1 Iq700 Indbygningsovn Sort",
-        "Siemens iQ700 HB774G2B3S Sort",
-        "Sage SPZ 820 BSS Rustfri stål",
-        "Siemens HB774G2B1S Sort",
-        "Bosch HBA571BB3 Indbygningsovn Sort, Rustfri stål",
-        "Siemens iQ700 HS736G1B1 Sort"
-      ],
-      "reasoning": "Hero: 200 candidates in 'ovne', 0 existing articles. Top: Siemens CM724G1B1 Sort, Siemens HR776G3B1 Iq700 Indbygningsovn Sort, Siemens iQ700 HB774G2B3S Sort..."
-    },
-    {
-      "priority": 13,
-      "article_type": "hero",
-      "category": "pools",
-      "category_display": "Pools",
-      "product_urls": [
-        "https://www.pricerunner.dk/pl/541-3205982487/Pools/Swim-Fun-Pooltestare-Pool-Lab-2.0-digital-Sammenlign-Priser",
-        "https://www.pricerunner.dk/pl/541-5157795/Pools/Swim-Fun-Varmepumpe-Inverter-9kW-Sammenlign-Priser",
-        "https://www.pricerunner.dk/pl/541-3992605/Pools/Swim-Fun-Filter-Pump-Classic-%E2%8C%80400-450W-Sammenlign-Priser",
-        "https://www.pricerunner.dk/pl/541-3200180242/Pools/Swim-Fun-Filterball-System-400W-Sammenlign-Priser",
-        "https://www.pricerunner.dk/pl/541-4933774/Pools/Swim-Fun-Scooby-Pool-Robot-Sammenlign-Priser",
-        "https://www.pricerunner.dk/pl/541-4132404/Pools/Swim-Fun-Bunddaekken-OE4.6m-Sammenlign-Priser",
-        "https://www.pricerunner.dk/pl/541-3200177209/Pools/Swim-Fun-Pool-Salt-25kg-Sammenlign-Priser"
-      ],
-      "product_names": [
-        "Swim & Fun Pool Lab 2.0",
-        "Swim & Fun Varmepumpe Inverter 9kW",
-        "Swim & Fun Filter Pump Classic ⌀400 450W",
-        "Swim & Fun Filterball System 400W",
-        "Swim & Fun Scooby Pool Robot",
-        "Swim & Fun Bunddækken Ø4.6m",
-        "Swim & Fun Pool Salt 25kg"
-      ],
-      "reasoning": "Hero: 202 candidates in 'pools', 0 existing articles. Top: Swim & Fun Pool Lab 2.0, Swim & Fun Varmepumpe Inverter 9kW, Swim & Fun Filter Pump Classic ⌀400 450W..."
-    },
-    {
-      "priority": 14,
-      "article_type": "hero",
-      "category": "haveredskaber",
-      "category_display": "Haveredskaber",
-      "product_urls": [
-        "https://www.pricerunner.dk/pl/348-3991968/Haveredskaber/Fiskars-Maelkeboettefjerner-1020126-Sammenlign-Priser",
-        "https://www.pricerunner.dk/pl/348-4222731/Haveredskaber/Fiskars-PowerGear-Beskaeresaks-X-UPX86-Sammenlign-Priser",
-        "https://www.pricerunner.dk/pl/348-4580406/Haveredskaber/Kindling-Cracker-Standard-Sammenlign-Priser",
-        "https://www.pricerunner.dk/pl/348-4000216/Haveredskaber/Fiskars-SmartFit-Maelkeboettefjerner-1020125-Sammenlign-Priser",
-        "https://www.pricerunner.dk/pl/348-4140599/Haveredskaber/Ravendo-BC-1100-S-Sammenlign-Priser",
-        "https://www.pricerunner.dk/pl/348-4580425/Haveredskaber/Kindling-Cracker-King-Sammenlign-Priser",
-        "https://www.pricerunner.dk/pl/348-5241641/Haveredskaber/Stihl-Felco-F2-Sammenlign-Priser"
-      ],
-      "product_names": [
-        "Fiskars Mælkebøttefjerner 1020126",
-        "Fiskars PowerGear X UPX86",
-        "Kindling Cracker Standard",
-        "Fiskars SmartFit 1020125",
-        "Ravendo BC 1100 S",
-        "Kindling Cracker King",
-        "Stihl Felco F2"
-      ],
-      "reasoning": "Hero: 200 candidates in 'haveredskaber', 0 existing articles. Top: Fiskars Mælkebøttefjerner 1020126, Fiskars PowerGear X UPX86, Kindling Cracker Standard..."
-    },
-    {
-      "priority": 15,
-      "article_type": "hero",
-      "category": "vaskemaskiner",
-      "category_display": "Vaskemaskiner",
-      "product_urls": [
-        "https://www.pricerunner.dk/pl/14-3400250670/Vaskemaskiner/Miele-Vaskemaskine-WSA123-WCS-8kg-Active-Sammenlign-Priser",
-        "https://www.pricerunner.dk/pl/14-3399835040/Vaskemaskiner/Miele-Vaskemaskine-WWD380WCS-NDS-LW-PWash-Steam-9kg-Sammenlign-Priser",
-        "https://www.pricerunner.dk/pl/14-3326525298/Vaskemaskiner/Siemens-iQ700-WN54C2A0DN-Hvid-Sammenlign-Priser",
-        "https://www.pricerunner.dk/pl/14-3400480185/Vaskemaskiner/Miele-W2-WQ-1000-WPS-Nova-Edition-Vaskemaskine-Sammenlign-Priser",
-        "https://www.pricerunner.dk/pl/14-4730741/Vaskemaskiner/Miele-WWV980-WPS-Passion-Sammenlign-Priser",
-        "https://www.pricerunner.dk/pl/14-3335853961/Vaskemaskiner/AEG-5000-Series-LS511P94P-Hvid-Sammenlign-Priser",
-        "https://www.pricerunner.dk/pl/14-3329545742/Vaskemaskiner/Bosch-Serie-6-WGG244ZISN-Hvid-Sammenlign-Priser"
-      ],
-      "product_names": [
-        "Miele Vaskemaskine WSA123 WCS 8kg Active",
-        "Miele Vaskemaskine WWD380WCS NDS LW PWash Steam 9kg",
-        "Siemens iQ700 WN54C2A0DN Hvid",
-        "Miele W2 WQ 1000 WPS Nova Edition",
-        "Miele WWV980 WPS Passion",
-        "AEG 5000 Series LS511P94P Hvid",
-        "Bosch Serie 6 WGG244ZISN Hvid"
-      ],
-      "reasoning": "Hero: 198 candidates in 'vaskemaskiner', 0 existing articles. Top: Miele Vaskemaskine WSA123 WCS 8kg Active, Miele Vaskemaskine WWD380WCS NDS LW PWash Steam 9kg, Siemens iQ700 WN54C2A0DN Hvid..."
-    },
-    {
-      "priority": 16,
-      "article_type": "hero",
-      "category": "toerretumblere",
-      "category_display": "Tørretumblere",
-      "product_urls": [
-        "https://www.pricerunner.dk/pl/17-3203188887/Toerretumblere/AEG-TR822F85M-Hvid-Sammenlign-Priser",
-        "https://www.pricerunner.dk/pl/17-3384845039/Toerretumblere/Siemens-IQ300-Kondenstorktumlare-WT43HV0EDN-Vit-Sammenlign-Priser",
-        "https://www.pricerunner.dk/pl/17-3399734389/Toerretumblere/Bosch-Serie-6-WQG2420ISN-Toerretumbler-Hvid-Sammenlign-Priser",
-        "https://www.pricerunner.dk/pl/17-3208446178/Toerretumblere/LG-Rh80v9av7n-Kondenstoerretumbler-Hvid-Sammenlign-Priser",
-        "https://www.pricerunner.dk/pl/17-3204529238/Toerretumblere/AEG-Tr934a95g-Kondenstoerretumbler-Hvid-Sammenlign-Priser",
-        "https://www.pricerunner.dk/pl/17-3209140260/Toerretumblere/AEG-8000-AbsoluteCare-TR844P85P-Hvid-Sammenlign-Priser",
-        "https://www.pricerunner.dk/pl/17-3379148461/Toerretumblere/AEG-TS511P84P-Hvid-Sammenlign-Priser"
-      ],
-      "product_names": [
-        "AEG 8000 AbsoluteCare-TR822F85M Hvid",
-        "Siemens IQ300 Kondenstørretumbler T43HV0EDN Hvid",
-        "Bosch Serie 6 WQG2420ISN Tørretumbler Hvid",
-        "LG RH80V9AV7N Hvid",
-        "AEG 9000 AbsoluteCare TR934A95G Hvid",
-        "AEG 8000 AbsoluteCare TR844P85P Hvid",
-        "AEG TS511P84P Hvid"
-      ],
-      "reasoning": "Hero: 199 candidates in 'toerretumblere', 0 existing articles. Top: AEG 8000 AbsoluteCare-TR822F85M Hvid, Siemens IQ300 Kondenstørretumbler T43HV0EDN Hvid, Bosch Serie 6 WQG2420ISN Tørretumbler Hvid..."
-    },
-    {
-      "priority": 17,
-      "article_type": "hero",
-      "category": "komfurer",
-      "category_display": "Komfurer",
-      "product_urls": [
-        "https://www.pricerunner.dk/pl/101-3287281103/Komfurer/Voss-VKI60350HV-Induktionskomfur-Hvid-Sammenlign-Priser",
-        "https://www.pricerunner.dk/pl/101-3204891630/Komfurer/Gorenje-gaskomfur-el-ovn-GK6A60WH-Hvid-Sammenlign-Priser",
-        "https://www.pricerunner.dk/pl/101-3203756211/Komfurer/Gorenje-GEC6D60WPB-Hvid-Sammenlign-Priser",
-        "https://www.pricerunner.dk/pl/101-3202203949/Komfurer/Bosch-HLS79W351U-Rustfrit-staal-Sammenlign-Priser",
-        "https://www.pricerunner.dk/pl/101-3200104864/Komfurer/Gram-GK2064290X-Rustfrit-staal-Sort-Sammenlign-Priser",
-        "https://www.pricerunner.dk/pl/101-4569338/Komfurer/Bosch-HLN39A060U-Sort-Sammenlign-Priser",
-        "https://www.pricerunner.dk/pl/101-4574190/Komfurer/Siemens-HL9S5E040U-Rustfrit-staal-Sammenlign-Priser"
-      ],
-      "product_names": [
-        "Voss VKI60350HV",
-        "Gorenje G400 GK6A60WH",
-        "Gorenje GEC6D60WPB",
-        "Bosch HLS79W351U",
-        "Gram GK2064290X",
-        "Bosch HLN39A060U",
-        "Siemens HL9S5E040U"
-      ],
-      "reasoning": "Hero: 200 candidates in 'komfurer', 0 existing articles. Top: Voss VKI60350HV, Gorenje G400 GK6A60WH, Gorenje GEC6D60WPB..."
-    },
-    {
-      "priority": 18,
-      "article_type": "hero",
-      "category": "kogeplader",
-      "category_display": "Kogeplader",
-      "product_urls": [
-        "https://www.pricerunner.dk/pl/106-3201575831/Kogeplader/Bosch-PUE611BB6E-Sammenlign-Priser",
-        "https://www.pricerunner.dk/pl/106-3136981/Kogeplader/Siemens-EH975LVC1E-Sammenlign-Priser",
-        "https://www.pricerunner.dk/pl/106-3200006555/Kogeplader/Siemens-ED851FQ15E-Sammenlign-Priser",
-        "https://www.pricerunner.dk/pl/106-3208644797/Kogeplader/Siemens-ED751HSC1E-Platetopp-Sammenlign-Priser",
-        "https://www.pricerunner.dk/pl/106-5239007/Kogeplader/Smeg-SI364FXM-Sammenlign-Priser",
-        "https://www.pricerunner.dk/pl/106-4552506/Kogeplader/Electrolux-HOI630MF-Sammenlign-Priser",
-        "https://www.pricerunner.dk/pl/106-3136974/Kogeplader/Siemens-EX975LXC1E-Sammenlign-Priser"
-      ],
-      "product_names": [
-        "Bosch PUE611BB6E",
-        "Siemens EH975LVC1E - Sort",
-        "Siemens ED851FQ15E Sort",
-        "Siemens Induktionskogeplade ED751HSC1E",
-        "Smeg SI364FXM",
-        "Electrolux HOI630MF",
-        "Siemens iQ700 EX975LXC1E Sort"
-      ],
-      "reasoning": "Hero: 200 candidates in 'kogeplader', 0 existing articles. Top: Bosch PUE611BB6E, Siemens EH975LVC1E - Sort, Siemens ED851FQ15E Sort..."
-    }
-  ]
+﻿{
+    "generated_at":  "2026-06-10T15:46:05Z",
+    "note":  "Prioritized job list for a remote Trendly instance with a clean DB. Heroes first (uncovered categories with 5+ candidates), then top singles per category. POST each job to /api/v1/jobs/from-products with site_key=\u0027hus\u0027.",
+    "local_published_categories":  {
+                                       "robotplaeneklippere":  1,
+                                       "stovsugere":  2,
+                                       "grill":  1,
+                                       "robotstoevsugere":  2,
+                                       "ismaskiner":  1,
+                                       "havemoebel":  1,
+                                       "hojtryks-hedvandsrensere":  1,
+                                       "havetraktorer":  1
+                                   },
+    "jobs":  [
+                 {
+                     "priority":  1,
+                     "article_type":  "hero",
+                     "category":  "elsave",
+                     "category_display":  "Elsave",
+                     "product_urls":  [
+                                          "https://www.pricerunner.dk/pl/1260-5028847/Elsave/Dewalt-%E2%80%8EDCS335N-XJ-Sammenlign-Priser",
+                                          "https://www.pricerunner.dk/pl/1260-3068252/Elsave/Makita-DHS680Z-Solo-Sammenlign-Priser",
+                                          "https://www.pricerunner.dk/pl/1260-5013251/Elsave/Makita-DSP600Z-Solo-Sammenlign-Priser",
+                                          "https://www.pricerunner.dk/pl/1260-2895341/Elsave/Bosch-GCM-8-SJL-Professional-Sammenlign-Priser",
+                                          "https://www.pricerunner.dk/pl/1260-3272012921/Elsave/Makita-kap-geringssav-LS1110F-1450W-260-mm-LS1110F-Sammenlign-Priser",
+                                          "https://www.pricerunner.dk/pl/1260-2852651/Elsave/Metabo-KGS-254-M-Sammenlign-Priser",
+                                          "https://www.pricerunner.dk/pl/1260-5021976/Elsave/Dewalt-DWE7492-Sammenlign-Priser"
+                                      ],
+                     "product_names":  [
+                                           "Dewalt ‎DCS335N-XJ Solo",
+                                           "Makita DHS680Z Solo",
+                                           "Makita DSP600Z Solo",
+                                           "Bosch GCM 8 SJL Professional (0601B19100)",
+                                           "Makita LS1110F",
+                                           "Metabo KGS 254 M",
+                                           "Dewalt DWE7492-QS"
+                                       ],
+                     "reasoning":  "Hero: 200 candidates in \u0027elsave\u0027, 0 existing articles. Top: Dewalt ‎DCS335N-XJ Solo, Makita DHS680Z Solo, Makita DSP600Z Solo..."
+                 },
+                 {
+                     "priority":  2,
+                     "article_type":  "hero",
+                     "category":  "plaeneklippere",
+                     "category_display":  "Plæneklippere",
+                     "product_urls":  [
+                                          "https://www.pricerunner.dk/pl/119-5231483/Plaeneklippere/Makita-DLM432Z-Solo-Batteridrevet-plaeneklipper-Sammenlign-Priser",
+                                          "https://www.pricerunner.dk/pl/119-5211776/Plaeneklippere/Makita-DLM432PT2-%282x5.0Ah%29-Batteridrevet-plaeneklipper-Sammenlign-Priser",
+                                          "https://www.pricerunner.dk/pl/119-4897681/Plaeneklippere/Ryobi-OLM1833B-Solo-Batteridrevet-plaeneklipper-Sammenlign-Priser",
+                                          "https://www.pricerunner.dk/pl/119-5213163/Plaeneklippere/Makita-DLM382Z-Solo-Batteridrevet-plaeneklipper-Sammenlign-Priser",
+                                          "https://www.pricerunner.dk/pl/119-3393493933/Plaeneklippere/Bosch-EasyRotak-32-235-Batteridrevet-plaeneklipper-Sammenlign-Priser",
+                                          "https://www.pricerunner.dk/pl/119-5142793/Plaeneklippere/AL-KO-Comfort-51.0-SP-A-Benzindrevet-plaeneklipper-Sammenlign-Priser",
+                                          "https://www.pricerunner.dk/pl/119-3070783/Plaeneklippere/AL-KO-Gudenaa-GU-400-Haandskubber-Sammenlign-Priser"
+                                      ],
+                     "product_names":  [
+                                           "Makita DLM432Z Solo Batteridrevet plæneklipper",
+                                           "Makita DLM432PT2 (2x5.0Ah) Batteridrevet plæneklipper",
+                                           "Ryobi OLM1833B Solo Batteridrevet plæneklipper",
+                                           "Makita DLM382Z Solo Batteridrevet plæneklipper",
+                                           "Bosch EasyRotak 32-235 Batteridrevet plæneklipper",
+                                           "AL-KO Comfort 51.0 SP-A Benzindrevet plæneklipper",
+                                           "AL-KO Gudenaa GU 400 Håndskubber"
+                                       ],
+                     "reasoning":  "Hero: 200 candidates in \u0027plaeneklippere\u0027, 0 existing articles. Top: Makita DLM432Z Solo Batteridrevet plæneklipper, Makita DLM432PT2 (2x5.0Ah) Batteridrevet plæneklipper, Ryobi OLM1833B Solo Batteridrevet plæneklipper..."
+                 },
+                 {
+                     "priority":  3,
+                     "article_type":  "hero",
+                     "category":  "blendere",
+                     "category_display":  "Blendere",
+                     "product_urls":  [
+                                          "https://www.pricerunner.dk/pl/84-5260903/Blendere/Ninja-Auto-IQ-BN750EU-Sammenlign-Priser",
+                                          "https://www.pricerunner.dk/pl/84-3202193226/Blendere/Braun-JB9040BK-Sammenlign-Priser",
+                                          "https://www.pricerunner.dk/pl/84-4931437/Blendere/Sage-The-Super-Q-Sammenlign-Priser",
+                                          "https://www.pricerunner.dk/pl/84-4834843/Blendere/Vitamix-Ascent-A2500i-Sammenlign-Priser",
+                                          "https://www.pricerunner.dk/pl/84-3200264793/Blendere/Ninja-Foodi-3-in-1-CB350EU-Sammenlign-Priser",
+                                          "https://www.pricerunner.dk/pl/84-3385670828/Blendere/Ninja-Detect-TB301EU-Blender-Pro-Sammenlign-Priser",
+                                          "https://www.pricerunner.dk/pl/84-3209982599/Blendere/Vitamix-Ascent-A3500i-Stainless-Steel-Sammenlign-Priser"
+                                      ],
+                     "product_names":  [
+                                           "Ninja 2-in-1 Auto-IQ BN750EU",
+                                           "Braun PowerBlend 9 JB9040BK",
+                                           "Sage The Super Q",
+                                           "Vitamix Ascent A2500i Black",
+                                           "Ninja Foodi 3-in-1 CB350EU",
+                                           "Ninja Detect Power Pro TB301EU",
+                                           "Vitamix Ascent A3500i Brushed Stainless"
+                                       ],
+                     "reasoning":  "Hero: 199 candidates in \u0027blendere\u0027, 0 existing articles. Top: Ninja 2-in-1 Auto-IQ BN750EU, Braun PowerBlend 9 JB9040BK, Sage The Super Q..."
+                 },
+                 {
+                     "priority":  4,
+                     "article_type":  "hero",
+                     "category":  "trampoliner",
+                     "category_display":  "Trampoliner",
+                     "product_urls":  [
+                                          "https://www.pricerunner.dk/pl/1290-4882254/Trampoliner/Berg-Grand-Champion-InGround-520cm-Sammenlign-Priser",
+                                          "https://www.pricerunner.dk/pl/1290-3205081342/Trampoliner/Salta-Cosmos-Trampoline-427cm-Safety-Net-Ladder-Sammenlign-Priser",
+                                          "https://www.pricerunner.dk/pl/1290-3832703/Trampoliner/Berg-Favorit-InGround-380cm-Sammenlign-Priser",
+                                          "https://www.pricerunner.dk/pl/1290-3827019/Trampoliner/Berg-Favorit-430cm-Safety-Net-Comfort-Sammenlign-Priser",
+                                          "https://www.pricerunner.dk/pl/1290-3205388813/Trampoliner/Salta-Cosmos-Trampoline-305cm-Safety-Net-Ladder-Sammenlign-Priser",
+                                          "https://www.pricerunner.dk/pl/1290-5163539/Trampoliner/Salta-Comfort-Edition-Ground-396cm-Safety-Net-Sammenlign-Priser",
+                                          "https://www.pricerunner.dk/pl/1290-3205064248/Trampoliner/Salta-Cosmos-Trampoline-366cm-Safety-Net-Ladder-Sammenlign-Priser"
+                                      ],
+                     "product_names":  [
+                                           "BERG Grand Champion InGround Oval 520cm",
+                                           "Salta Cosmos Trampoline 427cm + Safety Net + Ladder",
+                                           "BERG Sports Favorite InGround 380cm Green",
+                                           "BERG Favorit Regular 430cm + Safety Net Comfort Grey",
+                                           "Salta Cosmos Trampoline 305cm + Safety Net + Ladder",
+                                           "Salta Comfort Edition Ground Trampoline 396cm + Safety Net Grey",
+                                           "Salta Cosmos Trampoline 366cm + Safety Net + Ladder"
+                                       ],
+                     "reasoning":  "Hero: 195 candidates in \u0027trampoliner\u0027, 0 existing articles. Top: BERG Grand Champion InGround Oval 520cm, Salta Cosmos Trampoline 427cm + Safety Net + Ladder, BERG Sports Favorite InGround 380cm Green..."
+                 },
+                 {
+                     "priority":  5,
+                     "article_type":  "hero",
+                     "category":  "bore-skruemaskiner",
+                     "category_display":  "Bore- \u0026 Skruemaskiner",
+                     "product_urls":  [
+                                          "https://www.pricerunner.dk/pl/1258-5301986/Bore-Skruemaskiner/Makita-DTW300Z-Solo-Sammenlign-Priser",
+                                          "https://www.pricerunner.dk/pl/1258-4015474/Bore-Skruemaskiner/Makita-DHP484RTJ-%282x5.0Ah%29-Sammenlign-Priser",
+                                          "https://www.pricerunner.dk/pl/1258-3143026/Bore-Skruemaskiner/Dewalt-DCF887N-XJ-Solo-Sammenlign-Priser",
+                                          "https://www.pricerunner.dk/pl/1258-5314320/Bore-Skruemaskiner/Makita-DTW700Z-Solo-Sammenlign-Priser",
+                                          "https://www.pricerunner.dk/pl/1258-3200551854/Bore-Skruemaskiner/Dewalt-DCF850N-XJ-Sammenlign-Priser",
+                                          "https://www.pricerunner.dk/pl/1258-3500190/Bore-Skruemaskiner/Makita-DTD154Z-Solo-Sammenlign-Priser",
+                                          "https://www.pricerunner.dk/pl/1258-4000152/Bore-Skruemaskiner/Makita-DDF484RTJ-%282x5.0Ah%29-Sammenlign-Priser"
+                                      ],
+                     "product_names":  [
+                                           "Makita DTW300Z Solo",
+                                           "Makita DHP484RTJ (2x5.0Ah)",
+                                           "Dewalt DCF887N-XJ Solo",
+                                           "Makita DTW700Z Solo",
+                                           "Dewalt DCF850N-XJ Solo",
+                                           "Makita DTD154Z Solo",
+                                           "Makita DDF484RTJ (2x5.0Ah)"
+                                       ],
+                     "reasoning":  "Hero: 200 candidates in \u0027bore-skruemaskiner\u0027, 0 existing articles. Top: Makita DTW300Z Solo, Makita DHP484RTJ (2x5.0Ah), Dewalt DCF887N-XJ Solo..."
+                 },
+                 {
+                     "priority":  6,
+                     "article_type":  "hero",
+                     "category":  "havemaskiner",
+                     "category_display":  "Havemaskiner",
+                     "product_urls":  [
+                                          "https://www.pricerunner.dk/pl/120-3202818907/Havemaskiner/Makita-DUR193Z-Solo-Sammenlign-Priser",
+                                          "https://www.pricerunner.dk/pl/120-3204878200/Havemaskiner/Makita-DUB187Z-Sammenlign-Priser",
+                                          "https://www.pricerunner.dk/pl/120-5204339/Havemaskiner/Dewalt-DCMST561N-Solo-Sammenlign-Priser",
+                                          "https://www.pricerunner.dk/pl/120-4865091/Havemaskiner/Makita-DUH601Z-Solo-Sammenlign-Priser",
+                                          "https://www.pricerunner.dk/pl/120-5023269/Havemaskiner/Makita-DUX60-Sammenlign-Priser",
+                                          "https://www.pricerunner.dk/pl/120-3801467/Havemaskiner/Makita-DUC353Z-Solo-Sammenlign-Priser",
+                                          "https://www.pricerunner.dk/pl/120-3057217/Havemaskiner/Bosch-AXT-25-TC-Sammenlign-Priser"
+                                      ],
+                     "product_names":  [
+                                           "Makita DUR193Z Solo",
+                                           "Makita DUB187Z Solo",
+                                           "Dewalt DCMST561N Solo",
+                                           "Makita DUH601Z Solo",
+                                           "Makita DUX60Z Solo",
+                                           "Makita DUC353Z Solo",
+                                           "Bosch AXT 25 TC"
+                                       ],
+                     "reasoning":  "Hero: 200 candidates in \u0027havemaskiner\u0027, 0 existing articles. Top: Makita DUR193Z Solo, Makita DUB187Z Solo, Dewalt DCMST561N Solo..."
+                 },
+                 {
+                     "priority":  7,
+                     "article_type":  "hero",
+                     "category":  "kaffemaskiner",
+                     "category_display":  "Kaffemaskiner",
+                     "product_urls":  [
+                                          "https://www.pricerunner.dk/pl/82-3332774746/Kaffemaskiner/Ninja-Luxe-Cafe-Premier-ES601EU-Sammenlign-Priser",
+                                          "https://www.pricerunner.dk/pl/82-3332818140/Kaffemaskiner/Ninja-ES701EU-Luxe-Espressomaskine-Sammenlign-Priser",
+                                          "https://www.pricerunner.dk/pl/82-3042458/Kaffemaskiner/Sage-The-Barista-Express-Stainless-Steel-Sammenlign-Priser",
+                                          "https://www.pricerunner.dk/pl/82-3673343/Kaffemaskiner/DeLonghi-Magnifica-S-ECAM-21.117.B-Sammenlign-Priser",
+                                          "https://www.pricerunner.dk/pl/82-3204980858/Kaffemaskiner/De-Longhi-Eletta-Explore-ECAM450.65.G-Sammenlign-Priser",
+                                          "https://www.pricerunner.dk/pl/82-3204519810/Kaffemaskiner/Sage-SES878-Sammenlign-Priser",
+                                          "https://www.pricerunner.dk/pl/82-3254502058/Kaffemaskiner/Philips-5500-Series-EP5547-90-Sammenlign-Priser"
+                                      ],
+                     "product_names":  [
+                                           "Ninja Luxe Café Premier ES601EU",
+                                           "Ninja ES701EU Luxe Espressomaskine",
+                                           "Sage The Barista Express Børstet Rustfrit stål",
+                                           "De\u0027Longhi Magnifica S ECAM 21.117.B",
+                                           "De\u0027Longhi Eletta Explore ECAM450.65.G",
+                                           "Sage The Barista Pro Rustfrit stål",
+                                           "Philips 5500 Series EP5547/90"
+                                       ],
+                     "reasoning":  "Hero: 200 candidates in \u0027kaffemaskiner\u0027, 0 existing articles. Top: Ninja Luxe Café Premier ES601EU, Ninja ES701EU Luxe Espressomaskine, Sage The Barista Express Børstet Rustfrit stål..."
+                 },
+                 {
+                     "priority":  8,
+                     "article_type":  "hero",
+                     "category":  "spabade-vildmarksbade",
+                     "category_display":  "Spabade \u0026 Vildmarksbade",
+                     "product_urls":  [
+                                          "https://www.pricerunner.dk/pl/1388-3200050472/Spabade-Vildmarksbade/Bestway-Oppusteligt-spabad-Lay-Z-Spa-Miami-Rapid-Sammenlign-Priser",
+                                          "https://www.pricerunner.dk/pl/1388-3290958980/Spabade-Vildmarksbade/Bestway-Oppusteligt-spabad-Lay-Z-Spa-Miami-Aufblasbarer-Koerper-Sammenlign-Priser",
+                                          "https://www.pricerunner.dk/pl/1388-4712765/Spabade-Vildmarksbade/Bestway-Oppusteligt-spabad-Lay-Z-Spa-Helsinki-Airjet-Sammenlign-Priser",
+                                          "https://www.pricerunner.dk/pl/1388-3400848156/Spabade-Vildmarksbade/Bestway-Oppusteligt-spabad-Lay-Z-Spa-Glacial-Dip-Ovali-Pripu%C4%8Diama-Vonia-152x92x71cm-Sammenlign-Priser",
+                                          "https://www.pricerunner.dk/pl/1388-3396898093/Spabade-Vildmarksbade/Mspa-Udendoers-Spa-Semi-Rigid-6-Personer-160-x-160-x-65-cm-Sammenlign-Priser",
+                                          "https://www.pricerunner.dk/pl/1388-3396366021/Spabade-Vildmarksbade/Denform-Udendoers-Spa-Udespa-California-UV-6-Personer-Sammenlign-Priser",
+                                          "https://www.pricerunner.dk/pl/1388-3396364722/Spabade-Vildmarksbade/Bestway-Oppusteligt-spabad-Lay-Z-170-x-65-cm-Carrara-ThermaCore-Smart-AirJet-6-Sammenlign-Priser"
+                                      ],
+                     "product_names":  [
+                                           "Bestway Oppusteligt spabad Lay-Z-Spa Miami AirJet 60001",
+                                           "Bestway Oppusteligt spabad Lay Z Spa Miami Aufblasbarer Körper",
+                                           "Bestway Oppusteligt spabad Lay-Z-Spa Helsinki Airjet",
+                                           "Bestway Oppusteligt spabad Lay-Z Spa Inflatable Ice Bath",
+                                           "Mspa Udendørs Spa Semi-Rigid 6 Personer 160 x 160 x 65 cm",
+                                           "Denform Udendørs Spa Udespa California UV 6 Personer",
+                                           "Bestway Oppusteligt spabad Lay-Z 170 x 65 cm Carrara ThermaCore Smart AirJet 6"
+                                       ],
+                     "reasoning":  "Hero: 202 candidates in \u0027spabade-vildmarksbade\u0027, 0 existing articles. Top: Bestway Oppusteligt spabad Lay-Z-Spa Miami AirJet 60001, Bestway Oppusteligt spabad Lay Z Spa Miami Aufblasbarer Körper, Bestway Oppusteligt spabad Lay-Z-Spa Helsinki Airjet..."
+                 },
+                 {
+                     "priority":  9,
+                     "article_type":  "hero",
+                     "category":  "ovne",
+                     "category_display":  "Ovne",
+                     "product_urls":  [
+                                          "https://www.pricerunner.dk/pl/105-3207526508/Ovne/Siemens-Kombiovn-CM724G1B1-Sort-Sammenlign-Priser",
+                                          "https://www.pricerunner.dk/pl/105-3385548781/Ovne/Siemens-HR776G3B1-Innbyggingsovn-Svart-Sammenlign-Priser",
+                                          "https://www.pricerunner.dk/pl/105-3272014315/Ovne/Siemens-Hb774g2b3s-Indbygningsovn-Sort-Sammenlign-Priser",
+                                          "https://www.pricerunner.dk/pl/105-5236440/Ovne/Sage-SPZ820BSS4EEU1-Rustfri-staal-Sammenlign-Priser",
+                                          "https://www.pricerunner.dk/pl/105-3209983332/Ovne/Siemens-HB774G2B1S-Sort-Sammenlign-Priser",
+                                          "https://www.pricerunner.dk/pl/105-3385713413/Ovne/Bosch-HBA571BB3-Indbygningsovn-Sort-Rustfri-staal-Sammenlign-Priser",
+                                          "https://www.pricerunner.dk/pl/105-3216379835/Ovne/Siemens-IQ700-HS736G1B1-Sammenlign-Priser"
+                                      ],
+                     "product_names":  [
+                                           "Siemens CM724G1B1 Sort",
+                                           "Siemens HR776G3B1 Iq700 Indbygningsovn Sort",
+                                           "Siemens iQ700 HB774G2B3S Sort",
+                                           "Sage SPZ 820 BSS Rustfri stål",
+                                           "Siemens HB774G2B1S Sort",
+                                           "Bosch HBA571BB3 Indbygningsovn Sort, Rustfri stål",
+                                           "Siemens iQ700 HS736G1B1 Sort"
+                                       ],
+                     "reasoning":  "Hero: 200 candidates in \u0027ovne\u0027, 0 existing articles. Top: Siemens CM724G1B1 Sort, Siemens HR776G3B1 Iq700 Indbygningsovn Sort, Siemens iQ700 HB774G2B3S Sort..."
+                 },
+                 {
+                     "priority":  10,
+                     "article_type":  "hero",
+                     "category":  "pools",
+                     "category_display":  "Pools",
+                     "product_urls":  [
+                                          "https://www.pricerunner.dk/pl/541-3205982487/Pools/Swim-Fun-Pooltestare-Pool-Lab-2.0-digital-Sammenlign-Priser",
+                                          "https://www.pricerunner.dk/pl/541-5157795/Pools/Swim-Fun-Varmepumpe-Inverter-9kW-Sammenlign-Priser",
+                                          "https://www.pricerunner.dk/pl/541-3992605/Pools/Swim-Fun-Filter-Pump-Classic-%E2%8C%80400-450W-Sammenlign-Priser",
+                                          "https://www.pricerunner.dk/pl/541-3200180242/Pools/Swim-Fun-Filterball-System-400W-Sammenlign-Priser",
+                                          "https://www.pricerunner.dk/pl/541-4933774/Pools/Swim-Fun-Scooby-Pool-Robot-Sammenlign-Priser",
+                                          "https://www.pricerunner.dk/pl/541-4132404/Pools/Swim-Fun-Bunddaekken-OE4.6m-Sammenlign-Priser",
+                                          "https://www.pricerunner.dk/pl/541-3200177209/Pools/Swim-Fun-Pool-Salt-25kg-Sammenlign-Priser"
+                                      ],
+                     "product_names":  [
+                                           "Swim \u0026 Fun Pool Lab 2.0",
+                                           "Swim \u0026 Fun Varmepumpe Inverter 9kW",
+                                           "Swim \u0026 Fun Filter Pump Classic ⌀400 450W",
+                                           "Swim \u0026 Fun Filterball System 400W",
+                                           "Swim \u0026 Fun Scooby Pool Robot",
+                                           "Swim \u0026 Fun Bunddækken Ø4.6m",
+                                           "Swim \u0026 Fun Pool Salt 25kg"
+                                       ],
+                     "reasoning":  "Hero: 202 candidates in \u0027pools\u0027, 0 existing articles. Top: Swim \u0026 Fun Pool Lab 2.0, Swim \u0026 Fun Varmepumpe Inverter 9kW, Swim \u0026 Fun Filter Pump Classic ⌀400 450W..."
+                 },
+                 {
+                     "priority":  11,
+                     "article_type":  "hero",
+                     "category":  "haveredskaber",
+                     "category_display":  "Haveredskaber",
+                     "product_urls":  [
+                                          "https://www.pricerunner.dk/pl/348-3991968/Haveredskaber/Fiskars-Maelkeboettefjerner-1020126-Sammenlign-Priser",
+                                          "https://www.pricerunner.dk/pl/348-4222731/Haveredskaber/Fiskars-PowerGear-Beskaeresaks-X-UPX86-Sammenlign-Priser",
+                                          "https://www.pricerunner.dk/pl/348-4580406/Haveredskaber/Kindling-Cracker-Standard-Sammenlign-Priser",
+                                          "https://www.pricerunner.dk/pl/348-4000216/Haveredskaber/Fiskars-SmartFit-Maelkeboettefjerner-1020125-Sammenlign-Priser",
+                                          "https://www.pricerunner.dk/pl/348-4140599/Haveredskaber/Ravendo-BC-1100-S-Sammenlign-Priser",
+                                          "https://www.pricerunner.dk/pl/348-4580425/Haveredskaber/Kindling-Cracker-King-Sammenlign-Priser",
+                                          "https://www.pricerunner.dk/pl/348-5241641/Haveredskaber/Stihl-Felco-F2-Sammenlign-Priser"
+                                      ],
+                     "product_names":  [
+                                           "Fiskars Mælkebøttefjerner 1020126",
+                                           "Fiskars PowerGear X UPX86",
+                                           "Kindling Cracker Standard",
+                                           "Fiskars SmartFit 1020125",
+                                           "Ravendo BC 1100 S",
+                                           "Kindling Cracker King",
+                                           "Stihl Felco F2"
+                                       ],
+                     "reasoning":  "Hero: 200 candidates in \u0027haveredskaber\u0027, 0 existing articles. Top: Fiskars Mælkebøttefjerner 1020126, Fiskars PowerGear X UPX86, Kindling Cracker Standard..."
+                 },
+                 {
+                     "priority":  12,
+                     "article_type":  "hero",
+                     "category":  "vaskemaskiner",
+                     "category_display":  "Vaskemaskiner",
+                     "product_urls":  [
+                                          "https://www.pricerunner.dk/pl/14-3400250670/Vaskemaskiner/Miele-Vaskemaskine-WSA123-WCS-8kg-Active-Sammenlign-Priser",
+                                          "https://www.pricerunner.dk/pl/14-3399835040/Vaskemaskiner/Miele-Vaskemaskine-WWD380WCS-NDS-LW-PWash-Steam-9kg-Sammenlign-Priser",
+                                          "https://www.pricerunner.dk/pl/14-3326525298/Vaskemaskiner/Siemens-iQ700-WN54C2A0DN-Hvid-Sammenlign-Priser",
+                                          "https://www.pricerunner.dk/pl/14-3400480185/Vaskemaskiner/Miele-W2-WQ-1000-WPS-Nova-Edition-Vaskemaskine-Sammenlign-Priser",
+                                          "https://www.pricerunner.dk/pl/14-4730741/Vaskemaskiner/Miele-WWV980-WPS-Passion-Sammenlign-Priser",
+                                          "https://www.pricerunner.dk/pl/14-3335853961/Vaskemaskiner/AEG-5000-Series-LS511P94P-Hvid-Sammenlign-Priser",
+                                          "https://www.pricerunner.dk/pl/14-3329545742/Vaskemaskiner/Bosch-Serie-6-WGG244ZISN-Hvid-Sammenlign-Priser"
+                                      ],
+                     "product_names":  [
+                                           "Miele Vaskemaskine WSA123 WCS 8kg Active",
+                                           "Miele Vaskemaskine WWD380WCS NDS LW PWash Steam 9kg",
+                                           "Siemens iQ700 WN54C2A0DN Hvid",
+                                           "Miele W2 WQ 1000 WPS Nova Edition",
+                                           "Miele WWV980 WPS Passion",
+                                           "AEG 5000 Series LS511P94P Hvid",
+                                           "Bosch Serie 6 WGG244ZISN Hvid"
+                                       ],
+                     "reasoning":  "Hero: 198 candidates in \u0027vaskemaskiner\u0027, 0 existing articles. Top: Miele Vaskemaskine WSA123 WCS 8kg Active, Miele Vaskemaskine WWD380WCS NDS LW PWash Steam 9kg, Siemens iQ700 WN54C2A0DN Hvid..."
+                 },
+                 {
+                     "priority":  13,
+                     "article_type":  "hero",
+                     "category":  "toerretumblere",
+                     "category_display":  "Tørretumblere",
+                     "product_urls":  [
+                                          "https://www.pricerunner.dk/pl/17-3203188887/Toerretumblere/AEG-TR822F85M-Hvid-Sammenlign-Priser",
+                                          "https://www.pricerunner.dk/pl/17-3384845039/Toerretumblere/Siemens-IQ300-Kondenstorktumlare-WT43HV0EDN-Vit-Sammenlign-Priser",
+                                          "https://www.pricerunner.dk/pl/17-3399734389/Toerretumblere/Bosch-Serie-6-WQG2420ISN-Toerretumbler-Hvid-Sammenlign-Priser",
+                                          "https://www.pricerunner.dk/pl/17-3208446178/Toerretumblere/LG-Rh80v9av7n-Kondenstoerretumbler-Hvid-Sammenlign-Priser",
+                                          "https://www.pricerunner.dk/pl/17-3204529238/Toerretumblere/AEG-Tr934a95g-Kondenstoerretumbler-Hvid-Sammenlign-Priser",
+                                          "https://www.pricerunner.dk/pl/17-3209140260/Toerretumblere/AEG-8000-AbsoluteCare-TR844P85P-Hvid-Sammenlign-Priser",
+                                          "https://www.pricerunner.dk/pl/17-3379148461/Toerretumblere/AEG-TS511P84P-Hvid-Sammenlign-Priser"
+                                      ],
+                     "product_names":  [
+                                           "AEG 8000 AbsoluteCare-TR822F85M Hvid",
+                                           "Siemens IQ300 Kondenstørretumbler T43HV0EDN Hvid",
+                                           "Bosch Serie 6 WQG2420ISN Tørretumbler Hvid",
+                                           "LG RH80V9AV7N Hvid",
+                                           "AEG 9000 AbsoluteCare TR934A95G Hvid",
+                                           "AEG 8000 AbsoluteCare TR844P85P Hvid",
+                                           "AEG TS511P84P Hvid"
+                                       ],
+                     "reasoning":  "Hero: 199 candidates in \u0027toerretumblere\u0027, 0 existing articles. Top: AEG 8000 AbsoluteCare-TR822F85M Hvid, Siemens IQ300 Kondenstørretumbler T43HV0EDN Hvid, Bosch Serie 6 WQG2420ISN Tørretumbler Hvid..."
+                 },
+                 {
+                     "priority":  14,
+                     "article_type":  "hero",
+                     "category":  "komfurer",
+                     "category_display":  "Komfurer",
+                     "product_urls":  [
+                                          "https://www.pricerunner.dk/pl/101-3287281103/Komfurer/Voss-VKI60350HV-Induktionskomfur-Hvid-Sammenlign-Priser",
+                                          "https://www.pricerunner.dk/pl/101-3204891630/Komfurer/Gorenje-gaskomfur-el-ovn-GK6A60WH-Hvid-Sammenlign-Priser",
+                                          "https://www.pricerunner.dk/pl/101-3203756211/Komfurer/Gorenje-GEC6D60WPB-Hvid-Sammenlign-Priser",
+                                          "https://www.pricerunner.dk/pl/101-3202203949/Komfurer/Bosch-HLS79W351U-Rustfrit-staal-Sammenlign-Priser",
+                                          "https://www.pricerunner.dk/pl/101-3200104864/Komfurer/Gram-GK2064290X-Rustfrit-staal-Sort-Sammenlign-Priser",
+                                          "https://www.pricerunner.dk/pl/101-4569338/Komfurer/Bosch-HLN39A060U-Sort-Sammenlign-Priser",
+                                          "https://www.pricerunner.dk/pl/101-4574190/Komfurer/Siemens-HL9S5E040U-Rustfrit-staal-Sammenlign-Priser"
+                                      ],
+                     "product_names":  [
+                                           "Voss VKI60350HV",
+                                           "Gorenje G400 GK6A60WH",
+                                           "Gorenje GEC6D60WPB",
+                                           "Bosch HLS79W351U",
+                                           "Gram GK2064290X",
+                                           "Bosch HLN39A060U",
+                                           "Siemens HL9S5E040U"
+                                       ],
+                     "reasoning":  "Hero: 200 candidates in \u0027komfurer\u0027, 0 existing articles. Top: Voss VKI60350HV, Gorenje G400 GK6A60WH, Gorenje GEC6D60WPB..."
+                 },
+                 {
+                     "priority":  15,
+                     "article_type":  "hero",
+                     "category":  "kogeplader",
+                     "category_display":  "Kogeplader",
+                     "product_urls":  [
+                                          "https://www.pricerunner.dk/pl/106-3201575831/Kogeplader/Bosch-PUE611BB6E-Sammenlign-Priser",
+                                          "https://www.pricerunner.dk/pl/106-3136981/Kogeplader/Siemens-EH975LVC1E-Sammenlign-Priser",
+                                          "https://www.pricerunner.dk/pl/106-3200006555/Kogeplader/Siemens-ED851FQ15E-Sammenlign-Priser",
+                                          "https://www.pricerunner.dk/pl/106-3208644797/Kogeplader/Siemens-ED751HSC1E-Platetopp-Sammenlign-Priser",
+                                          "https://www.pricerunner.dk/pl/106-5239007/Kogeplader/Smeg-SI364FXM-Sammenlign-Priser",
+                                          "https://www.pricerunner.dk/pl/106-4552506/Kogeplader/Electrolux-HOI630MF-Sammenlign-Priser",
+                                          "https://www.pricerunner.dk/pl/106-3136974/Kogeplader/Siemens-EX975LXC1E-Sammenlign-Priser"
+                                      ],
+                     "product_names":  [
+                                           "Bosch PUE611BB6E",
+                                           "Siemens EH975LVC1E - Sort",
+                                           "Siemens ED851FQ15E Sort",
+                                           "Siemens Induktionskogeplade ED751HSC1E",
+                                           "Smeg SI364FXM",
+                                           "Electrolux HOI630MF",
+                                           "Siemens iQ700 EX975LXC1E Sort"
+                                       ],
+                     "reasoning":  "Hero: 200 candidates in \u0027kogeplader\u0027, 0 existing articles. Top: Bosch PUE611BB6E, Siemens EH975LVC1E - Sort, Siemens ED851FQ15E Sort..."
+                 }
+             ]
 }

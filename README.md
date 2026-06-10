@@ -113,6 +113,38 @@ WordPress                  — published or scheduled post
 | `scripts/run_pipeline.py` | Worker loop — pulls steps, calls LLM, submits output |
 | `scripts/preview_server.py` | Preview UI at localhost:8080 |
 | `scripts/load_prompts.py` | Load/reload prompt files from `prompts/` into DB |
+| `scripts/consume_queue.py` | Seed a remote instance from `queue-remote.json` |
+| `scripts/_gen_remote_queue.py` | Regenerate `queue-remote.json` from current product pool |
+
+---
+
+## Running a second instance
+
+A second Trendly instance (e.g. a remote worker) can be seeded with a curated job list so it covers different categories than the primary instance.
+
+**On the primary machine** — regenerate `queue-remote.json` from the current product pool:
+```powershell
+.venv\Scripts\python.exe scripts\_gen_remote_queue.py
+git add queue-remote.json && git commit -m "chore: refresh remote queue" && git push
+```
+
+**On the remote machine** — pull and seed:
+```powershell
+git pull
+
+# Dry-run — see what would be queued
+.venv\Scripts\python.exe scripts\consume_queue.py
+
+# Queue all jobs (or --limit N for a subset)
+.venv\Scripts\python.exe scripts\consume_queue.py --execute --api-url http://localhost:8000 --api-key changeme
+```
+
+**Run the worker (Claude-only remote):**
+```powershell
+.venv\Scripts\python.exe scripts\run_pipeline.py --adapter claude --adapter-model claude-opus-4-7 --api-url http://localhost:8000 --api-key changeme
+```
+
+`queue-remote.json` is generated with the primary instance's already-published categories excluded from hero slots, so the two instances naturally cover different ground.
 
 ---
 

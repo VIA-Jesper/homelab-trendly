@@ -11,10 +11,11 @@ Longer is fine if every section earns its space — no padding, no restating.
 ### Required structure
 
 0. H1 (MANDATORY — first line of article)
-   Format: # Bedste [category] [year] — [one-line angle]
-   The year is brief.article_hook's year. Category name comes from brief.category.
-   Example: # Bedste robotplæneklipper 2026 — sådan vælger du den rette til din have
-   Must contain "bedste" and the category name.
+   Format: # [Category singular] guide [year]: [one-line angle]
+   The year is brief.article_hook's year. Category name comes from brief.category (use the singular Danish display form).
+   Example: # Røremaskine guide 2026: find den rette model til dit køkken
+   Example: # Robotplæneklipper guide 2026: sådan vælger du den rette til din have
+   Must contain the category name. Do NOT use "bedste" in the H1.
 
 1. Introduction (100-150 words)
    - Frame the problem: what makes this category hard to choose in, why this guide exists.
@@ -92,9 +93,9 @@ Longer is fine if every section earns its space — no padding, no restating.
 - Every pricerunner.dk URL must contain ?refsite=adrunner_dk_husforbegyndere.
 
 ### SEO
-- Focus keyword: "bedste [category]" (e.g. "bedste robotplæneklipper") — drop the year for the focus_keyword field.
-- SEO title: 50-60 chars, contains "bedste" + category name. Include the year if it fits.
-- SEO slug: "bedste-[category]" or "bedste-[category]-[year]" (lowercase, hyphenated).
+- Focus keyword: "[category] guide" (e.g. "røremaskine guide") — drop the year for the focus_keyword field.
+- SEO title: 50-60 chars, contains category name + "guide". Include the year if it fits. Example: "Røremaskine guide 2026: find den rette model".
+- SEO slug: "[category]-guide" or "[category]-guide-[year]" (lowercase, hyphenated).
 - featured_image_product_id: id of the "Bedst overall" pick (your top product, usually brief.products[0]).
 
 ### Tone

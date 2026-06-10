@@ -170,6 +170,13 @@ _CATEGORY_SLUG: dict[str, str] = {
     "541":  "pools",
     "1388": "spabade-vildmarksbade",
     "1611": "havetraktorer",
+    "84":   "blendere",
+    "1244": "roeremaskiner-foodprocessorer",
+    "17":   "toerretumblere",
+    "101":  "komfurer",
+    "105":  "ovne",
+    "106":  "kogeplader",
+    "348":  "haveredskaber",
 }
 
 
@@ -197,6 +204,13 @@ _CATEGORY_DISPLAY: dict[str, str] = {
     "pools":                  "pool",
     "spabade-vildmarksbade":  "spabad",
     "havetraktorer":          "havetraktor",
+    "blendere":               "blender",
+    "roeremaskiner-foodprocessorer": "røremaskine",
+    "toerretumblere":         "tørretumbler",
+    "komfurer":               "komfur",
+    "ovne":                   "ovn",
+    "kogeplader":             "kogeplade",
+    "haveredskaber":          "haveredskab",
 }
 
 

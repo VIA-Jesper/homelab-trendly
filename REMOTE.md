@@ -112,9 +112,40 @@ After the initial seed is exhausted, use the normal daily workflow:
 
 ---
 
-## Refresh queue-remote.json
+## Syncing back to the primary
 
-When the primary instance publishes more articles, regenerate and push:
+When the remote has queued/published articles, export them so the primary can avoid duplicating that work:
+
+```powershell
+# On this (remote) machine:
+.venv\Scripts\python.exe scripts\export_jobs.py
+# → writes remote-jobs.json
+
+git add remote-jobs.json
+git commit -m "chore: sync remote job list back to primary"
+git push
+```
+
+```powershell
+# On the primary machine:
+git pull
+
+# Regenerate queue-remote.json — remote-jobs.json is read automatically
+# to exclude already-covered products
+.venv\Scripts\python.exe scripts\_gen_remote_queue.py
+
+git add queue-remote.json
+git commit -m "chore: refresh remote queue"
+git push
+```
+
+Then pull on remote again and run `consume_queue.py` for the next batch.
+
+---
+
+## Refresh queue-remote.json (no sync needed)
+
+When the primary instance publishes more articles but doesn't need remote feedback yet:
 
 ```powershell
 # On primary machine:

@@ -1,20 +1,23 @@
 """
-_gen_remote_queue.py — Generate data/queue-remote.json for a remote Trendly instance.
+_gen_remote_queue.py — Generate queue-remote.json for a remote Trendly instance.
 
-This script knows which categories the LOCAL system has already covered, and generates
-a prioritized job list for a remote instance that has a clean/empty DB.
+Reads LOCAL_PUBLISHED (hardcoded, updated manually) and remote-jobs.json (if present,
+exported from the remote via export_jobs.py) to avoid suggesting products already covered
+by either instance.
 
 Run from the repo root:
   python scripts/_gen_remote_queue.py
 """
 
 import json
+import re
 from collections import defaultdict
 from datetime import datetime, timezone
 from pathlib import Path
 
-JSONL = Path("data/hot-products.jsonl")
-OUT   = Path("data/queue-remote.json")
+JSONL        = Path("data/hot-products.jsonl")
+OUT          = Path("queue-remote.json")
+REMOTE_JOBS  = Path("remote-jobs.json")
 
 CATEGORY_SLUG = {
     "19": "stovsugere", "81": "frituregryder-airfryere", "82": "kaffemaskiner",
@@ -45,6 +48,30 @@ HERO_MIN = 5
 HERO_MAX = 7
 
 
+def load_remote_known() -> tuple[set[str], set[str]]:
+    """
+    Load product IDs and names already queued on the remote instance.
+    Returns (known_ids, known_names). Empty sets if remote-jobs.json doesn't exist.
+    """
+    known_ids:   set[str] = set()
+    known_names: set[str] = set()
+    if not REMOTE_JOBS.exists():
+        return known_ids, known_names
+
+    data = json.loads(REMOTE_JOBS.read_text(encoding="utf-8"))
+    for j in data.get("jobs", []):
+        for uid in j.get("product_ids", []):
+            known_ids.add(uid)
+        for name in j.get("product_names", []):
+            known_names.add(name.strip().lower())
+        for url in j.get("product_urls", []):
+            m = re.search(r'/pl/\d+-(\d+)', url)
+            if m:
+                known_ids.add(m.group(1))
+    print(f"Remote known: {len(known_ids)} product IDs, {len(known_names)} names (from {REMOTE_JOBS.name})")
+    return known_ids, known_names
+
+
 def watcher_score(w) -> int:
     if not w:
         return 0
@@ -71,6 +98,8 @@ def score_product(p: dict) -> float:
 
 
 def main():
+    remote_ids, remote_names = load_remote_known()
+
     # Read JSONL, dedupe by product_url keeping highest-scored entry
     best: dict[str, tuple[float, dict]] = {}
     for line in JSONL.read_text(encoding="utf-8").splitlines():
@@ -82,7 +111,16 @@ def main():
             continue
         if p.get("out_of_stock"):
             continue
+        # Skip products the remote has already queued
+        pid = str(p.get("id") or "")
+        if pid in remote_ids:
+            continue
+        if (p.get("name") or "").strip().lower() in remote_names:
+            continue
         url = p["product_url"]
+        m = re.search(r'/pl/\d+-(\d+)', url)
+        if m and m.group(1) in remote_ids:
+            continue
         s = score_product(p)
         if url not in best or s > best[url][0]:
             best[url] = (s, p)

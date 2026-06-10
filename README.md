@@ -114,6 +114,8 @@ WordPress                  — published or scheduled post
 | `scripts/preview_server.py` | Preview UI at localhost:8080 |
 | `scripts/load_prompts.py` | Load/reload prompt files from `prompts/` into DB |
 | `scripts/consume_queue.py` | Seed a remote instance from `queue-remote.json` |
+| `scripts/export_jobs.py` | Export this instance's job list for import into the authority DB |
+| `scripts/import_jobs.py` | Import an exported job list into the authority DB (dedup tracking) |
 | `scripts/_gen_remote_queue.py` | Regenerate `queue-remote.json` from current product pool |
 
 ---

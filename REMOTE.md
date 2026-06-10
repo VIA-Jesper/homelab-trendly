@@ -112,46 +112,43 @@ After the initial seed is exhausted, use the normal daily workflow:
 
 ---
 
-## Syncing back to the primary
+## Syncing back to the authority
 
-When the remote has queued/published articles, export them so the primary can avoid duplicating that work:
+The deployed (authority) database is the source of truth. When this worker has finished a batch, export and import so the authority knows what's been covered.
 
+**On this (worker) machine:**
 ```powershell
-# On this (remote) machine:
 .venv\Scripts\python.exe scripts\export_jobs.py
 # → writes remote-jobs.json
-
-git add remote-jobs.json
-git commit -m "chore: sync remote job list back to primary"
-git push
 ```
 
+Copy `remote-jobs.json` to the authority machine (SCP, git push/pull, or any file transfer).
+
+**On the authority machine:**
 ```powershell
-# On the primary machine:
-git pull
+# Dry-run first — see what would be imported
+.venv\Scripts\python.exe scripts\import_jobs.py --dry-run
 
-# Regenerate queue-remote.json — remote-jobs.json is read automatically
-# to exclude already-covered products
-.venv\Scripts\python.exe scripts\_gen_remote_queue.py
-
-git add queue-remote.json
-git commit -m "chore: refresh remote queue"
-git push
+# Import for real
+.venv\Scripts\python.exe scripts\import_jobs.py
 ```
 
-Then pull on remote again and run `consume_queue.py` for the next batch.
+Jobs are inserted as `status=complete` — no pipeline re-run. The authority's `suggest_articles.py` will now correctly exclude those products from future suggestions.
 
 ---
 
-## Refresh queue-remote.json (no sync needed)
+## Getting a new batch from the authority
 
-When the primary instance publishes more articles but doesn't need remote feedback yet:
+After the authority has imported your previous batch and possibly published its own new articles, regenerate the queue:
 
 ```powershell
-# On primary machine:
+# On the authority machine:
 .venv\Scripts\python.exe scripts\_gen_remote_queue.py
+# → rebuilds queue-remote.json based on the authority DB (knows everything now)
 git add queue-remote.json && git commit -m "chore: refresh remote queue" && git push
+```
 
+```powershell
 # On this machine:
 git pull
 .venv\Scripts\python.exe scripts\consume_queue.py --execute --api-key changeme

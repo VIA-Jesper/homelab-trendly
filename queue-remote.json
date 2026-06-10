@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-06-10T12:36:45Z",
+  "generated_at": "2026-06-10T15:46:05Z",
   "note": "Prioritized job list for a remote Trendly instance with a clean DB. Heroes first (uncovered categories with 5+ candidates), then top singles per category. POST each job to /api/v1/jobs/from-products with site_key='hus'.",
   "local_published_categories": {
     "robotplaeneklippere": 1,
@@ -461,110 +461,6 @@
         "Siemens iQ700 EX975LXC1E Sort"
       ],
       "reasoning": "Hero: 200 candidates in 'kogeplader', 0 existing articles. Top: Bosch PUE611BB6E, Siemens EH975LVC1E - Sort, Siemens ED851FQ15E Sort..."
-    },
-    {
-      "priority": 19,
-      "article_type": "single-product-review",
-      "category": "robotplaeneklippere",
-      "category_display": "Robotplæneklippere",
-      "product_urls": [
-        "https://www.pricerunner.dk/pl/1595-3292855103/Robotplaeneklipper/Segway-Navimow-I105E-Robotplaeneklipper-500-M2-Sammenlign-Priser"
-      ],
-      "product_names": [
-        "Segway Navimow i105E"
-      ],
-      "reasoning": "Score 70 — rank 1, 1000+ watchers, 5,749 kr"
-    },
-    {
-      "priority": 20,
-      "article_type": "single-product-review",
-      "category": "grill",
-      "category_display": "Grill",
-      "product_urls": [
-        "https://www.pricerunner.dk/pl/335-3394013788/Grill/Weber-Q3200N-Sammenlign-Priser"
-      ],
-      "product_names": [
-        "Weber Q 3200N+ Gasgrill med Premium Vogn"
-      ],
-      "reasoning": "Score 70 — rank 1, 200+ watchers, 3,295 kr"
-    },
-    {
-      "priority": 21,
-      "article_type": "single-product-review",
-      "category": "stovsugere",
-      "category_display": "Støvsugere",
-      "product_urls": [
-        "https://www.pricerunner.dk/pl/19-3200298065/Stoevsugere/Dyson-V15-Detect-Absolute-Sammenlign-Priser"
-      ],
-      "product_names": [
-        "Dyson V15 Detect Absolute Grå"
-      ],
-      "reasoning": "Score 70 — rank 1, 1000+ watchers, 4,989 kr"
-    },
-    {
-      "priority": 22,
-      "article_type": "single-product-review",
-      "category": "ismaskiner",
-      "category_display": "Ismaskiner",
-      "product_urls": [
-        "https://www.pricerunner.dk/pl/250-3418480621/Ismaskiner/Ninja-CREAMi-Deluxe-10-in-1-Sammenlign-Priser"
-      ],
-      "product_names": [
-        "Ninja CREAMi Deluxe NC502EU Silver"
-      ],
-      "reasoning": "Score 70 — rank 1, 200+ watchers, 1,799 kr"
-    },
-    {
-      "priority": 23,
-      "article_type": "single-product-review",
-      "category": "robotstoevsugere",
-      "category_display": "Robotstøvsugere",
-      "product_urls": [
-        "https://www.pricerunner.dk/pl/1613-3391726225/Robotstoevsugere/Dreame-X50-Ultra-Complete-Hvid-Sammenlign-Priser"
-      ],
-      "product_names": [
-        "Dreame X50 Ultra Complete Hvid"
-      ],
-      "reasoning": "Score 65 — rank 2, 500+ watchers, 6,290 kr"
-    },
-    {
-      "priority": 24,
-      "article_type": "single-product-review",
-      "category": "hojtryks-hedvandsrensere",
-      "category_display": "Højtryks- & Hedvandsrensere",
-      "product_urls": [
-        "https://www.pricerunner.dk/pl/638-5146856/Hoejtryks-Hedvandsrensere/Nilfisk-Premium-190-12-Sammenlign-Priser"
-      ],
-      "product_names": [
-        "Nilfisk Premium 190-12 EU"
-      ],
-      "reasoning": "Score 50 — rank 1, 50+ watchers, 3,742 kr"
-    },
-    {
-      "priority": 25,
-      "article_type": "single-product-review",
-      "category": "havemoebel",
-      "category_display": "Havemøbler",
-      "product_urls": [
-        "https://www.pricerunner.dk/pl/499-3676943/Havemoebel/Fatboy-Headdemock-Sammenlign-Priser"
-      ],
-      "product_names": [
-        "Fatboy Headdemock - Black"
-      ],
-      "reasoning": "Score 50 — rank 1, 50+ watchers, 2,400 kr"
-    },
-    {
-      "priority": 26,
-      "article_type": "single-product-review",
-      "category": "havetraktorer",
-      "category_display": "Havetraktorer",
-      "product_urls": [
-        "https://www.pricerunner.dk/pl/1611-3205080377/Havetraktorer/Husqvarna-TS-112-Havetraktor-Sammenlign-Priser"
-      ],
-      "product_names": [
-        "Husqvarna TS 112"
-      ],
-      "reasoning": "Score 40 — rank 1, 1 watchers, 15,000 kr"
     }
   ]
 }

@@ -166,9 +166,11 @@ def main():
         })
         used_slugs.add(slug)
 
-    # Pass 2: top single per category — including locally-covered ones (remote starts fresh)
+    # Pass 2: top single per uncovered category (skip anything local has already published)
     for slug, bucket in sorted(by_slug.items(), key=lambda kv: kv[1][0][0], reverse=True):
         if slug in used_slugs:
+            continue
+        if LOCAL_PUBLISHED.get(slug, 0) > 0:
             continue
         s, p = bucket[0]
         cat_display = p.get("category_name") or slug

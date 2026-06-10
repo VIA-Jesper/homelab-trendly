@@ -1,208 +1,231 @@
-# Affiliate Pipeline
+# Trendly — Affiliate Article Pipeline
 
-Agentic system for generating Danish affiliate articles at scale.
-One API, stateless agents, unlimited sites.
-
----
-
-## The approach
-
-The core idea came from thinking about reliability. The problem with having an AI agent
-orchestrate its own pipeline (read a runbook, retry on failure, write logs) is that you are
-trusting probabilistic reasoning to do structural work. It works, until it doesn't.
-
-The solution is a clear separation:
-
-- **The system (Docker API) handles all structure** - step sequencing, retry counts, state,
-  logging. This is deterministic code. It never fails silently.
-- **Agents handle all content** - writing, optimising, reviewing. This is where reasoning
-  actually matters and where an LLM earns its place.
-
-Agents are fully stateless and replaceable. The system does not care whether you use Claude,
-Augment, or anything else that can make an HTTP call.
+Agentic pipeline for generating Danish affiliate articles at scale.
+Fetches live product data from PriceRunner, generates articles via LLM, reviews them, and publishes to WordPress on a 24-hour schedule.
 
 ---
 
-## How it runs
-
-### Orchestrator (runs once or twice a day via cron)
-
-A lightweight Python script (not an agent) checks whether there is queued work. If there is,
-it starts a worker agent. If the queue is empty, it exits. The script is the only persistent
-process outside Docker. It requires no AI - it just checks a return value and spawns a process.
-
-In the future the orchestrator could be replaced by an agent that queries site data, reasons
-about what to write next (based on coverage gaps, seasonality, keyword opportunities), and
-creates jobs via `POST /api/v1/jobs`. That agent makes the strategic decision. The system
-executes it reliably.
-
-### Worker (runs until queue is empty)
+## How it works
 
 ```
-python scripts/run_pipeline.py --adapter claude --api-url https://your-domain --api-key secret
+PriceRunner catalog
+      ↓
+fetch_hot_products.py      — build/refresh the product pool (JSONL)
+      ↓
+queue_daily.py             — pick 1-2 products/day, recommend article type, create jobs
+      ↓
+API (FastAPI + SQLite)     — job queue, step sequencing, state, retry logic
+      ↓
+Worker (run_pipeline.py)   — pulls steps, calls LLM adapter, submits output
+      ↓
+Preview server             — review article, push as Draft or Schedule (24h)
+      ↓
+WordPress                  — published or scheduled post
 ```
 
-The worker loops:
-1. `GET /api/v1/work` - receives one task (prompt + content) or `{ "status": "empty" }`
-2. Passes the task to the agent adapter (Claude CLI, Augment, etc.)
-3. `POST /api/v1/work/{task_id}` - submits the agent output
-4. Repeats until empty, then exits
+**Separation of concerns:**
+- The API handles all structure — step sequencing, retries, state, QA gating. Deterministic code.
+- LLM agents handle all content — writing, SEO optimisation, QA review. Replaceable adapters.
 
-Each task is a clean agent invocation with a fresh context. No context window accumulation
-across tasks. If a task fails, the system re-queues it. If the worker crashes mid-run, the
-next cron trigger picks up where it left off - state lives in Postgres, not in the agent.
+---
 
-### Pipeline steps (per article)
+## Daily workflow
+
+**1. Refresh product pool (run weekly or when pool feels thin)**
+```powershell
+# ~50 trending products per category (fast, daily signal)
+.venv\Scripts\python.exe scripts\fetch_hot_products.py --site-only
+
+# 200 all-time popular per category — 5000+ products, run weekly
+.venv\Scripts\python.exe scripts\fetch_hot_products.py --popular
+```
+
+**2. See what's available**
+```powershell
+.venv\Scripts\python.exe scripts\suggest_articles.py --recommend-type --limit 20
+```
+
+**3. Plan and queue jobs**
+```powershell
+# Dry-run first — see the plan
+.venv\Scripts\python.exe scripts\queue_daily.py --count 2
+
+# Execute when happy
+.venv\Scripts\python.exe scripts\queue_daily.py --count 2 --execute
+```
+
+**4. Run the worker**
+```powershell
+# Gemini (fast, cheap) for everything
+.venv\Scripts\python.exe scripts\run_pipeline.py --adapter gemini --adapter-model gemini-2.5-flash --api-url http://localhost:8000 --api-key changeme
+
+# Opus for write_draft, Gemini for the rest
+.venv\Scripts\python.exe scripts\run_pipeline.py --adapter gemini --adapter-model gemini-2.5-flash --step-adapter write_draft=claude:claude-opus-4-7 --api-url http://localhost:8000 --api-key changeme
+```
+
+**5. Review in preview server**
+```powershell
+.venv\Scripts\start-preview.ps1
+# → http://localhost:8080
+```
+
+**6. Publish**
+- **Push as Draft** — saves to WP draft for manual review
+- **Schedule (24h)** — sets WP status `future`, auto-publishes 24h from now (requires QA pass)
+
+---
+
+## Article types
+
+| Type | Products | When used |
+|------|----------|-----------|
+| `single-product-review` | 1 | Default — one product, full review |
+| `hero` | 5–7 | Category roundup — 0 existing articles in category + 5+ candidates |
+| `comparison` | 2–4 | Head-to-head between similar products (manual) |
+
+`queue_daily.py` auto-selects type: **hero** for uncovered categories with enough candidates, **single-product-review** otherwise. Max one job per category per run.
+
+---
+
+## Pipeline steps (per article)
 
 | Step | What happens |
-|---|---|
-| `write_draft` | Agent writes the full Danish article from brief + prompt |
-| `optimize_seo` | Agent optimises keyword density, meta description, CTA placement |
-| `qa_review` | Agent validates against QA checklist, returns PASS or FAIL + edits_needed |
-| _(retry)_ | On FAIL: system re-queues write_draft with edits_needed injected, up to 3 attempts |
-| _(publish)_ | Not yet implemented - see Roadmap |
-
-Steps are defined in `api/config.py`. Add, remove, or reorder steps without touching routes
-or services.
+|------|-------------|
+| `write_draft` | LLM writes full Danish article from brief + prompt |
+| `optimize_seo` | LLM optimises keyword density, title, meta description, CTAs |
+| `qa_review` | LLM validates against QA checklist → PASS or FAIL + edits_needed |
+| _(retry up to 3×)_ | On FAIL: re-queues write_draft with edits_needed injected |
+| `score_article` | Scores SEO / CRO / readability (0–100) |
+| _(publish)_ | Manual: preview server → Schedule (24h) or Draft |
 
 ---
 
-## Directory structure
+## Scripts reference
+
+| Script | Description |
+|--------|-------------|
+| `scripts/fetch_hot_products.py --site-only` | Trending products per category → JSONL |
+| `scripts/fetch_hot_products.py --popular` | All-time popular (200/category, paginates v4 API) → JSONL |
+| `scripts/suggest_articles.py` | Ranked candidate list, deduped against DB |
+| `scripts/suggest_articles.py --recommend-type` | Adds hero/single recommendation per candidate |
+| `scripts/queue_daily.py --count N` | Dry-run plan: hero bundles first, then top singles |
+| `scripts/queue_daily.py --count N --execute` | Create jobs via API |
+| `scripts/run_pipeline.py` | Worker loop — pulls steps, calls LLM, submits output |
+| `scripts/preview_server.py` | Preview UI at localhost:8080 |
+| `scripts/load_prompts.py` | Load/reload prompt files from `prompts/` into DB |
+
+---
+
+## LLM adapters
+
+```powershell
+# Gemini
+--adapter gemini --adapter-model gemini-2.5-flash
+
+# Claude (API)
+--adapter claude --adapter-model claude-sonnet-4-6
+
+# Per-step routing (different model per step)
+--adapter gemini --adapter-model gemini-2.5-flash --step-adapter write_draft=claude:claude-opus-4-7
+```
+
+---
+
+## API reference
+
+All routes require `X-API-Key` header.
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/health` | Liveness check |
+| POST | `/api/v1/jobs/from-products` | Create job from PriceRunner URL(s) |
+| GET | `/api/v1/jobs` | List jobs |
+| GET | `/api/v1/jobs/{id}` | Job detail + step history |
+| POST | `/api/v1/jobs/{id}/reset` | Reset job (optionally from a specific step) |
+| POST | `/api/v1/jobs/{id}/publish?status=draft\|future\|publish` | Push to WordPress |
+| GET | `/api/v1/work` | Worker: get next pending step |
+| POST | `/api/v1/work/{id}` | Worker: submit step output |
+
+**Create job example:**
+```json
+POST /api/v1/jobs/from-products
+{
+  "site_key": "hus",
+  "article_type": "single-product-review",
+  "product_urls": ["https://www.pricerunner.dk/pl/19-3206825946/..."],
+  "editorial_note": "Lead with energy efficiency — big deal for Danish buyers right now.",
+  "reasoning": "Rank 1 støvsugere, 200+ watchers, no existing article"
+}
+```
+
+**Partial reset (rerun from a specific step):**
+```json
+POST /api/v1/jobs/{id}/reset
+{ "from_step": "optimize_seo" }   // reruns from SEO onward, keeps write_draft
+{ "from_step": "score_article" }  // just rescores
+{}                                 // full reset
+```
+
+---
+
+## Stack
 
 ```
-docker-compose.yml          api + postgres + caddy proxy
-Caddyfile                   reverse proxy config
-migrations/
-  001_initial.sql           postgres schema
-
+docker-compose.yml     API + SQLite volume + Caddy proxy
 api/
-  main.py                   fastapi app, api key auth
-  config.py                 pipeline step definitions (config-driven)
-  database.py               async sqlalchemy
-  models/                   site, job, step, prompt (jsonb context fields)
-  interfaces/               extension points (see Extensibility below)
+  main.py              FastAPI app, API key auth
+  models/              Job, Step, Site, Prompt (SQLite via SQLAlchemy)
   services/
-    pipeline.py             step sequencing, retry logic, state transitions
-    qa.py                   qa checks registry
+    pipeline.py        Step sequencing, retry logic, state transitions
+    brief_builder.py   Builds ContentBrief from PriceRunner product data
+    pricerunner_client.py  PriceRunner public API client (rate-limited, cached)
+    wp_publisher.py    WordPress REST API publisher
+    widget_inserter.py Injects PriceRunner affiliate widgets into article HTML
+    qa.py              Python QA checks (word count, em dash, etc.)
   routes/
-    work.py                 GET /work, POST /work/{id}
-    jobs.py                 POST /jobs, GET /jobs/{id}
-    sites.py                POST /sites, GET /sites/{id}/seed
-
+    jobs.py            Job creation + reset
+    work.py            Worker endpoints
+    publish.py         WP publish / schedule
+prompts/
+  generate_v1.txt      Article generation (single-product-review)
+  types/hero.txt       Hero/roundup generation prompt
+  optimize_v1.txt      SEO optimisation
+  qa_v1.txt            QA review checklist
 scripts/
-  run_pipeline.py           worker loop
-  adapters/
-    base.py                 adapter interface
-    claude.py               claude cli adapter
-    augment.py              augment adapter
-
-prompts/                    danish prompt files - load into db on first run
-  generate_v1.txt           article generation
-  optimize_v1.txt           seo optimisation
-  qa_v1.txt                 quality review
+  fetch_hot_products.py
+  suggest_articles.py
+  queue_daily.py
+  run_pipeline.py
+  preview_server.py
+  load_prompts.py
+  adapters/            claude, gemini, mistral, routing
 ```
 
 ---
 
-## API surface
+## Site config
 
-All routes require `X-API-Key` header. `/health` is public.
+Sites are configured in `api/services/brief_builder.py` under `SITE_CONFIGS`.
 
-| Method | Endpoint | Who uses it | What it does |
-|---|---|---|---|
-| GET | `/health` | anyone | liveness check |
-| POST | `/api/v1/sites` | human setup | register a new site with seed config |
-| GET | `/api/v1/sites/{id}/seed` | orchestrator | read site niche, goals, cadence |
-| GET | `/api/v1/sites` | orchestrator | list active sites |
-| POST | `/api/v1/jobs` | orchestrator | create article job, system queues all steps |
-| GET | `/api/v1/jobs/{id}` | human debug | inspect job state and step history |
-| GET | `/api/v1/work` | worker script | get next task or `{"status":"empty"}` |
-| POST | `/api/v1/work/{id}` | worker script | submit agent output, system advances pipeline |
-
----
-
-## Extensibility
-
-The system is designed so that adding new capabilities does not require touching core logic.
-Four interfaces define the extension points:
-
-| Interface | File | Add this to... |
-|---|---|---|
-| `IDataProvider` | `api/interfaces/data_provider.py` | Plug in product catalogs, keyword APIs, trend data |
-| `IQACheck` | `api/interfaces/qa_check.py` | Add new content quality checks |
-| `IStepHandler` | `api/interfaces/step_handler.py` | Hook into step completion events |
-| `IPublisher` | `api/interfaces/publisher.py` | Publish to WordPress, CMS, filesystem |
-
-The `job.context` and `step.input` fields are JSONB - add product IDs, SEO data, external
-links, widget config, or anything else without schema migrations.
-
----
-
-## Getting started
-
-**1. Configure environment**
-
-Copy and edit the env file:
+```python
+"hus": SiteConfig(
+    domain="husforbegyndere.dk",
+    wp_url="https://husforbegyndere.dk",
+    pricerunner_country="DK",
+    pricerunner_partner_id="adrunner_dk_husforbegyndere",
+    min_words=700,
+    ...
+)
 ```
-DATABASE_URL=postgresql+asyncpg://pipeline:pipeline_secret@db:5432/affiliate_pipeline
-API_KEY=your-secret-key
+
+---
+
+## Environment variables
+
+```
+API_KEY=changeme
+DATABASE_URL=sqlite+aiosqlite:///./trendly_local.db
 LOG_LEVEL=INFO
+GEMINI_API_KEY=...
+ANTHROPIC_API_KEY=...
 ```
-
-**2. Start the stack**
-```
-docker compose up -d
-```
-
-**3. Load prompts into the database**
-
-The prompt files in `prompts/` are the source of truth. On first run, update the placeholder
-rows inserted by the migration with the actual content from those files.
-
-**4. Create a site**
-```
-POST /api/v1/sites
-{
-  "name": "Bedste Hoeretelefoner",
-  "domain": "bedste-hoeretelefoner.dk",
-  "seed": {
-    "niche": "consumer electronics - audio",
-    "target_audience": "Danish consumers researching headphone purchases",
-    "language": "da",
-    "content_goals": ["SEO traffic", "affiliate conversions"],
-    "publishing_cadence": "3 articles per week"
-  }
-}
-```
-
-**5. Create a job**
-```
-POST /api/v1/jobs
-{
-  "site_id": "<site-uuid>",
-  "context": {
-    "article_type": "review",
-    "target_keyword": "sony wh-1000xm6 test",
-    "affiliate_ids": ["WC-SONY-1000XM6"],
-    "min_words": 1000
-  },
-  "reasoning": "New model released, low keyword competition, gap in site coverage"
-}
-```
-
-**6. Run the worker**
-```
-python scripts/run_pipeline.py --adapter claude --api-url http://localhost --api-key your-secret-key
-```
-
----
-
-## Roadmap
-
-- [ ] Publisher implementation (WordPress REST API)
-- [ ] Prompt loader script (sync `prompts/*.txt` into DB on startup)
-- [ ] Orchestrator agent (reasons about what to write next based on site data)
-- [ ] Product catalog endpoints (`/products`, `/keywords/gaps`)
-- [ ] Prompt versioning UI (update prompts without touching DB directly)
-- [ ] Multi-site cron setup documentation
-- [ ] OpenClaw adapter

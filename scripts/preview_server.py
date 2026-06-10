@@ -438,6 +438,8 @@ a{color:#2a6496}
   border-radius:10px;font-size:11px;font-weight:700}
 .wp-draft{background:#e67e22;color:#fff;display:inline-block;padding:2px 9px;
   border-radius:10px;font-size:11px;font-weight:700}
+.wp-future{background:#1a6496;color:#fff;display:inline-block;padding:2px 9px;
+  border-radius:10px;font-size:11px;font-weight:700}
 .btn-preview{background:#2a6496;color:#fff;padding:4px 12px;border-radius:3px;
   text-decoration:none;font-size:12px;font-weight:600;white-space:nowrap}
 .btn-preview:hover{background:#1c4966}
@@ -792,6 +794,8 @@ async def list_jobs() -> HTMLResponse:
         wp_status = j.context.get("wp_status", "")
         if wp_post_url and wp_status == "publish":
             wp_cell = f'<a href="{_html.escape(wp_post_url)}" target="_blank"><span class="wp-published">Published</span></a>'
+        elif wp_post_url and wp_status == "future":
+            wp_cell = f'<a href="{_html.escape(wp_post_url)}" target="_blank"><span class="wp-future">Scheduled</span></a>'
         elif wp_post_url and wp_status == "draft":
             wp_cell = f'<a href="{_html.escape(wp_post_url)}" target="_blank"><span class="wp-draft">Draft</span></a>'
         else:
@@ -1153,11 +1157,12 @@ async def preview(job_id: str) -> HTMLResponse:
     wp_status = job.context.get("wp_status", "")
 
     if wp_post_url:
-        _wp_indicator = (
-            f'<span class="pv-badge" style="background:#27ae60">Published</span>'
-            if wp_status == "publish"
-            else f'<span class="pv-badge" style="background:#e67e22">Draft in WP</span>'
-        )
+        if wp_status == "publish":
+            _wp_indicator = f'<span class="pv-badge" style="background:#27ae60">Published</span>'
+        elif wp_status == "future":
+            _wp_indicator = f'<span class="pv-badge" style="background:#1a6496">Scheduled (24h)</span>'
+        else:
+            _wp_indicator = f'<span class="pv-badge" style="background:#e67e22">Draft in WP</span>'
         _wp_link = f'<a href="{_html.escape(wp_post_url)}" target="_blank" style="color:#8fb3cc;font-size:12px">View in WP →</a>'
     else:
         _wp_indicator = ""
@@ -1166,9 +1171,9 @@ async def preview(job_id: str) -> HTMLResponse:
     _btn_style = "cursor:pointer;border:none;border-radius:3px;padding:4px 12px;font-size:12px;font-weight:600;white-space:nowrap;"
     _draft_btn = f'<button style="{_btn_style}background:#546e7a;color:#fff" onclick="publishJob(\'{job_id}\',\'draft\')">Push as Draft</button>'
     _publish_btn = (
-        f'<button style="{_btn_style}background:#27ae60;color:#fff" onclick="publishJob(\'{job_id}\',\'publish\')">Publish Live</button>'
+        f'<button style="{_btn_style}background:#27ae60;color:#fff" onclick="publishJob(\'{job_id}\',\'future\')">Schedule (24h)</button>'
         if qa_passed else
-        f'<button style="{_btn_style}background:#444;color:#888;cursor:not-allowed" title="QA must pass before publishing" disabled>Publish Live</button>'
+        f'<button style="{_btn_style}background:#444;color:#888;cursor:not-allowed" title="QA must pass before scheduling" disabled>Schedule (24h)</button>'
     )
     _retry_options = "".join(
         f'<option value="{s.step_name}"{" selected" if s.step_name == _default_retry_step else ""}>{s.step_name}</option>'

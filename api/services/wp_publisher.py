@@ -15,6 +15,7 @@ Category resolution:
 import base64
 import mimetypes
 import re
+from datetime import datetime, timedelta, timezone
 from urllib.parse import urlparse
 
 import httpx
@@ -167,6 +168,7 @@ async def publish_to_wordpress(
             "slug": post_slug,
             "status": wp_status,
             "comment_status": "closed",
+            **({"date_gmt": (datetime.now(timezone.utc) + timedelta(hours=24)).strftime("%Y-%m-%dT%H:%M:%S")} if wp_status == "future" else {}),
             "_yoast_wpseo_title": seo.get("title", ""),
             "_yoast_wpseo_metadesc": seo.get("description", ""),
             "_yoast_wpseo_focuskw": seo.get("focus_keyword", ""),

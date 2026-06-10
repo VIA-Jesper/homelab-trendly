@@ -32,14 +32,15 @@ router = APIRouter(prefix="/jobs", tags=["publish"])
 @router.post("/{job_id}/publish")
 async def publish_job(
     job_id: str,
-    status: str = Query("draft", pattern="^(draft|publish)$"),
+    status: str = Query("draft", pattern="^(draft|publish|future)$"),
     db: AsyncSession = Depends(get_db),
 ) -> dict:
     """
     Insert widgets and publish the article to WordPress.
 
     ?status=draft    — saves as WP draft (default, always allowed)
-    ?status=publish  — publishes live; blocked if qa_review has not passed
+    ?status=future   — schedules 24h from now; blocked if qa_review has not passed
+    ?status=publish  — publishes live immediately; blocked if qa_review has not passed
     """
     result = await db.execute(select(Job).where(Job.id == uuid.UUID(job_id)))
     job = result.scalar_one_or_none()
@@ -48,7 +49,7 @@ async def publish_job(
 
     steps_by_name = {s.step_name: s for s in job.steps if s.status == "complete"}
 
-    if status == "publish":
+    if status in ("publish", "future"):
         qa_step = steps_by_name.get("qa_review")
         if not qa_step or "PASS" not in (qa_step.output or "").upper():
             raise HTTPException(

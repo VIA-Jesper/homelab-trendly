@@ -87,6 +87,24 @@ The section field must exactly match an H2 heading you wrote in the article.
 - **featured_image_product_id**: use the primary product's id. For multi-product articles, use the first product.
 - **Superlatives**: Avoid absolute claims as definitive facts. Let data do the arguing.
 
+## Use the pre-computed comparative facts (REQUIRED)
+
+context.brief.value_signals holds comparisons WE derived from THIS article's own
+products: price ranking, which product leads or trails on each spec, and features a
+product has that the others lack. Unlike watcher/rank/shop data, these ARE yours to
+cite - they are original analysis, and citing them is what separates this article
+from a spec sheet anyone could copy.
+
+- Weave 2-3 of these into the body as natural Danish, never a data dump:
+  - price_position "cheapest" -> "Den billigste i testen."
+  - price_vs_cheapest_kr on a pricier pick -> "Koster knap 1.200 kr mere end budgetvalget."
+  - spec_leads {spec: sugeevne, position: highest} -> "Stærkeste sugeevne i feltet."
+  - unique_specs [moppe] -> "Den eneste her med moppefunktion."
+- Use the real prices (kr) and spec values as facts. NEVER invent a comparison that
+  is not in value_signals.
+- For a single-product article, value_signals carries only the price - state it
+  plainly; do not fabricate a comparison set.
+
 ## Anti-AI-slop - mandatory
 
 The article must read like a human wrote it. The rules below are hard bans - not style

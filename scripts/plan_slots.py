@@ -141,14 +141,17 @@ def enumerate_slots(category_slug: str) -> list[dict]:
             mk(sk, "segment_roundup", "hero", picks, seg["segment_key"], kw,
                sum(s for s, _ in picks) / len(picks))
 
-    # best_of: singleton (one per year), top products overall
+    # best_of: evergreen singleton (Option B) - one stable URL refreshed yearly,
+    # not a new slot per year. Slot keys on the stable segment_key ("best"), so the
+    # planner never re-mints it; the {year} appears in the title/keyword only.
     f = by_fmt.get("best_of")
     if f and len(pool) >= f["min_products"]:
         picks = pool[:f["max_products"]]
-        sk = dedup.slot_key("hero", category_slug, [_pkey(p) for _, p in picks], segment=str(YEAR))
+        seg = f.get("segment_key", "best")
+        sk = dedup.slot_key("hero", category_slug, [_pkey(p) for _, p in picks], segment=seg)
         kw = f["keyword_template"].format(category=display, year=YEAR)
         # Slight boost so the flagship roundup ranks above individual reviews.
-        mk(sk, "best_of", "hero", picks, str(YEAR), kw, sum(s for s, _ in picks) / len(picks) + 1)
+        mk(sk, "best_of", "hero", picks, seg, kw, sum(s for s, _ in picks) / len(picks) + 1)
 
     return slots
 

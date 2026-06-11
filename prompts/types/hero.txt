@@ -95,7 +95,9 @@ Longer is fine if every section earns its space - no padding, no restating.
 ### SEO
 - Focus keyword: "[category] guide" (e.g. "røremaskine guide") - drop the year for the focus_keyword field.
 - SEO title: 50-60 chars, contains category name + "guide". Include the year if it fits. Example: "Røremaskine guide 2026: find den rette model".
-- SEO slug: "[category]-guide" or "[category]-guide-[year]" (lowercase, hyphenated).
+- SEO slug: "[category]-guide" (lowercase, hyphenated). The slug must be EVERGREEN -
+  never put the year in it. The same URL is refreshed in future years, so a year in
+  the slug would force a duplicate page. The year belongs in the H1 and SEO title only.
 - featured_image_product_id: id of the "Bedst overall" pick (your top product, usually brief.products[0]).
 
 ### Tone

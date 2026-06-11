@@ -34,6 +34,7 @@ from pydantic import BaseModel
 
 from config import settings
 from services.pricerunner_client import RawProduct, get_category_display
+from services.value_signals import compute_value_signals
 
 
 # ─── Site configuration ────────────────────────────────────────────────────────
@@ -139,6 +140,7 @@ class ContentBrief(BaseModel):
     compliance: ComplianceRules
     article_type: str    # always "single-product-review" for URL-based jobs
     article_hook: str    # one-line angle for the article, e.g. "Er det værd at betale mere?"
+    value_signals: dict = {}  # comparative facts the generator must cite (see services/value_signals.py)
 
 
 # ─── Default compliance rules ──────────────────────────────────────────────────
@@ -161,6 +163,15 @@ _DEFAULT_COMPLIANCE = ComplianceRules(
 
 
 # ─── Brief construction ────────────────────────────────────────────────────────
+
+def _value_signals_for(product_briefs: list[ProductBrief]) -> dict:
+    """Comparative facts across the brief's products (price rank, spec leads,
+    unique features). Deterministic; the generator cites these as its own analysis."""
+    return compute_value_signals([
+        {"id": pb.id, "name": pb.name, "price_kr": pb.price_kr, "specs": pb.specs}
+        for pb in product_briefs
+    ])
+
 
 def _build_article_hook(product: RawProduct) -> str:
     """
@@ -233,6 +244,7 @@ def build_brief_for_comparison(products: list[RawProduct], site_key: str) -> Con
         compliance=_DEFAULT_COMPLIANCE,
         article_type="comparison",
         article_hook=hook,
+        value_signals=_value_signals_for(product_briefs),
     )
 
 
@@ -315,6 +327,7 @@ def build_brief_for_hero(
         compliance=_DEFAULT_COMPLIANCE,
         article_type="hero",
         article_hook=hook,
+        value_signals=_value_signals_for(product_briefs),
     )
 
 
@@ -378,4 +391,5 @@ def build_brief_for_product(product: RawProduct, site_key: str) -> ContentBrief:
         compliance=_DEFAULT_COMPLIANCE,
         article_type="single-product-review",
         article_hook=_build_article_hook(product),
+        value_signals=_value_signals_for([product_brief]),
     )

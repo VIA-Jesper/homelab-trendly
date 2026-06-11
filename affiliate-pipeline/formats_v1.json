@@ -1,6 +1,6 @@
 {
   "version": "1.0",
-  "description": "Article format registry for the deterministic slot planner (scripts/plan_slots.py). Each format maps to an existing API article_type and a multiplicity rule controlling how many slots it yields per category. Keyword/title templates are advisory for now (used in the plan output and, later, as the primary_keyword passed to the generator); slot identity itself is derived by api/services/dedup.slot_key. Placeholders: {product}, {category} (singular Danish display), {segment} (segment phrase), {year}. Deferred: comparison (handled by queue_daily Pass 0); alternatives/worth_it/buying_guide need new article_types + prompts (Phase 1.5).",
+  "description": "Article format registry for the deterministic slot planner (scripts/plan_slots.py). Each format maps to an existing API article_type and a multiplicity rule controlling how many slots it yields per category. Keyword/title templates are advisory for now (used in the plan output and, later, as the primary_keyword passed to the generator); slot identity itself is derived by api/services/dedup.slot_key. Placeholders: {product}, {category} (singular Danish display), {segment} (segment phrase), {year}. best_of is evergreen=true: a singleton with a stable segment_key ('best'), so the planner never re-mints it per year. The {year} lives in the title only, not the slug - one URL refreshed yearly (Google-preferred for 'best of' lists); keeping that title current is the job of the deferred refresh loop (Phase 2.5). Deferred: comparison (handled by queue_daily Pass 0); alternatives/worth_it/buying_guide need new article_types + prompts (Phase 1.5).",
   "formats": [
     {
       "key": "single_review",
@@ -24,7 +24,8 @@
       "key": "best_of",
       "article_type": "hero",
       "multiplicity": "singleton",
-      "segment_key": "{year}",
+      "segment_key": "best",
+      "evergreen": true,
       "min_products": 5,
       "max_products": 7,
       "keyword_template": "bedste {category} {year}",

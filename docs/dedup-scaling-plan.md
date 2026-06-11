@@ -54,12 +54,19 @@ A slot is one publishable article identity. Each format has a multiplicity rule:
 | comparison | eligible pairs | `{a} vs {b}` |
 | segment_roundup | 1 / segment | `bedste {cat} til {segment}` |
 | buying_guide | **singleton** | `sådan vælger du {cat}` |
-| best_of | **singleton** | `bedste {cat} {year}` |
+| best_of | **singleton (evergreen)** | `bedste {cat} {year}` |
 
 **Segments** are the roundup multiplier without repeats: `til kæledyr`,
 `under 3000 kr`, `med mopfunktion`, `til små lejligheder`. Each = distinct
 keyword = distinct article. One category -> dozens of non-overlapping articles;
 only the two singletons ever say "bedste".
+
+**best_of is evergreen (Option B).** Its slot keys on a stable `segment_key`
+(`"best"`), not the year, so the planner never mints a fresh "best of 2027"
+alongside "best of 2026". One URL, refreshed yearly; the `{year}` lives in the
+title only, not the slug. This is Google's preferred pattern for "best of" lists
+(accumulate equity on one URL instead of fragmenting it into yearly near-dupes).
+Keeping that title's year current is the job of the refresh loop (Phase 2.5).
 
 ## Plan
 
@@ -83,9 +90,28 @@ only the two singletons ever say "bedste".
 - `alternatives`, `worth_it`, `buying_guide` each need an `article_type` + prompt + brief builder. Add after existing-type formats prove out.
 
 **Phase 2 - Value + ranking (before scaling volume)**
-- inject real PR data per article (price, price history, watchers, spec deltas)
-- QA uniqueness gate (~80% unique); schema (Product/Review/FAQ); internal-link clusters
-- human review on a sample + paced publishing
+- **2A value injection [IN PROGRESS]** - `api/services/value_signals.py` computes
+  comparative facts across the brief's own products (price rank within the set,
+  spec leads/laggards, unique features) and the brief carries them
+  (`ContentBrief.value_signals`). These are *our* analysis, fully citable - unlike
+  PriceRunner platform data (watchers/rank/shop count) which the prompt still
+  forbids quoting. Done: pure module + 12 tests + wired into all 3 brief builders.
+  Pending: generator-prompt edit telling the LLM to cite value_signals. Single-product
+  briefs only get the price fact (no set to compare) - richer single-review context
+  needs category aggregates, a later sub-slice.
+- 2B QA uniqueness gate (~80% unique) - new `IQACheck` plugged into `qa_service`
+  (lexical n-gram/Jaccard vs existing articles + boilerplate guard).
+- 2C schema (Product/Review/FAQ JSON-LD); 2D internal-link clusters from the ledger.
+- human review on a sample + paced publishing.
+
+**Phase 2.5 - Refresh loop (deferred; good background-subagent job)**
+- Staleness signal per article (age of `dateModified` + price drift + availability).
+- A background agent re-queues stale slots as *refresh* jobs: regenerate the body
+  with fresh data, keep the slug, bump `dateModified` (update in place) - or, when an
+  update no longer makes sense (discontinued product), 301-redirect to the successor
+  / category and link forward. This is what keeps the evergreen `best_of` title
+  current and single reviews accurate. Order: update > redirect > delete (410), per
+  Google's content-pruning guidance. Build only after the quality gate (2A/2B) holds.
 
 **Phase 3 - Semantic gate (when volume grows)**
 - embedding fingerprint as planner admission check + thin-content guard (catches

@@ -11,7 +11,7 @@
 **Fix:** Added dynamic year replacement using currentDate in brief.
 
 ## 2026-05-24: Em dashes in generated articles
-**Problem:** Articles contained em dashes (—) which violate the no-em-dash rule.
+**Problem:** Articles contained em dashes (-) which violate the no-em-dash rule.
 **Prevention:** Generator prompt forbids them. Reviewer loop checks. Always verify.
 
 ## 2026-05-24: MCP publish flow works but content quality matters

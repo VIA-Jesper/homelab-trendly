@@ -1,4 +1,4 @@
-# API — Delta Spec
+# API - Delta Spec
 
 ## MODIFIED Requirements
 

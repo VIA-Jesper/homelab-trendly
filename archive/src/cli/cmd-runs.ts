@@ -39,7 +39,7 @@ export async function cmdRuns(subcommand: string | undefined, id: string | undef
       return;
     }
 
-    console.log(`\nRun #${run.id} — ${run.site_key} [${run.status}]`);
+    console.log(`\nRun #${run.id} - ${run.site_key} [${run.status}]`);
     console.log(`Trigger:   ${run.trigger}`);
     console.log(`Category:  ${run.category_id ?? "-"}`);
     console.log(`Created:   ${formatDate(run.created_at)}`);

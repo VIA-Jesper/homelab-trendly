@@ -1,4 +1,4 @@
-# Publisher — Delta Spec
+# Publisher - Delta Spec
 
 ## REMOVED Requirements
 

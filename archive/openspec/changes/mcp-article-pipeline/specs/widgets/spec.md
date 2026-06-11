@@ -1,4 +1,4 @@
-# Widgets — Delta Spec
+# Widgets - Delta Spec
 
 ## REMOVED Requirements
 
@@ -33,7 +33,7 @@ Each rendered PriceRunner widget SHALL consist of:
 `countryLower` SHALL be the site config `pricerunnerCountry` in lowercase.
 Product URLs from PriceRunner that are relative (`/pl/...`) SHALL be made absolute by
 prepending the PriceRunner base URL for the site's country.
-`rel="sponsored"` SHALL be used (not `rel="nofollow"` — Google's current affiliate standard).
+`rel="sponsored"` SHALL be used (not `rel="nofollow"` - Google's current affiliate standard).
 
 If `productId` or `partnerId` is missing, the system SHALL fall back to:
 `<p><a href="{absoluteUrl}" rel="sponsored" class="btn-primary">Se pris på {name}</a></p>`
@@ -42,7 +42,7 @@ If `productId` or `partnerId` is missing, the system SHALL fall back to:
 - **WHEN** a placement `{ type: "widget", productId: "pr_3741515", after_paragraph: 3 }` is processed
 - **THEN** system generates full widget HTML with numeric productId "3741515" inserted at paragraph 3
 
-#### Scenario: Widget fallback — missing partnerId
+#### Scenario: Widget fallback - missing partnerId
 - **WHEN** site config has no pricerunnerPartnerId
 - **THEN** system inserts fallback button link instead of full widget HTML
 
@@ -71,7 +71,7 @@ After widget/image injection and Markdown→HTML conversion, the system SHALL sc
 HTML for product name mentions and convert them to affiliate links.
 - Matching SHALL be case-insensitive and word-boundary aware
 - Maximum 2 links per product (additional mentions left as plain text)
-- Mentions inside heading tags (`<h1>`–`<h6>`) SHALL NOT be converted
+- Mentions inside heading tags (`<h1>`-`<h6>`) SHALL NOT be converted
 - Link format: `<a href="{absoluteAffiliateUrl}?partnerId={urlEncodedPartnerId}" rel="sponsored">`
 
 #### Scenario: Product name mentioned twice

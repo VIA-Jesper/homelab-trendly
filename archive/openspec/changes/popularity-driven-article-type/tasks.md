@@ -26,4 +26,4 @@
 - [x] 4.1 Create `tests/unit/article-classifier.test.ts` covering all five article types
 - [x] 4.2 Add scenarios: empty array, single product, missing specs fields, ties in score
 - [x] 4.3 Update `tests/unit/brief-generator.test.ts` to assert `articleType` and `articleHook` are present in returned brief
-- [x] 4.4 Run `npm test` — all tests pass
+- [x] 4.4 Run `npm test` - all tests pass

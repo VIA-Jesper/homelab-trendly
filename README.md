@@ -1,4 +1,4 @@
-# Trendly — Affiliate Article Pipeline
+# Trendly - Affiliate Article Pipeline
 
 Agentic pipeline for generating Danish affiliate articles at scale.
 Fetches live product data from PriceRunner, generates articles via LLM, reviews them, and publishes to WordPress on a 24-hour schedule.
@@ -10,22 +10,22 @@ Fetches live product data from PriceRunner, generates articles via LLM, reviews 
 ```
 PriceRunner catalog
       ↓
-fetch_hot_products.py      — build/refresh the product pool (JSONL)
+fetch_hot_products.py      - build/refresh the product pool (JSONL)
       ↓
-queue_daily.py             — pick 1-2 products/day, recommend article type, create jobs
+queue_daily.py             - pick 1-2 products/day, recommend article type, create jobs
       ↓
-API (FastAPI + SQLite)     — job queue, step sequencing, state, retry logic
+API (FastAPI + SQLite)     - job queue, step sequencing, state, retry logic
       ↓
-Worker (run_pipeline.py)   — pulls steps, calls LLM adapter, submits output
+Worker (run_pipeline.py)   - pulls steps, calls LLM adapter, submits output
       ↓
-Preview server             — review article, push as Draft or Schedule (24h)
+Preview server             - review article, push as Draft or Schedule (24h)
       ↓
-WordPress                  — published or scheduled post
+WordPress                  - published or scheduled post
 ```
 
 **Separation of concerns:**
-- The API handles all structure — step sequencing, retries, state, QA gating. Deterministic code.
-- LLM agents handle all content — writing, SEO optimisation, QA review. Replaceable adapters.
+- The API handles all structure - step sequencing, retries, state, QA gating. Deterministic code.
+- LLM agents handle all content - writing, SEO optimisation, QA review. Replaceable adapters.
 
 ---
 
@@ -36,7 +36,7 @@ WordPress                  — published or scheduled post
 # ~50 trending products per category (fast, daily signal)
 .venv\Scripts\python.exe scripts\fetch_hot_products.py --site-only
 
-# 200 all-time popular per category — 5000+ products, run weekly
+# 200 all-time popular per category - 5000+ products, run weekly
 .venv\Scripts\python.exe scripts\fetch_hot_products.py --popular
 ```
 
@@ -47,7 +47,7 @@ WordPress                  — published or scheduled post
 
 **3. Plan and queue jobs**
 ```powershell
-# Dry-run first — see the plan
+# Dry-run first - see the plan
 .venv\Scripts\python.exe scripts\queue_daily.py --count 2
 
 # Execute when happy
@@ -70,8 +70,8 @@ WordPress                  — published or scheduled post
 ```
 
 **6. Publish**
-- **Push as Draft** — saves to WP draft for manual review
-- **Schedule (24h)** — sets WP status `future`, auto-publishes 24h from now (requires QA pass)
+- **Push as Draft** - saves to WP draft for manual review
+- **Schedule (24h)** - sets WP status `future`, auto-publishes 24h from now (requires QA pass)
 
 ---
 
@@ -79,9 +79,9 @@ WordPress                  — published or scheduled post
 
 | Type | Products | When used |
 |------|----------|-----------|
-| `single-product-review` | 1 | Default — one product, full review |
-| `hero` | 5–7 | Category roundup — 0 existing articles in category + 5+ candidates |
-| `comparison` | 2–4 | Head-to-head between similar products (manual) |
+| `single-product-review` | 1 | Default - one product, full review |
+| `hero` | 5-7 | Category roundup - 0 existing articles in category + 5+ candidates |
+| `comparison` | 2-4 | Head-to-head between similar products (manual) |
 
 `queue_daily.py` auto-selects type: **hero** for uncovered categories with enough candidates, **single-product-review** otherwise. Max one job per category per run.
 
@@ -95,7 +95,7 @@ WordPress                  — published or scheduled post
 | `optimize_seo` | LLM optimises keyword density, title, meta description, CTAs |
 | `qa_review` | LLM validates against QA checklist → PASS or FAIL + edits_needed |
 | _(retry up to 3×)_ | On FAIL: re-queues write_draft with edits_needed injected |
-| `score_article` | Scores SEO / CRO / readability (0–100) |
+| `score_article` | Scores SEO / CRO / readability (0-100) |
 | _(publish)_ | Manual: preview server → Schedule (24h) or Draft |
 
 ---
@@ -110,7 +110,7 @@ WordPress                  — published or scheduled post
 | `scripts/suggest_articles.py --recommend-type` | Adds hero/single recommendation per candidate |
 | `scripts/queue_daily.py --count N` | Dry-run plan: hero bundles first, then top singles |
 | `scripts/queue_daily.py --count N --execute` | Create jobs via API |
-| `scripts/run_pipeline.py` | Worker loop — pulls steps, calls LLM, submits output |
+| `scripts/run_pipeline.py` | Worker loop - pulls steps, calls LLM, submits output |
 | `scripts/preview_server.py` | Preview UI at localhost:8080 |
 | `scripts/load_prompts.py` | Load/reload prompt files from `prompts/` into DB |
 | `scripts/consume_queue.py` | Seed a remote instance from `queue-remote.json` |
@@ -124,17 +124,17 @@ WordPress                  — published or scheduled post
 
 A second Trendly instance (e.g. a remote worker) can be seeded with a curated job list so it covers different categories than the primary instance.
 
-**On the primary machine** — regenerate `queue-remote.json` from the current product pool:
+**On the primary machine** - regenerate `queue-remote.json` from the current product pool:
 ```powershell
 .venv\Scripts\python.exe scripts\_gen_remote_queue.py
 git add queue-remote.json && git commit -m "chore: refresh remote queue" && git push
 ```
 
-**On the remote machine** — pull and seed:
+**On the remote machine** - pull and seed:
 ```powershell
 git pull
 
-# Dry-run — see what would be queued
+# Dry-run - see what would be queued
 .venv\Scripts\python.exe scripts\consume_queue.py
 
 # Queue all jobs (or --limit N for a subset)
@@ -187,7 +187,7 @@ POST /api/v1/jobs/from-products
   "site_key": "hus",
   "article_type": "single-product-review",
   "product_urls": ["https://www.pricerunner.dk/pl/19-3206825946/..."],
-  "editorial_note": "Lead with energy efficiency — big deal for Danish buyers right now.",
+  "editorial_note": "Lead with energy efficiency - big deal for Danish buyers right now.",
   "reasoning": "Rank 1 støvsugere, 200+ watchers, no existing article"
 }
 ```

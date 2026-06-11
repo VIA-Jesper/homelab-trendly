@@ -11,10 +11,10 @@
 
 1. **Introduction** (80-120 words)
    - Frame the rivalry: name both brands/products and the core tension
-   - Example: "Dreame eller Roborock — to af markedets stærkeste robotstøvsugere, og begge med trofaste fans. Spørgsmålet er, hvad der passer til dig."
+   - Example: "Dreame eller Roborock - to af markedets stærkeste robotstøvsugere, og begge med trofaste fans. Spørgsmålet er, hvad der passer til dig."
    - Tell the reader what question this article answers
 
-2. **Brand A section** (200-280 words, H2: "[Brand A] — [hvad den gør bedst]")
+2. **Brand A section** (200-280 words, H2: "[Brand A] - [hvad den gør bedst]")
    - Lead with the brand's strongest argument from brief data
    - Key specs (concrete, from brief)
    - Pros (3 bullets, each specific)
@@ -22,13 +22,13 @@
    - "Passer bedst til: [buyer profile]" at the end of the section
    - Image placement early, widget at end
 
-3. **Brand B section** (200-280 words, H2: "[Brand B] — [hvad den gør bedst]")
+3. **Brand B section** (200-280 words, H2: "[Brand B] - [hvad den gør bedst]")
    - Mirror structure of Brand A section
-   - Do NOT favor one brand in the section copy — save opinion for verdict
+   - Do NOT favor one brand in the section copy - save opinion for verdict
 
 4. **Comparison table** (H2: "Sammenligning på et øjeblik")
    Markdown table with rows: Pris, Popularitet, [2-3 key specs], Bedst til.
-   Keep it scannable — max 6 rows.
+   Keep it scannable - max 6 rows.
 
 5. **Verdict** (H2: "Vores dom", 80-120 words)
    - Declare a winner for specific use cases, not a wishy-washy "det afhænger af"
@@ -41,10 +41,10 @@ Neutral and fair during the body, opinionated in the verdict.
 
 ## CRO focus
 - Both affiliate links appear before the 500-word mark
-- Comparison table is a conversion trigger — place it centrally
+- Comparison table is a conversion trigger - place it centrally
 - Verdict has two clear affiliate links (one per brand)
 
 ## What to avoid
 - Secretly favoring one brand in the body sections
 - Subjective language without data ("X feels more premium")
-- "Objektivt set" — just state the data
+- "Objektivt set" - just state the data

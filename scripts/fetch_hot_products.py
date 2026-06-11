@@ -1,9 +1,9 @@
 """
-fetch_hot_products.py — Append PriceRunner products to data/hot-products.jsonl.
+fetch_hot_products.py - Append PriceRunner products to data/hot-products.jsonl.
 
 Two modes:
   --site-only  Trending (hot) products per category. Fast, ~50/category.
-               Good for daily runs — surfaces products with purchase intent right now.
+               Good for daily runs - surfaces products with purchase intent right now.
   --popular    All-time popular products per category via pagination.
                Fetches up to 200/category (2 pages × 100). Larger pool, slower.
                Run weekly or on first bootstrap to fill the candidate queue.
@@ -126,7 +126,7 @@ def normalise_hot(product: dict, fetched_at: str, fetched_for: str | None = None
 # ── Popular endpoint (all-time, paginated) ────────────────────────────────────
 
 def fetch_popular_page(category_id: str, size: int = 100, offset: int = 0) -> tuple[list[dict], int]:
-    """Returns (products, total_count). Hard cap: size=100. API rejects offset=0 — omit for first page."""
+    """Returns (products, total_count). Hard cap: size=100. API rejects offset=0 - omit for first page."""
     params: dict = {"size": size, "sorting": "POPULARITY", "device": "desktop"}
     if offset > 0:
         params["offset"] = offset
@@ -147,7 +147,7 @@ def normalise_popular(product: dict, fetched_at: str, fetched_for: str, cat_id: 
     """
     The v4 endpoint doesn't include category in individual product objects, so we
     inject category_id / category_name from the fetch context.
-    The ribbon here can be PRICE_DROP_ABSOLUTE (not a watcher count) — only store
+    The ribbon here can be PRICE_DROP_ABSOLUTE (not a watcher count) - only store
     watcher ribbons; everything else becomes empty string.
     """
     img = product.get("image") or {}
@@ -182,7 +182,7 @@ def fetch_popular_category(cat_id: str, cat_name: str, fetched_at: str, pages: i
         try:
             products, total = fetch_popular_page(cat_id, size=100, offset=offset)
         except httpx.HTTPStatusError as e:
-            print(f"  [{cat_name}] page {page+1} failed: HTTP {e.response.status_code} — skipping")
+            print(f"  [{cat_name}] page {page+1} failed: HTTP {e.response.status_code} - skipping")
             break
         if not products:
             break
@@ -193,7 +193,7 @@ def fetch_popular_category(cat_id: str, cat_name: str, fetched_at: str, pages: i
         print(f"  [{cat_name}] page {page+1}: {len(products)} products (total in catalog: {total})")
         if offset + 100 >= total:
             break  # fetched everything available
-        time.sleep(0.5)   # 500ms between pages — stay well under rate limit
+        time.sleep(0.5)   # 500ms between pages - stay well under rate limit
     return rows
 
 

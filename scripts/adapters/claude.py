@@ -56,7 +56,7 @@ class ClaudeAdapter(BaseAdapter):
                 [
                     _CLAUDE, "--print", "--model", self.model, "--output-format", "json",
                     "--no-session-persistence",
-                    # Disable ALL built-in tools — without this the model goes agentic
+                    # Disable ALL built-in tools - without this the model goes agentic
                     # (makes tool calls → double API round-trip → 600s timeout).
                     "--tools", "",
                     # low effort suppresses extended thinking, which otherwise burns
@@ -75,10 +75,10 @@ class ClaudeAdapter(BaseAdapter):
         except subprocess.TimeoutExpired as e:
             stdout_so_far = (e.stdout or b"").decode("utf-8", errors="replace") if isinstance(e.stdout, bytes) else (e.stdout or "")
             stderr_so_far = (e.stderr or b"").decode("utf-8", errors="replace") if isinstance(e.stderr, bytes) else (e.stderr or "")
-            log.error("Claude CLI timed out after 600s — debug log: %s", self.debug_log)
+            log.error("Claude CLI timed out after 600s - debug log: %s", self.debug_log)
             log.error("stdout so far (%d chars): %s", len(stdout_so_far), stdout_so_far[:500])
             log.error("stderr so far (%d chars): %s", len(stderr_so_far), stderr_so_far[:500])
-            raise RuntimeError(f"claude CLI timed out after 600s — see {self.debug_log}")
+            raise RuntimeError(f"claude CLI timed out after 600s - see {self.debug_log}")
 
         if proc.stderr.strip():
             log.debug("Claude CLI stderr: %s", proc.stderr.strip()[:1000])
@@ -105,7 +105,7 @@ class ClaudeAdapter(BaseAdapter):
             # Log any tool_use events for observability
             for event in parsed:
                 if isinstance(event, dict) and event.get("type") == "tool_use":
-                    log.info("  [tool_use] %s — input: %s", event.get("name"), json.dumps(event.get("input", {}))[:200])
+                    log.info("  [tool_use] %s - input: %s", event.get("name"), json.dumps(event.get("input", {}))[:200])
             result_events = [e for e in parsed if isinstance(e, dict) and e.get("type") == "result"]
             envelope = result_events[-1] if result_events else {}
         else:
@@ -125,7 +125,7 @@ class ClaudeAdapter(BaseAdapter):
             output = "\n".join(lines[1:end]).strip()
 
         # Capture usage for the caller to log / store
-        # CLI uses total_cost_usd (not cost_usd); input_tokens is only new tokens —
+        # CLI uses total_cost_usd (not cost_usd); input_tokens is only new tokens -
         # cache_read_input_tokens holds the bulk of the context on warm runs.
         usage = envelope.get("usage", {})
         self.last_usage = {

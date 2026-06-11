@@ -32,7 +32,7 @@ const wpResp = await fetch(`${process.env["WP_HUS_URL"]}/wp-json/wp/v2/posts/${P
 const currentPost = await wpResp.json();
 console.log(`Current: ${currentPost.title.rendered}`);
 
-// get_brief — override to single-product-review with top product only
+// get_brief - override to single-product-review with top product only
 const briefResp = await client.callTool({
   name: "get_brief",
   arguments: { category: CATEGORY, site: SITE }

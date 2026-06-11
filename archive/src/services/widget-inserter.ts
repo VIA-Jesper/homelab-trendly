@@ -188,7 +188,7 @@ function renderWidget(
 ): string {
   const product = brief.products.find((p) => p.id === productId);
   if (!product) {
-    console.warn(`[widget-inserter] Unknown product id: ${productId} — skipping`);
+    console.warn(`[widget-inserter] Unknown product id: ${productId} - skipping`);
     return "";
   }
 

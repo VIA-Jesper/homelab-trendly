@@ -1,4 +1,4 @@
-# Architecture — Danish Affiliate Content Pipeline
+# Architecture - Danish Affiliate Content Pipeline
 
 > **Agent orientation:** Read this file first. It explains why the system is built the way it is, what tradeoffs were accepted, and where the sharp edges are. Cross-reference `FLOW.md`, `WIDGET-SYSTEM-REFERENCE.md`, and `PRICERUNNER-SCRAPER-REFERENCE.md` for operational detail.
 
@@ -112,7 +112,7 @@ Type-specific writing instructions live in `prompts/agents/generator-types/$TYPE
 ### ADR-006 · Widget variant alternation
 **Date:** 2026-05
 **Decision:** The first widget in article order uses `singleproduct.js` (lowest price, strong single CTA). Subsequent widgets alternate to `product.js` (top 3 offers), then back.
-**Reasoning:** The first widget is typically the star product — a single lowest-price CTA converts better there. Later widgets (alternatives, roundup products) benefit from multi-offer display for comparison. The generator does not need to know about variants; alternation is handled transparently in `insertPlacements`.
+**Reasoning:** The first widget is typically the star product - a single lowest-price CTA converts better there. Later widgets (alternatives, roundup products) benefit from multi-offer display for comparison. The generator does not need to know about variants; alternation is handled transparently in `insertPlacements`.
 **Consequence:** Widget variant is determined by position in the article, not by the brief or generator. If placement order changes, variants shift accordingly.
 
 ### ADR-007 · Partner ID stamped post-render, not in-generator
@@ -125,7 +125,7 @@ Type-specific writing instructions live in `prompts/agents/generator-types/$TYPE
 **Date:** 2026-05
 **Decision:** Generator prompt forbids naming "PriceRunner" in article body text. Popularity, rank, and watcher signals are referenced as platform-neutral facts ("topper kategorien", "50+ holder oje med prisen").
 **Reasoning:** Excessive platform-name mentions read as sponsored content and erode editorial trust. Widget attribution text ("Annonce i samarbejde med PriceRunner") is auto-injected and is the only sanctioned appearance.
-**Consequence:** Generator prompts and type modules must avoid framing brief signals as "PriceRunner data". Validator does not currently enforce this — it is a prompt-level constraint only.
+**Consequence:** Generator prompts and type modules must avoid framing brief signals as "PriceRunner data". Validator does not currently enforce this - it is a prompt-level constraint only.
 
 ### ADR-009 · External links required per article
 **Date:** 2026-05
@@ -135,7 +135,7 @@ Type-specific writing instructions live in `prompts/agents/generator-types/$TYPE
 
 ### ADR-010 · Git push on any trendly change
 **Date:** 2026-05
-**Decision:** Any change to the trendly codebase — whether by OWL or a human — must be committed and pushed to `origin/main` immediately.
+**Decision:** Any change to the trendly codebase - whether by OWL or a human - must be committed and pushed to `origin/main` immediately.
 **Reasoning:** The trendly repo is the single source of truth for the article pipeline. Unpushed changes create silent divergence between local and remote, risking lost work or conflicting edits. Treat git push as part of the change, not an afterthought.
 **Consequence:** After any file edit, run:
 ```bash
@@ -158,10 +158,10 @@ The `SELF_IMPROVEMENT_REMINDER.md` checklist applies: log learnings to `.learnin
 5. **Push all changes.** See ADR-010.
 
 Self-improvement tracking lives in:
-- `.learnings/LEARNINGS.md` — pitfalls, fixes, insights
-- `.learnings/ERRORS.md` — command/operation failures
-- `AGENTS.md` — workflow and behavioral patterns
-- `SOUL.md` — tone and output quality rules
+- `.learnings/LEARNINGS.md` - pitfalls, fixes, insights
+- `.learnings/ERRORS.md` - command/operation failures
+- `AGENTS.md` - workflow and behavioral patterns
+- `SOUL.md` - tone and output quality rules
 
 ### ADR-012 · WordPress publishing (unblocked)
 **Date:** 2026-05
@@ -194,13 +194,13 @@ Self-improvement tracking lives in:
 
 | Variable | Required | Purpose |
 |---|---|---|
-| `PR_TECHBLOG_PARTNER_ID` | Yes (prod) | PriceRunner affiliate partner ID — appended to all PR links and widget embed URLs |
+| `PR_TECHBLOG_PARTNER_ID` | Yes (prod) | PriceRunner affiliate partner ID - appended to all PR links and widget embed URLs |
 | `PR_BUDGETSHOP_PARTNER_ID` | Yes (prod) | Same for budgetshop site |
 | `WP_TECHBLOG_BASE_URL` | Yes (prod) | WordPress REST API base URL |
 | `WP_TECHBLOG_USER` | Yes (prod) | WordPress application username |
 | `WP_TECHBLOG_APP_PASSWORD` | Yes (prod) | WordPress application password |
 
-All variables are optional locally — services degrade gracefully (Tailwind widget fallback, no WP publish).
+All variables are optional locally - services degrade gracefully (Tailwind widget fallback, no WP publish).
 
 ---
 

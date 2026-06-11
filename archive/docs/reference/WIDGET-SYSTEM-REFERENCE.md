@@ -1,4 +1,4 @@
-# Widget & Affiliate Link System — Reference Document
+# Widget & Affiliate Link System - Reference Document
 
 This document captures how Trendly generates PriceRunner affiliate widgets and inserts them into markdown article content. Intended for reuse in another project without rediscovering the logic.
 
@@ -18,7 +18,7 @@ The entry point is `SmartWidgetInserter.InsertWidgetsAndLinks()`. It takes markd
 
 ## The Widget HTML
 
-The widget itself is two parts — a container `<div>` and an async `<script>` tag that PriceRunner's CDN fills in:
+The widget itself is two parts - a container `<div>` and an async `<script>` tag that PriceRunner's CDN fills in:
 
 ```html
 <div id="pr-product-widget-{guid}" style="display: block; width: 100%"></div>
@@ -47,16 +47,16 @@ The widget itself is two parts — a container `<div>` and an async `<script>` t
 | `offerLimit` | `3` | Max number of offers to show |
 | `productId` | `3741515` | Numeric PriceRunner product ID (from scraper results) |
 | `partnerId` | `adrunner_dk_husforbegyndere` | Your affiliate partner ID from PriceRunner |
-| `widgetId` | `pr-product-widget-{guid}` | Matches the container div ID — must be unique per page |
+| `widgetId` | `pr-product-widget-{guid}` | Matches the container div ID - must be unique per page |
 
 ### Important Notes
 
 - `productId` is the **numeric** PriceRunner product ID from the scraper's `id` field (e.g., `"3741515"`). This is **not** the URL slug or the full path.
 - The attribution link (`rel="sponsored"`) at the bottom is **required** by PriceRunner's affiliate terms. The Danish text "Annonce i samarbejde med PriceRunner" means "Advertisement in collaboration with PriceRunner".
-- The widget div ID must be globally unique — use a GUID per widget instance.
+- The widget div ID must be globally unique - use a GUID per widget instance.
 - The product URL in the attribution link must be **absolute** (not relative). If you get a relative URL from the scraper (`/pl/...`), prepend the country base URL.
 
-### Fallback (no widget — simple link instead)
+### Fallback (no widget - simple link instead)
 
 When a `productId` or `partnerId` is missing, fall back to a plain button link:
 
@@ -79,9 +79,9 @@ Before each widget, an optional product image is prepended:
 ### Alt Text Logic
 
 Priority order:
-1. `{productName} - {article keyword}` — best for SEO (keyword-rich)
-2. `{productName} - {brandName}` — if no keyword available
-3. `{productName}` — fallback
+1. `{productName} - {article keyword}` - best for SEO (keyword-rich)
+2. `{productName} - {brandName}` - if no keyword available
+3. `{productName}` - fallback
 
 Alt text is HTML-escaped (`"` → `&quot;`, `&` → `&amp;`, etc.).
 
@@ -115,13 +115,13 @@ InsertWidgetsAndLinks(markdownContent, products, siteId, maxWidgets, keyword?)
 ├─ 1. ProductMentionDetector.DetectMentions()
 │       → finds all product name occurrences with position + context
 │
-├─ 2. PASS 1 — Widget Insertion
+├─ 2. PASS 1 - Widget Insertion
 │       For each product (in order):
 │         Find first mention → calculate widget position (2 body-text paragraphs after)
 │         If position is free → insert widget HTML at that position
 │         Track: 1 widget max per product, maxWidgets global cap
 │
-├─ 3. PASS 2 — Link Conversion
+├─ 3. PASS 2 - Link Conversion
 │       For each product mention (non-heading):
 │         Replace mention text with <a> link
 │         Cap at 2 links per product
@@ -161,9 +161,9 @@ If no body-text paragraph break exists after the mention at all, the widget is i
 ### Search Patterns (per product)
 
 Three patterns are tried in this order:
-1. **Full product name** (e.g., `"Mitsubishi Ecodan 8kW"`) — confidence 100
-2. **Brand + first significant model word** (word > 3 chars, e.g., `"Mitsubishi Ecodan"`) — confidence 90
-3. **Brand only** (if brand > 4 chars and pattern 2 wasn't generated) — confidence 50
+1. **Full product name** (e.g., `"Mitsubishi Ecodan 8kW"`) - confidence 100
+2. **Brand + first significant model word** (word > 3 chars, e.g., `"Mitsubishi Ecodan"`) - confidence 90
+3. **Brand only** (if brand > 4 chars and pattern 2 wasn't generated) - confidence 50
 
 All patterns use **word boundary regex** (`\bpattern\b`) and are **case-insensitive**.
 
@@ -248,8 +248,8 @@ The input model for each product to embed:
 ```csharp
 record ProductCandidate(
     Guid ProductId,           // Internal ID (for dedup tracking)
-    string Name,              // Display name — used for mention detection
-    string? Brand = null,     // Brand name — used for mention pattern 2/3
+    string Name,              // Display name - used for mention detection
+    string? Brand = null,     // Brand name - used for mention pattern 2/3
     string? Category = null,
     string? PriceRunnerUrl = null,        // Can be relative (/pl/...) or absolute
     string? PriceRunnerProductId = null,  // Numeric ID for widget script (e.g., "3741515")
@@ -276,7 +276,7 @@ record WidgetInsertionReport(
 );
 ```
 
-`ShouldDiscard` is used by the pipeline to flag articles that don't mention all products — they're candidates for regeneration.
+`ShouldDiscard` is used by the pipeline to flag articles that don't mention all products - they're candidates for regeneration.
 
 ---
 
@@ -444,18 +444,18 @@ var result = inserter.InsertWidgets(markdownContent, products, maxWidgets: 2);
 
 ## Key Constraints & Gotchas
 
-1. **productId must be the numeric ID** — not the URL slug. From the scraper, use `product.Id` (e.g., `"3741515"`), not the `url` field.
+1. **productId must be the numeric ID** - not the URL slug. From the scraper, use `product.Id` (e.g., `"3741515"`), not the `url` field.
 
-2. **Widget div ID must be unique per rendered page** — if you embed multiple widgets, each needs a distinct GUID. The script uses it to find its container.
+2. **Widget div ID must be unique per rendered page** - if you embed multiple widgets, each needs a distinct GUID. The script uses it to find its container.
 
-3. **Attribution link is required** — PriceRunner's terms require the `rel="sponsored"` attribution link below each widget.
+3. **Attribution link is required** - PriceRunner's terms require the `rel="sponsored"` attribution link below each widget.
 
-4. **Relative URLs must be made absolute** — both product URLs and image URLs from the PriceRunner scraper may be relative (`/pl/...`). Always prepend the base URL before inserting into HTML attributes.
+4. **Relative URLs must be made absolute** - both product URLs and image URLs from the PriceRunner scraper may be relative (`/pl/...`). Always prepend the base URL before inserting into HTML attributes.
 
-5. **Image HTML needs surrounding blank lines** — the `<figure>` block must have `\n\n` before and after it so markdown parsers (Markdig) treat it as a block element and don't wrap it in `<p>` tags.
+5. **Image HTML needs surrounding blank lines** - the `<figure>` block must have `\n\n` before and after it so markdown parsers (Markdig) treat it as a block element and don't wrap it in `<p>` tags.
 
-6. **Insertions must be applied in reverse index order** — if you're inserting multiple widgets/links into the same string, apply them from the end of the string backwards. Otherwise early insertions shift the indices of later ones.
+6. **Insertions must be applied in reverse index order** - if you're inserting multiple widgets/links into the same string, apply them from the end of the string backwards. Otherwise early insertions shift the indices of later ones.
 
-7. **Max 2 inline links per product** — converting every mention to a link looks spammy and hurts SEO. Cap at 2.
+7. **Max 2 inline links per product** - converting every mention to a link looks spammy and hurts SEO. Cap at 2.
 
-8. **Never link mentions in headings** — heading links break SEO structure and look wrong visually.
+8. **Never link mentions in headings** - heading links break SEO structure and look wrong visually.

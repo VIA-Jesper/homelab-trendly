@@ -1,10 +1,10 @@
-# PriceRunner API — Discovered Endpoints
+# PriceRunner API - Discovered Endpoints
 
 Unofficial endpoints reverse-engineered from the PriceRunner DK frontend.
 No auth required. All return JSON.
 
 Reference: https://github.com/Daniel6702/OpenPriceRunnerAPI (reverse-engineered wrapper, MIT)
-May be worth forking — contains retry logic, price history, reviews, offers, and keyword endpoints
+May be worth forking - contains retry logic, price history, reviews, offers, and keyword endpoints
 we haven't explored yet. License is permissive.
 
 ## Known base URLs
@@ -24,7 +24,7 @@ All endpoints below should be prefixed with the appropriate base URL.
 ```
 GET https://www.pricerunner.dk/dk/api/seo-edge-rest/public/navigation/menu/DK
 ```
-Returns full category tree — all top-level groups (t/ prefix) and subcategories (cl/ prefix).
+Returns full category tree - all top-level groups (t/ prefix) and subcategories (cl/ prefix).
 
 ```
 GET https://www.pricerunner.dk/dk/api/seo-edge-rest/public/navigation/menu/DK/hierarchy/{id}
@@ -33,10 +33,10 @@ Returns subcategory list for a specific top-level group. Use `t{id}` format (e.g
 
 ### How to find a category ID
 
-1. Browse to the category on pricerunner.dk — note the URL: `/cl/345/Elvaerktoej` → ID is `cl345`
+1. Browse to the category on pricerunner.dk - note the URL: `/cl/345/Elvaerktoej` → ID is `cl345`
 2. Or fetch the full tree: `GET .../navigation/menu/DK` → search the JSON for the category name
 3. Or fetch a top-level group: `GET .../navigation/menu/DK/hierarchy/t14` → lists all subcategory IDs and names under that group
-4. Verify the ID works: `GET .../hot/products/v2/DK/cl345?size=3` — empty means wrong ID
+4. Verify the ID works: `GET .../hot/products/v2/DK/cl345?size=3` - empty means wrong ID
 
 **Top-level groups relevant to husforbegyndere.dk:**
 
@@ -116,7 +116,7 @@ spot products with high watcher counts in site-relevant categories →
 use product URL to trigger a new article job via `POST /api/v1/jobs/from-url`.
 
 Future: track `rank` and `watchers` over time to detect rising trends before
-they peak — articles written early rank better than articles written after the spike.
+they peak - articles written early rank better than articles written after the spike.
 
 ### husforbegyndere.dk category IDs (verified)
 
@@ -134,7 +134,7 @@ All IDs verified via `/navigation/menu/DK` and `/navigation/menu/DK/hierarchy/{i
 | cl1290      | Trampoliner                 |       |
 | cl541       | Pools                       |       |
 | cl1388      | Spabade & Vildmarksbade     |       |
-| cl348       | Haveredskaber               | Uncertain — may be need-based, not review intent |
+| cl348       | Haveredskaber               | Uncertain - may be need-based, not review intent |
 | cl499       | Havemøbler                  |       |
 
 **Power tools:**
@@ -157,7 +157,7 @@ All IDs verified via `/navigation/menu/DK` and `/navigation/menu/DK/hierarchy/{i
 | cl106       | Kogeplader        |       |
 | cl3         | Mikrobølgeovne    |       |
 
-**Kitchen appliances — use t14 to fetch all at once:**
+**Kitchen appliances - use t14 to fetch all at once:**
 | Category ID | Name                        |
 |-------------|-----------------------------|
 | t14         | Køkkenapparater (alle)      |
@@ -171,7 +171,7 @@ Script: `scripts/fetch_hot_products.py`
 
 ---
 
-## Additional endpoints (from OpenPriceRunnerAPI — base: search-compare-gateway/public)
+## Additional endpoints (from OpenPriceRunnerAPI - base: search-compare-gateway/public)
 
 These are documented in the reference repo but not yet tested in our pipeline.
 
@@ -179,9 +179,9 @@ These are documented in the reference repo but not yet tested in our pipeline.
 
 | Endpoint | Description | Params |
 |----------|-------------|--------|
-| `/productlistings/pl/initial/{subcategoryId}-{productId}/DK` | Full product listing data | — |
-| `/productlistings/rank/DK/{productId}` | Product rank | — |
-| `/keyword/product/DK/{subcategoryId}-{productId}` | SEO keywords for a product | — |
+| `/productlistings/pl/initial/{subcategoryId}-{productId}/DK` | Full product listing data | - |
+| `/productlistings/rank/DK/{productId}` | Product rank | - |
+| `/keyword/product/DK/{subcategoryId}-{productId}` | SEO keywords for a product | - |
 | `/product-detail/v0/offers/DK/{productId}` | Merchant offers/prices | `af_ORIGIN`, `af_ITEM_CONDITION`, `sortByPreset`, `af_MERCHANT` |
 | `/pricehistory/product/{productId}/DK/DAY` | Price history | `merchantId`, `selectedInterval` (e.g. `THREE_MONTHS`), `filter` |
 | `/reviews/products/overview/DK/{productId}` | User reviews | `count` |
@@ -193,13 +193,13 @@ These are documented in the reference repo but not yet tested in our pipeline.
 
 | Endpoint | Description | Params |
 |----------|-------------|--------|
-| `/navigation/menu/DK/items` | Top-level categories | — |
-| `/navigation/menu/DK` | Full category tree | — |
-| `/navigation/menu/DK/hierarchy/{categoryId}` | Subcategories for a group | — |
-| `/navigation/breadcrumbs/DK/{categoryId}` | Breadcrumb trail | — |
-| `/keyword/tree/DK/{categoryId}` | SEO keywords for a category | — |
-| `/keyword/category/DK/{subcategoryId}` | SEO keywords for subcategory | — |
-| `/popularproducts/v2/DK/{categoryId}` | Popular products (all-time vs hot=trending) | — |
+| `/navigation/menu/DK/items` | Top-level categories | - |
+| `/navigation/menu/DK` | Full category tree | - |
+| `/navigation/menu/DK/hierarchy/{categoryId}` | Subcategories for a group | - |
+| `/navigation/breadcrumbs/DK/{categoryId}` | Breadcrumb trail | - |
+| `/keyword/tree/DK/{categoryId}` | SEO keywords for a category | - |
+| `/keyword/category/DK/{subcategoryId}` | SEO keywords for subcategory | - |
+| `/popularproducts/v2/DK/{categoryId}` | Popular products (all-time vs hot=trending) | - |
 | `/search/category/v3/DK/{subcategoryId}` | Products in category with filters | `size`, dynamic filter pairs |
 | `/search/guidingcontent/v2/DK/{subcategoryId}` | Buying guides for a category | `size` |
 | `/search/board/DK/{subcategoryId}` | Category boards/featured | `size` |

@@ -16,8 +16,8 @@
 
 2. **One section per product** (H2 heading with product name + affiliate link)
    - First sentence: what the product excels at (concrete, data-backed)
-   - Pros list (3-4 bullets, each specific — use price, specs, popularity data from brief)
-   - Cons list (1-2 honest bullets — no product is perfect)
+   - Pros list (3-4 bullets, each specific - use price, specs, popularity data from brief)
+   - Cons list (1-2 honest bullets - no product is perfect)
    - Closing sentence with a soft CTA: "Se aktuel pris hos [retailer]"
 
 3. **Verdict section** (H2: "Sådan vælger du", "Det ender med", or "Hvilken skal du vælge?")
@@ -27,7 +27,7 @@
 
 ## Tone
 Knowledgeable friend. Opinionated but fair. Never corporate. Use "du"-form throughout.
-Vary paragraph length — some punchy short sentences, some flowing.
+Vary paragraph length - some punchy short sentences, some flowing.
 
 ## CRO focus
 - Spread placements: image early in the product section, widget near the end
@@ -36,5 +36,5 @@ Vary paragraph length — some punchy short sentences, some flowing.
 
 ## What to avoid
 - "I dette udvalg", "analytisk set", "i vores gennemgang"
-- Generic pros like "god ydelse" — always tie to a specific number or spec
-- Three-adjective lists: "hurtig, kraftfuld og elegant" — pick one and elaborate
+- Generic pros like "god ydelse" - always tie to a specific number or spec
+- Three-adjective lists: "hurtig, kraftfuld og elegant" - pick one and elaborate

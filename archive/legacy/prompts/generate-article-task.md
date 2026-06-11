@@ -1,6 +1,6 @@
-# Generator Task — Regenerate robotstøvsugere article
+# Generator Task - Regenerate robotstøvsugere article
 
-You are the Generator agent. Produce a single JSON object — plain text, no markdown code fences, no commentary.
+You are the Generator agent. Produce a single JSON object - plain text, no markdown code fences, no commentary.
 
 ## Brief
 
@@ -104,32 +104,32 @@ You are the Generator agent. Produce a single JSON object — plain text, no mar
       {
         "productId": "pr_3391726225",
         "url": "https://www.pricerunner.dk/product/3198932936/Dreame-X50-Ultra-Complete-Hvid.jpg",
-        "alt": "Dreame X50 Ultra Complete Hvid — Dreame, Batteritid 220 min",
-        "caption": "Dreame X50 Ultra Complete Hvid hos  — 6.047 kr."
+        "alt": "Dreame X50 Ultra Complete Hvid - Dreame, Batteritid 220 min",
+        "caption": "Dreame X50 Ultra Complete Hvid hos  - 6.047 kr."
       },
       {
         "productId": "pr_3298393597",
         "url": "https://www.pricerunner.dk/product/3104483519/Dreame-X40-Ultra-RLX63CE-Hvid.jpg",
-        "alt": "Dreame X40 Ultra RLX63CE Hvid — Dreame, 76, Batteritid 180 min",
-        "caption": "Dreame X40 Ultra RLX63CE Hvid hos  — 3.999 kr."
+        "alt": "Dreame X40 Ultra RLX63CE Hvid - Dreame, 76, Batteritid 180 min",
+        "caption": "Dreame X40 Ultra RLX63CE Hvid hos  - 3.999 kr."
       },
       {
         "productId": "pr_3414152135",
         "url": "https://www.pricerunner.dk/product/3220871600/Dreame-L50-Ultra-White-Robotstoevsuger-Hvid.jpg",
-        "alt": "Dreame L50 Ultra White Robotstøvsuger Hvid — Dreame, 5.00 (1 reviews)",
-        "caption": "Dreame L50 Ultra White Robotstøvsuger Hvid hos  — 4.990 kr."
+        "alt": "Dreame L50 Ultra White Robotstøvsuger Hvid - Dreame, 5.00 (1 reviews)",
+        "caption": "Dreame L50 Ultra White Robotstøvsuger Hvid hos  - 4.990 kr."
       },
       {
         "productId": "pr_3389491210",
         "url": "https://www.pricerunner.dk/product/3194954583/Roborock-Qrevo-Curv-Hvid.jpg",
-        "alt": "Roborock Qrevo Curv Hvid — Roborock, 55, Batteritid 220 min",
-        "caption": "Roborock Qrevo Curv Hvid hos  — 5.355 kr."
+        "alt": "Roborock Qrevo Curv Hvid - Roborock, 55, Batteritid 220 min",
+        "caption": "Roborock Qrevo Curv Hvid hos  - 5.355 kr."
       },
       {
         "productId": "pr_3408446919",
         "url": "https://www.pricerunner.dk/product/3214850269/Dreame-X50-Ultra-Kombi-0.395-L-Kombi-Sort.jpg",
-        "alt": "Dreame X50 Ultra Kombi 0.395 L Kombi Sort — Dreame, WATCHED",
-        "caption": "Dreame X50 Ultra Kombi 0.395 L Kombi Sort hos  — 6.233 kr."
+        "alt": "Dreame X50 Ultra Kombi 0.395 L Kombi Sort - Dreame, WATCHED",
+        "caption": "Dreame X50 Ultra Kombi 0.395 L Kombi Sort hos  - 6.233 kr."
       }
     ],
     "writing_rules": {
@@ -164,7 +164,7 @@ You are the Generator agent. Produce a single JSON object — plain text, no mar
 
 ```json
 {
-  "job_id": "<uuid v4 — copy from brief>",
+  "job_id": "<uuid v4 - copy from brief>",
   "site": "<site from brief>",
   "articleType": "<articleType from brief>",
   "status": "draft",
@@ -191,7 +191,7 @@ You are the Generator agent. Produce a single JSON object — plain text, no mar
 - **Affiliate links**: Wrap each product name in a markdown link using `affiliateUrl` from the brief.
 - **Superlatives**: Avoid absolute claims (bedste/billigste/hurtigste as definitive facts).
 - **No AI tells**: Never write "briefen", "analytisk set", "i dette udvalg", "popularityrank", "popularityscore".
-- **Never name PriceRunner in the article body.** Data on popularity, rank, and watchers comes from a price-comparison platform — reference the signal, not the source. Instead of "nr. 1 på PriceRunner" write "topper kategorien" or "bedst placeret i sin kategori". Instead of "PriceRunner-brugere" write "interesserede brugere" or just "50+ holder øje med prisen". Widget attribution text is auto-injected and is the only acceptable exception.
+- **Never name PriceRunner in the article body.** Data on popularity, rank, and watchers comes from a price-comparison platform - reference the signal, not the source. Instead of "nr. 1 på PriceRunner" write "topper kategorien" or "bedst placeret i sin kategori". Instead of "PriceRunner-brugere" write "interesserede brugere" or just "50+ holder øje med prisen". Widget attribution text is auto-injected and is the only acceptable exception.
 - **External links**: Include 1-2 links to external authoritative sources (manufacturer's product page, brand site, or a relevant spec sheet). This is required for SEO trust signals. Place them naturally: e.g. "Dreame [præsenterer modellen](https://www.dreame.com/...) som..." or a brief "Læs mere hos producenten" link. Never link to competitors or price-comparison sites as external links.
 - **Featured image**: Set `featured_image_product_id` to the product with the lowest `popularityRank` number (rank 1 = most popular).
 - **SEO title**: 50-60 characters, contains focus keyword.
@@ -216,8 +216,8 @@ You are the Generator agent. Produce a single JSON object — plain text, no mar
 
 2. **One section per product** (H2 heading with product name + affiliate link)
    - First sentence: what the product excels at (concrete, data-backed)
-   - Pros list (3-4 bullets, each specific — use price, specs, popularity data from brief)
-   - Cons list (1-2 honest bullets — no product is perfect)
+   - Pros list (3-4 bullets, each specific - use price, specs, popularity data from brief)
+   - Cons list (1-2 honest bullets - no product is perfect)
    - Closing sentence with a soft CTA: "Se aktuel pris hos [retailer]"
 
 3. **Verdict section** (H2: "Vores dom" or "Konklusion")
@@ -227,7 +227,7 @@ You are the Generator agent. Produce a single JSON object — plain text, no mar
 
 ### Tone
 Knowledgeable friend. Opinionated but fair. Never corporate. Use "du"-form throughout.
-Vary paragraph length — some punchy short sentences, some flowing.
+Vary paragraph length - some punchy short sentences, some flowing.
 
 ### CRO focus
 - Spread placements: image early in the product section, widget near the end
@@ -236,5 +236,5 @@ Vary paragraph length — some punchy short sentences, some flowing.
 
 ### What to avoid
 - "I dette udvalg", "analytisk set", "i vores gennemgang"
-- Generic pros like "god ydelse" — always tie to a specific number or spec
-- Three-adjective lists: "hurtig, kraftfuld og elegant" — pick one and elaborate
+- Generic pros like "god ydelse" - always tie to a specific number or spec
+- Three-adjective lists: "hurtig, kraftfuld og elegant" - pick one and elaborate

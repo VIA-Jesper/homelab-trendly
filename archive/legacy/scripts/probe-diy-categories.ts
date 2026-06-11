@@ -26,19 +26,19 @@ async function fetchCat(catId: string, label: string) {
       }
     );
     const products: V4Product[] = r.data?.products ?? r.data?.results ?? [];
-    console.log(`\n═══ ${label} (ID: ${catId}) — ${products.length} products ═══`);
+    console.log(`\n═══ ${label} (ID: ${catId}) - ${products.length} products ═══`);
     products.slice(0, 6).forEach((p, i) => {
       const price = p.lowestPrice?.amount ? `${parseFloat(p.lowestPrice.amount).toLocaleString("da-DK")} kr.` : "?";
       const rank = p.rank?.rank ? `#${p.rank.rank}` : "   ";
       const watched = p.ribbon?.type === "WATCHED" ? ` 👁 ${p.ribbon.value ?? "?"}` : "";
       const merchants = p.previewMerchants?.count ? ` / ${p.previewMerchants.count} shops` : "";
       const brand = p.brand?.name ? `[${p.brand.name}] ` : "";
-      console.log(`  ${rank} ${brand}${p.name} — ${price}${merchants}${watched}`);
+      console.log(`  ${rank} ${brand}${p.name} - ${price}${merchants}${watched}`);
     });
     return products.length;
   } catch (e: unknown) {
     const msg = e instanceof Error ? e.message : String(e);
-    console.log(`\n${label} (ID: ${catId}) — ERROR: ${msg}`);
+    console.log(`\n${label} (ID: ${catId}) - ERROR: ${msg}`);
     return 0;
   }
 }

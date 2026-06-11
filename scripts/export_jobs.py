@@ -1,5 +1,5 @@
 """
-export_jobs.py — Export queued/published jobs from this instance's DB.
+export_jobs.py - Export queued/published jobs from this instance's DB.
 
 Run on the REMOTE instance, commit the output, and push. The primary instance
 reads remote-jobs.json when regenerating queue-remote.json to avoid duplicates.
@@ -31,7 +31,7 @@ def main():
     out = Path(args.out)
 
     if not DB_PATH.exists():
-        print(f"No DB at {DB_PATH} — nothing to export.")
+        print(f"No DB at {DB_PATH} - nothing to export.")
         return
 
     jobs = []
@@ -57,7 +57,7 @@ def main():
                 if name:
                     product_names.append(name)
 
-                # Hero / comparison — list of products in brief.products
+                # Hero / comparison - list of products in brief.products
                 for p in (brief.get("products") or []):
                     purl = p.get("affiliate_url", "")
                     pname = p.get("name", "")

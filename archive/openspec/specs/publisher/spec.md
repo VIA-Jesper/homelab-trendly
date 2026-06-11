@@ -1,4 +1,4 @@
-# Publisher — WordPress Publishing Rules
+# Publisher - WordPress Publishing Rules
 
 ## Overview
 Articles are published to WordPress via REST API v2 (wp-publisher.ts).
@@ -7,35 +7,35 @@ insertion → WordPress POST with RankMath SEO meta.
 
 ## Requirements
 
-### REQ-PUB-001 — WordPress Endpoint
+### REQ-PUB-001 - WordPress Endpoint
 The publisher SHALL POST to `{wp_base_url}/wp-json/wp/v2/posts` using HTTP Basic auth
 (credentials from WP_{SITE_KEY_UPPER}_USER and WP_{SITE_KEY_UPPER}_APP_PASSWORD env vars).
 
-### REQ-PUB-002 — Article Pipeline
+### REQ-PUB-002 - Article Pipeline
 The publisher SHALL apply the following steps in order:
-1. `insertPlacements` — inject widget and image HTML at agent-specified paragraph positions
-2. `marked` — convert the Markdown+HTML document to full HTML
-3. `affiliateLinker` — scan HTML for product name mentions, insert sponsored links (max 2 per product)
+1. `insertPlacements` - inject widget and image HTML at agent-specified paragraph positions
+2. `marked` - convert the Markdown+HTML document to full HTML
+3. `affiliateLinker` - scan HTML for product name mentions, insert sponsored links (max 2 per product)
 4. POST to WordPress with title, content, status, slug, categories, and RankMath meta fields
 
-### REQ-PUB-003 — SEO Metadata
+### REQ-PUB-003 - SEO Metadata
 When an `seo` object is provided, the publisher SHALL set:
 - `rank_math_title`, `rank_math_description`, `rank_math_focus_keyword` as post meta
 - `slug`: use `seo.slug` if provided; else slugify the H1 with Danish transliteration (æ→ae, ø→oe, å→aa)
 
-### REQ-PUB-004 — Category Resolution
+### REQ-PUB-004 - Category Resolution
 The publisher SHALL look up the brief category in the site config `categoryMap`.
 If not found, it falls back to the site's default WordPress category ID.
 
-### REQ-PUB-005 — Retry on Server Errors
+### REQ-PUB-005 - Retry on Server Errors
 The publisher SHALL apply exponential backoff on 5xx responses (same pattern as pricerunner-client.ts).
 After max retries the job is marked `failed`.
 
-### REQ-PUB-006 — Content Registry Update
+### REQ-PUB-006 - Content Registry Update
 On a successful publish with status="publish", the publisher SHALL register all brief product IDs
 in the content registry for the given site. Draft publishes do NOT update the registry.
 
-### REQ-PUB-007 — Response Shape
+### REQ-PUB-007 - Response Shape
 The publisher SHALL return: { status, wp_post_id, url, site, warnings[] }
 `warnings` lists product names from the brief that had 0 text mentions in the final HTML.
 

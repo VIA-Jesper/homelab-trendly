@@ -59,7 +59,7 @@ function loadComplianceRules(): ComplianceRules {
       forbiddenSuperlatives: config.forbiddenSuperlatives ?? [],
     };
   } catch {
-    console.warn("[brief-generator] Could not load compliance-rules.json — using defaults");
+    console.warn("[brief-generator] Could not load compliance-rules.json - using defaults");
     return {
       requireDisclosure: true,
       disclosurePhrases: ["indeholder affiliatelinks", "vi tjener kommission", "annonce", "reklame"],
@@ -86,8 +86,8 @@ function buildBrief(
   const images: ImageRef[] = products.map((p) => ({
     productId: p.id,
     url: p.imageUrl || getImageUrl(p.id),
-    alt: `${p.name} — ${Object.values(p.specs).slice(0, 2).join(", ")}`,
-    caption: `${p.name} hos ${p.retailer} — ${p.priceKr.toLocaleString("da-DK")} kr.`,
+    alt: `${p.name} - ${Object.values(p.specs).slice(0, 2).join(", ")}`,
+    caption: `${p.name} hos ${p.retailer} - ${p.priceKr.toLocaleString("da-DK")} kr.`,
   }));
 
   const { articleType, articleHook } = classifyProducts(products);
@@ -106,7 +106,7 @@ function buildBrief(
 }
 
 /**
- * Async variant — uses live PriceRunner data when available, falls back to product store.
+ * Async variant - uses live PriceRunner data when available, falls back to product store.
  *
  * @param pricerunnerCategoryId - When provided (e.g. from dynamic discovery), fetches products
  *   directly from PR by category ID, bypassing the pre-configured traversal list. The `category`
@@ -147,10 +147,10 @@ export async function generateBriefAsync(
       const freshProducts = await getFreshProductsForCategory(siteKey, category);
       if (freshProducts) return buildBrief(freshProducts.slice(0, 5), category, siteKey);
 
-      // Traversal didn't know this category — look up its PR ID from categories.json and fetch directly
+      // Traversal didn't know this category - look up its PR ID from categories.json and fetch directly
       const catConfig = getPrCategoryConfig(siteKey, category);
       if (catConfig) {
-        console.log(`[brief-generator] "${category}" not in traversal cache — fetching by ID ${catConfig.pricerunnerCategoryId}`);
+        console.log(`[brief-generator] "${category}" not in traversal cache - fetching by ID ${catConfig.pricerunnerCategoryId}`);
         const usedIds = getUsedProductIds(siteKey);
         const all = await fetchProductsByCategoryId(catConfig.pricerunnerCategoryId, country, 30, catConfig.afFilters);
         const fresh = all.filter((p) => !usedIds.includes(p.id));

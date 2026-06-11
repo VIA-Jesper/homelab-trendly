@@ -62,7 +62,7 @@ export function runMigrations(db: Database.Database): void {
       .filter((f) => f.endsWith(".sql"))
       .sort();
   } catch {
-    console.warn("[sqlite] No migrations directory found — skipping migrations");
+    console.warn("[sqlite] No migrations directory found - skipping migrations");
     return;
   }
 

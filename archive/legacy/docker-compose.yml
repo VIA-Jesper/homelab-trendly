@@ -9,13 +9,13 @@ services:
       MCP_PORT: 3001
       LOG_LEVEL: info
 
-      # WordPress credentials — techblog site
+      # WordPress credentials - techblog site
       WP_TECHBLOG_BASE_URL: ${WP_TECHBLOG_BASE_URL:-https://techblog.example.dk}
       WP_TECHBLOG_USER: ${WP_TECHBLOG_USER:-}
       WP_TECHBLOG_APP_PASSWORD: ${WP_TECHBLOG_APP_PASSWORD:-}
       PR_TECHBLOG_PARTNER_ID: ${PR_TECHBLOG_PARTNER_ID:-}
 
-      # WordPress credentials — budgetshop site
+      # WordPress credentials - budgetshop site
       WP_BUDGETSHOP_BASE_URL: ${WP_BUDGETSHOP_BASE_URL:-https://budgetshop.example.dk}
       WP_BUDGETSHOP_USER: ${WP_BUDGETSHOP_USER:-}
       WP_BUDGETSHOP_APP_PASSWORD: ${WP_BUDGETSHOP_APP_PASSWORD:-}

@@ -10,15 +10,15 @@
 ## Required structure
 
 1. **Introduction** (80-120 words)
-   - Open with the price spectrum: "Fra [X] kr. til [Y] kr. — robotstøvsugere dækker nu alle budgetter."
+   - Open with the price spectrum: "Fra [X] kr. til [Y] kr. - robotstøvsugere dækker nu alle budgetter."
    - Tell the reader how to use the article: "Find dit budget og vælg derfra."
    - Focus keyword in first two sentences
 
 2. **Budget bracket sections** (H2 per bracket)
    Structure the products into 2-3 natural price bands from the brief data:
-   - **Under [midpoint] kr.** / **[Low range]** — the accessible pick(s)
-   - **[Mid range] kr.** — the sweet-spot pick(s)
-   - **Over [X] kr.** / **[Premium range]** — the premium pick(s)
+   - **Under [midpoint] kr.** / **[Low range]** - the accessible pick(s)
+   - **[Mid range] kr.** - the sweet-spot pick(s)
+   - **Over [X] kr.** / **[Premium range]** - the premium pick(s)
    
    Each bracket section:
    - H2 heading includes the price range
@@ -33,17 +33,17 @@
    - Affiliate links on two recommended products
 
 ## Tone
-Practical and advisory. The reader is comparison-shopping on a budget — respect their money.
+Practical and advisory. The reader is comparison-shopping on a budget - respect their money.
 Avoid luxury language for budget products. Avoid apologetic language for expensive ones.
 "Du"-form. Plain Danish. Numbers and prices front-and-center.
 
 ## CRO focus
 - Affiliate links appear in EACH bracket section (not only in verdict)
-- Price is the hero of every section — lead with it
+- Price is the hero of every section - lead with it
 - Verdict decision shortcut reduces analysis paralysis
 
 ## What to avoid
 - Ranking products #1-#5 (this is bracket-based, not ranked)
 - Per-product pros/cons lists (this is budget-focused, not feature-focused)
-- "I dette udvalg" — organize by budget logic, not selection logic
+- "I dette udvalg" - organize by budget logic, not selection logic
 - Forgetting to cover ALL products from the brief in at least one bracket

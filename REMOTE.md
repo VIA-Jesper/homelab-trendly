@@ -1,4 +1,4 @@
-# Trendly — Remote Instance Quickstart
+# Trendly - Remote Instance Quickstart
 
 This instance is a secondary worker. It picks up a curated job list (`queue-remote.json`) that was generated on the primary instance to avoid category overlap.
 
@@ -20,7 +20,7 @@ This instance is a secondary worker. It picks up a curated job list (`queue-remo
 
 # Copy and fill in secrets
 cp .env.example .env
-# Edit .env — set API_KEY, WP_URL, WP_USER, WP_APP_PASSWORD, ANTHROPIC_API_KEY
+# Edit .env - set API_KEY, WP_URL, WP_USER, WP_APP_PASSWORD, ANTHROPIC_API_KEY
 ```
 
 ---
@@ -89,8 +89,8 @@ The worker polls until the queue is empty, then exits. Re-run it after queuing m
 # → http://localhost:8080
 ```
 
-- **Schedule (24h)** — schedules the post to go live 24 hours from now (requires QA pass)
-- **Push as Draft** — saves to WP draft for manual review
+- **Schedule (24h)** - schedules the post to go live 24 hours from now (requires QA pass)
+- **Push as Draft** - saves to WP draft for manual review
 
 ---
 
@@ -126,14 +126,14 @@ Copy `remote-jobs.json` to the authority machine (SCP, git push/pull, or any fil
 
 **On the authority machine:**
 ```powershell
-# Dry-run first — see what would be imported
+# Dry-run first - see what would be imported
 .venv\Scripts\python.exe scripts\import_jobs.py --dry-run
 
 # Import for real
 .venv\Scripts\python.exe scripts\import_jobs.py
 ```
 
-Jobs are inserted as `status=complete` — no pipeline re-run. The authority's `suggest_articles.py` will now correctly exclude those products from future suggestions.
+Jobs are inserted as `status=complete` - no pipeline re-run. The authority's `suggest_articles.py` will now correctly exclude those products from future suggestions.
 
 ---
 

@@ -64,9 +64,9 @@ if (brief.articleType === "deal") {
   // Deal: short, time-sensitive, price-focused. 400-700 words. Cover ALL products.
   let productSections = "";
   for (const p of brief.products) {
-    productSections += `## ${p.name} — ${p.priceKr.toLocaleString("da-DK")} kr.
+    productSections += `## ${p.name} - ${p.priceKr.toLocaleString("da-DK")} kr.
 
-[${p.name}](${p.affiliateUrl}) — ${p.specs.brand || "kvalitetsprodukt"} med ${p.specs.rating || "god brugervurdering"}. ${p.specs.merchantCount || "Flere"} forhandlere at vælge mellem.
+[${p.name}](${p.affiliateUrl}) - ${p.specs.brand || "kvalitetsprodukt"} med ${p.specs.rating || "god brugervurdering"}. ${p.specs.merchantCount || "Flere"} forhandlere at vælge mellem.
 
 `;
   }
@@ -81,12 +81,12 @@ Vælg den der passer til dit budget. Sammenlign altid priser hos forhandlere fø
 } else {
   // Single product review or roundup
   let intro = brief.products.length === 1
-    ? `# ${brief.products[0].name} anmeldelse ${year} — er den vaerd pengene?\n\n[${brief.products[0].name}](${brief.products[0].affiliateUrl}) er ikke den billigste på markedet. Til ${brief.products[0].priceKr.toLocaleString("da-DK")} kr. skal den levere.\n\n## Hvad er ${brief.products[0].name}?\n\n${brief.products[0].name} er ${brief.products[0].specs.brand || "et kvalitetsprodukt"}. ${brief.products[0].specs.description || ""} Med ${brief.products[0].specs.rating || "høj brugervurdering"} og ${brief.products[0].specs.merchantCount || "mange"} forhandlere.\n\n**Pris:** ${brief.products[0].priceKr.toLocaleString("da-DK")} kr.\n**Brugerbedømmelse:** ${brief.products[0].specs.rating || "N/A"}\n\n## Det vi kan lide\n\n- **${brief.products[0].specs.rating || "God brugervurdering"}**\n- **${brief.products[0].specs.merchantCount || "Mange"} forhandlere**\n\n## Vores dom\n\n${brief.products[0].name} leverer. Se aktuelle priser.\n`
+    ? `# ${brief.products[0].name} anmeldelse ${year} - er den vaerd pengene?\n\n[${brief.products[0].name}](${brief.products[0].affiliateUrl}) er ikke den billigste på markedet. Til ${brief.products[0].priceKr.toLocaleString("da-DK")} kr. skal den levere.\n\n## Hvad er ${brief.products[0].name}?\n\n${brief.products[0].name} er ${brief.products[0].specs.brand || "et kvalitetsprodukt"}. ${brief.products[0].specs.description || ""} Med ${brief.products[0].specs.rating || "høj brugervurdering"} og ${brief.products[0].specs.merchantCount || "mange"} forhandlere.\n\n**Pris:** ${brief.products[0].priceKr.toLocaleString("da-DK")} kr.\n**Brugerbedømmelse:** ${brief.products[0].specs.rating || "N/A"}\n\n## Det vi kan lide\n\n- **${brief.products[0].specs.rating || "God brugervurdering"}**\n- **${brief.products[0].specs.merchantCount || "Mange"} forhandlere**\n\n## Vores dom\n\n${brief.products[0].name} leverer. Se aktuelle priser.\n`
     : `# ${brief.articleHook || `Bedste ${brief.category} ${year}`}\n\nVi har sammenlignet ${brief.products.length} produkter.\n`;
 
   if (brief.products.length > 1) {
     for (const p of brief.products) {
-      article += `## ${p.name}\n\n[${p.name}](${p.affiliateUrl}) — ${p.priceKr.toLocaleString("da-DK")} kr.\n\n`;
+      article += `## ${p.name}\n\n[${p.name}](${p.affiliateUrl}) - ${p.priceKr.toLocaleString("da-DK")} kr.\n\n`;
     }
     article += `\n## Sådan vælger du\n\nSammenlign priser og find det bedste tilbud.`;
   } else {

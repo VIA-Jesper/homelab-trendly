@@ -35,7 +35,7 @@ class NoRawUrlsCheck(IQACheck):
         return "BLOCKER"
 
     def evaluate(self, content: str, context: dict) -> dict:
-        # Strip markdown links [text](url) — those are intentional and get converted at publish time.
+        # Strip markdown links [text](url) - those are intentional and get converted at publish time.
         # Only flag URLs that appear as bare text outside of link syntax.
         stripped = re.sub(r'\[[^\]]*\]\(https?://[^)]+\)', '', content)
         urls = re.findall(r"https?://", stripped)

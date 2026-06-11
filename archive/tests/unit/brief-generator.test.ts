@@ -52,7 +52,7 @@ vi.mock("../../src/services/category-traversal.js", () => ({
 
 // ─── Tests ────────────────────────────────────────────────────────────────────
 
-describe("generateBrief — article classification", () => {
+describe("generateBrief - article classification", () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });

@@ -7,7 +7,7 @@ from adapters.base import BaseAdapter
 
 log = logging.getLogger(__name__)
 
-# Mistral pricing $/M tokens — update if models change
+# Mistral pricing $/M tokens - update if models change
 _PRICING = {
     "mistral-large-latest":  (2.00, 6.00),
     "mistral-medium-latest": (0.40, 2.00),
@@ -82,7 +82,7 @@ class MistralAdapter(BaseAdapter):
                     if m:
                         retry_after = float(m.group(1)) + 1.0
                     log.warning(
-                        "Mistral rate limit hit (attempt %d/%d) — sleeping %.0fs",
+                        "Mistral rate limit hit (attempt %d/%d) - sleeping %.0fs",
                         attempt + 1, _MAX_RETRIES, retry_after,
                     )
                     time.sleep(retry_after)

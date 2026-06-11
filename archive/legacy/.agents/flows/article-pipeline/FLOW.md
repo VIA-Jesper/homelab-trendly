@@ -131,7 +131,7 @@ Save stdout to `runs/$CATEGORY/$TS/02-validation.txt`.
 
 ### 3a - Spawn three reviewers IN PARALLEL
 
-Launch three `sessions_spawn` simultaneously (no `context` needed — isolated sessions):
+Launch three `sessions_spawn` simultaneously (no `context` needed - isolated sessions):
 
 **SEO reviewer prompt:**
 ```

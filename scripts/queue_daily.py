@@ -1,5 +1,5 @@
 """
-queue_daily.py — Plan and queue article jobs from the candidate pool.
+queue_daily.py - Plan and queue article jobs from the candidate pool.
 
 Dry-run by default. Pass --execute to actually POST to the API.
 
@@ -10,7 +10,7 @@ Selection logic:
           candidates, max one per category per run (variety).
   Never picks two jobs from the same category in one run.
 
-Hero is no longer auto-queued — see brain/inbox/2026-06-10-trendly-scaling-plan.md.
+Hero is no longer auto-queued - see brain/inbox/2026-06-10-trendly-scaling-plan.md.
 Use the API directly or queue-remote.json if a hero roundup is wanted manually.
 
 Usage:
@@ -94,7 +94,7 @@ def build_plan(count: int, include_comparisons: bool = True) -> list[dict]:
         price_str = f"{price:,.0f} kr" if price else "?"
 
         label = f"SINGLE  {cat_display:<23}  {watch:<7}  rank {rank}  {price_str:>10}  {name}"
-        reasoning = f"Score {score:.1f} — rank {rank}, {watch} watchers, {price_str}"
+        reasoning = f"Score {score:.1f} - rank {rank}, {watch} watchers, {price_str}"
 
         plan.append({
             "article_type": "single-product-review",

@@ -74,7 +74,7 @@ function validate(post: SeoMeta): ValidationResult {
       warnings.push("Focus keyword not found in SEO title");
     }
     // No em dashes
-    if (/—|–/.test(seo_title)) {
+    if (/-|-/.test(seo_title)) {
       errors.push("SEO title contains em/en dashes");
     }
     // No HTML entities
@@ -101,7 +101,7 @@ function validate(post: SeoMeta): ValidationResult {
       warnings.push("Focus keyword not found in meta description");
     }
     // No em dashes
-    if (/—|–/.test(seo_metadesc)) {
+    if (/-|-/.test(seo_metadesc)) {
       errors.push("Meta description contains em/en dashes");
     }
     // No HTML entities

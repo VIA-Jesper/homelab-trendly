@@ -7,16 +7,16 @@
 node_modules
 dist
 
-# Volume-only at runtime — not copied by Dockerfile
+# Volume-only at runtime - not copied by Dockerfile
 runs
 output
 
-# Secrets — must never enter the image
+# Secrets - must never enter the image
 .env
 .env.*
 *.env
 
-# Dev/test — not needed in production image
+# Dev/test - not needed in production image
 tests
 vitest.config.ts
 

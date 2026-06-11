@@ -1,9 +1,9 @@
 /**
- * SEO Metadata Generator — v2
+ * SEO Metadata Generator - v2
  * 
  * Hard rules:
  * - No HTML entities (&nbsp;, &#8211;, &#8217;, etc.)
- * - No em/en dashes (– —)
+ * - No em/en dashes (- -)
  * - Focus kw 1-3 words, in title AND desc
  * - Title 40-65 chars with site suffix " | Hus for begyndere"
  * - Desc 120-155 chars
@@ -29,7 +29,7 @@ function strip(text: string): string {
   return text
     .replace(/&#[0-9]+;/g, " ")
     .replace(/&[a-z]+;/gi, " ")
-    .replace(/[–—]/g, "-")
+    .replace(/[--]/g, "-")
     .replace(/\s+/g, " ")
     .trim();
 }
@@ -97,7 +97,7 @@ function buildTitle(rawTitle: string, focusKw: string): string {
 
 function buildDesc(title: string, focusKw: string, excerpt: string, cats: number[]): string {
   // Clean excerpt
-  let clean = strip(excerpt).replace(/[–—]/g, ",");
+  let clean = strip(excerpt).replace(/[--]/g, ",");
   const sentences = clean.split(/[.!?]+/).filter(s => s.trim().length > 15);
   
   // Build from excerpt sentences
@@ -159,7 +159,7 @@ for (const r of results) {
   if (r.seo_title.length > 65) flags.push("title>65");
   if (r.seo_metadesc.length < 100) flags.push("desc<100");
   if (r.seo_metadesc.length > 160) flags.push("desc>160");
-  if (/[–—]/.test(r.seo_title) || /[–—]/.test(r.seo_metadesc)) flags.push("dashes");
+  if (/[--]/.test(r.seo_title) || /[--]/.test(r.seo_metadesc)) flags.push("dashes");
   if (/&#|&[a-z]+;/.test(r.seo_title) || /&#|&[a-z]+;/.test(r.seo_metadesc)) flags.push("entities");
   
   const status = flags.length === 0 ? "✅" : "⚠️";

@@ -1,5 +1,5 @@
 """
-_gen_remote_queue.py — Generate queue-remote.json for a remote Trendly instance.
+_gen_remote_queue.py - Generate queue-remote.json for a remote Trendly instance.
 
 Reads LOCAL_PUBLISHED (hardcoded, updated manually) and remote-jobs.json (if present,
 exported from the remote via export_jobs.py) to avoid suggesting products already covered
@@ -31,7 +31,7 @@ CATEGORY_SLUG = {
     "348": "haveredskaber",
 }
 
-# Articles already published on the LOCAL system — remote should avoid these categories.
+# Articles already published on the LOCAL system - remote should avoid these categories.
 # Count = number of articles the local system has published in that category.
 LOCAL_PUBLISHED: dict[str, int] = {
     "robotplaeneklippere":    1,  # Segway Navimow i105E
@@ -141,7 +141,7 @@ def main():
     jobs = []
     used_slugs: set[str] = set()
 
-    # Pass 1: hero opportunities — 0 locally published AND 5+ candidates
+    # Pass 1: hero opportunities - 0 locally published AND 5+ candidates
     for slug, bucket in sorted(by_slug.items(), key=lambda kv: kv[1][0][0], reverse=True):
         pub = LOCAL_PUBLISHED.get(slug, 0)
         if pub > 0:
@@ -186,7 +186,7 @@ def main():
             "product_urls": [p["product_url"]],
             "product_names": [p["name"]],
             "reasoning": (
-                f"Score {s:.0f} — rank {rank}, {watch} watchers, {price_str}"
+                f"Score {s:.0f} - rank {rank}, {watch} watchers, {price_str}"
             ),
         })
         used_slugs.add(slug)

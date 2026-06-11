@@ -1,8 +1,8 @@
 """
-Widget inserter — injects PriceRunner JS widgets and product images into
+Widget inserter - injects PriceRunner JS widgets and product images into
 article markdown at generator-specified anchor positions.
 
-Runs at publish time and in preview — NOT as a pipeline step.
+Runs at publish time and in preview - NOT as a pipeline step.
 Widget HTML is derived from live brief data; if the widget format changes,
 re-publishing regenerates it without re-running Claude.
 
@@ -145,7 +145,7 @@ def insert_anchored_placements(
 ) -> tuple[str, list[str]]:
     """
     Insert widget and image HTML at anchor positions in the article markdown.
-    Returns (modified_article, errors). Errors are non-fatal — the article is
+    Returns (modified_article, errors). Errors are non-fatal - the article is
     returned with whatever insertions succeeded.
     """
     if not placements:
@@ -158,7 +158,7 @@ def insert_anchored_placements(
 
     lines = article.split("\n")
     errors: list[str] = []
-    # (line_index, html_block) — applied in descending order to preserve indices
+    # (line_index, html_block) - applied in descending order to preserve indices
     insertions: list[tuple[int, str]] = []
 
     for placement in placements:

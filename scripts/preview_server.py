@@ -1,5 +1,5 @@
 """
-preview_server.py – Local WordPress-style article preview.
+preview_server.py - Local WordPress-style article preview.
 
 Renders generated articles from the pipeline SQLite DB in a classic 3-column
 WP layout (left sidebar / article / right sidebar with SEO + QA info).
@@ -10,13 +10,13 @@ Handles both output formats:
   - Legacy (markdown): step.output is plain markdown with META_DESCRIPTION: at the end.
 
 Routes:
-  GET  /                              — Job list (all jobs, newest first)
-  GET  /preview/{job_id}              — Final article in 3-column WP layout
-  GET  /preview/{job_id}/history      — Full pipeline iteration timeline (all step
+  GET  /                              - Job list (all jobs, newest first)
+  GET  /preview/{job_id}              - Final article in 3-column WP layout
+  GET  /preview/{job_id}/history      - Full pipeline iteration timeline (all step
                                         attempts in order: drafts → QA bubbles →
                                         SEO pass → scores). Use to spot token waste
                                         and identify prompts to tune.
-  POST /archive/{job_id}              — Mark job as archived
+  POST /archive/{job_id}              - Mark job as archived
 
 Usage (from repo root):
     .venv\\Scripts\\python.exe scripts\\preview_server.py
@@ -40,7 +40,7 @@ from sqlalchemy.orm import selectinload
 _API_DIR = Path(__file__).parent.parent / "api"
 sys.path.insert(0, str(_API_DIR))
 
-import models  # noqa: F401 – registers all ORM classes with Base
+import models  # noqa: F401 - registers all ORM classes with Base
 from database import AsyncSessionLocal
 from models.job import Job
 from models.site import Site
@@ -58,13 +58,13 @@ DANISH_MONTHS = [
 
 def _fmt_date(dt) -> str:
     if dt is None:
-        return "–"
+        return "-"
     return f"{dt.day}. {DANISH_MONTHS[dt.month - 1]} {dt.year}"
 
 
 def _fmt_datetime(dt) -> str:
     if dt is None:
-        return "–"
+        return "-"
     return f"{dt.day}. {DANISH_MONTHS[dt.month - 1]} {dt.year} {dt.hour:02d}:{dt.minute:02d}"
 
 
@@ -87,7 +87,7 @@ def _md(src: str) -> str:
         block = block.strip()
         if not block:
             continue
-        # Raw HTML block (widget embeds, figure tags) — pass through unchanged
+        # Raw HTML block (widget embeds, figure tags) - pass through unchanged
         if re.match(r"^<[a-zA-Z!/]", block):
             out.append(block)
             continue
@@ -95,7 +95,7 @@ def _md(src: str) -> str:
             out.append("<hr>")
             continue
         lines = block.split("\n")
-        # Headings — render heading line even if followed by text in the same block
+        # Headings - render heading line even if followed by text in the same block
         hm = re.match(r"^(#{1,6})\s+(.+)", lines[0])
         if hm:
             lvl = len(hm.group(1))
@@ -544,7 +544,7 @@ def _shell(title: str, body: str, site_name: str = "Preview", site_desc: str = "
 <meta charset="UTF-8">
 <meta http-equiv="Content-Type" content="{_CT}">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>{_html.escape(title)} – {_html.escape(site_name)}</title>
+<title>{_html.escape(title)} - {_html.escape(site_name)}</title>
 <style>{CSS}</style>
 </head>
 <body>
@@ -613,7 +613,7 @@ async def queue_comparison_form() -> HTMLResponse:
     </div>
     <div>
       <label style="font-size:12px;color:#888;display:block;margin-bottom:4px">Editorial note (optional, shapes the article)</label>
-      <textarea id="editorial-note" rows="2" placeholder="e.g. 'Lead with battery life — this audience cares most about runtime.'" style="width:100%;box-sizing:border-box;background:#1e1e1e;border:1px solid #444;color:#ddd;padding:7px 10px;border-radius:3px;font-size:13px;resize:vertical"></textarea>
+      <textarea id="editorial-note" rows="2" placeholder="e.g. 'Lead with battery life - this audience cares most about runtime.'" style="width:100%;box-sizing:border-box;background:#1e1e1e;border:1px solid #444;color:#ddd;padding:7px 10px;border-radius:3px;font-size:13px;resize:vertical"></textarea>
       <p style="color:#666;font-size:11px;margin:4px 0 0">Guidance threaded into the generator. Used for angle/emphasis, not mechanical text.</p>
     </div>
     <div>
@@ -692,11 +692,11 @@ async def queue_hero_form() -> HTMLResponse:
     <div>
       <label style="font-size:12px;color:#888;display:block;margin-bottom:4px">Product URLs (5-10) <span style="color:#c0392b">*</span></label>
       <textarea id="product-urls" rows="10" placeholder="One PriceRunner product URL per line&#10;https://www.pricerunner.dk/pl/...&#10;https://www.pricerunner.dk/pl/..." style="width:100%;box-sizing:border-box;background:#1e1e1e;border:1px solid #444;color:#ddd;padding:7px 10px;border-radius:3px;font-size:13px;font-family:monospace;resize:vertical"></textarea>
-      <p style="color:#666;font-size:11px;margin:4px 0 0">Order matters — first URL becomes "Bedst overall" pick by default. All URLs must share the same category (auto-detected from product data).</p>
+      <p style="color:#666;font-size:11px;margin:4px 0 0">Order matters - first URL becomes "Bedst overall" pick by default. All URLs must share the same category (auto-detected from product data).</p>
     </div>
     <div>
       <label style="font-size:12px;color:#888;display:block;margin-bottom:4px">Editorial note (optional, shapes the article)</label>
-      <textarea id="editorial-note" rows="2" placeholder="e.g. 'Emphasize quietness — biggest pain point in this category.'" style="width:100%;box-sizing:border-box;background:#1e1e1e;border:1px solid #444;color:#ddd;padding:7px 10px;border-radius:3px;font-size:13px;resize:vertical"></textarea>
+      <textarea id="editorial-note" rows="2" placeholder="e.g. 'Emphasize quietness - biggest pain point in this category.'" style="width:100%;box-sizing:border-box;background:#1e1e1e;border:1px solid #444;color:#ddd;padding:7px 10px;border-radius:3px;font-size:13px;resize:vertical"></textarea>
       <p style="color:#666;font-size:11px;margin:4px 0 0">Guidance threaded into the generator. Used for angle/emphasis, not mechanical text.</p>
     </div>
     <div>
@@ -767,8 +767,8 @@ async def list_jobs() -> HTMLResponse:
         products_ctx = brief_ctx.get("products", [])
         kw = (
             products_ctx[0].get("name") if products_ctx
-            else j.context.get("target_keyword", "–")
-        ) or "–"
+            else j.context.get("target_keyword", "-")
+        ) or "-"
         site_name = j.site.name if j.site else "?"
         status_cls = f"s-{j.status}"
         created = _fmt_datetime(j.created_at)
@@ -778,7 +778,7 @@ async def list_jobs() -> HTMLResponse:
             for s in j.steps
             if s.status == "complete" and isinstance(s.input, dict)
         )
-        cost_str = f"${total_cost:.4f}" if total_cost else "–"
+        cost_str = f"${total_cost:.4f}" if total_cost else "-"
 
         has_content = any(
             s.step_name in ("write_draft", "optimize_seo") and s.status == "complete"
@@ -799,7 +799,7 @@ async def list_jobs() -> HTMLResponse:
         elif wp_post_url and wp_status == "draft":
             wp_cell = f'<a href="{_html.escape(wp_post_url)}" target="_blank"><span class="wp-draft">Draft</span></a>'
         else:
-            wp_cell = '<span style="color:#ccc;font-size:12px">—</span>'
+            wp_cell = '<span style="color:#ccc;font-size:12px">-</span>'
 
         is_archived = j.status == "archived"
         row_cls = "archived-row" if is_archived else ""
@@ -947,7 +947,7 @@ async def preview(job_id: str) -> HTMLResponse:
     ) or ""
     article_type = job.context.get("article_type", "")
 
-    # Pick best content step — prefer QA-corrected article if one was produced
+    # Pick best content step - prefer QA-corrected article if one was produced
     steps_by_name = {s.step_name: s for s in job.steps if s.status == "complete"}
 
     # Build step list for retry selector (ordered)
@@ -989,7 +989,7 @@ async def preview(job_id: str) -> HTMLResponse:
     seo_data = output_data.get("seo", {}) if output_data else {}
     placements = output_data.get("placements", []) if output_data else []
 
-    # Reconstruct brief for widget insertion (graceful — widgets skipped if brief missing)
+    # Reconstruct brief for widget insertion (graceful - widgets skipped if brief missing)
     brief_obj: ContentBrief | None = None
     brief_dict = job.context.get("brief")
     if brief_dict:
@@ -1007,7 +1007,7 @@ async def preview(job_id: str) -> HTMLResponse:
     if qa_step and qa_step.output:
         qa_txt = qa_step.output.strip()
         qa_passed = _qa_verdict(qa_txt)
-        # Strip CORRECTED_ARTICLE block (article JSON from retry) — not QA feedback
+        # Strip CORRECTED_ARTICLE block (article JSON from retry) - not QA feedback
         qa_display = _strip_corrected_article(qa_txt)
         qa_badge_cls = "pv-badge" if qa_passed else "pv-badge fail"
         qa_badge_lbl = "PASS" if qa_passed else "FAIL"
@@ -1018,8 +1018,8 @@ async def preview(job_id: str) -> HTMLResponse:
             f"</div>"
         )
     else:
-        qa_html = '<div class="widget-body"><span class="pv-badge pending">–</span></div>'
-        qa_badge_lbl = "–"
+        qa_html = '<div class="widget-body"><span class="pv-badge pending">-</span></div>'
+        qa_badge_lbl = "-"
         qa_badge_cls = "pv-badge pending"
 
     # Meta description widget
@@ -1032,7 +1032,7 @@ async def preview(job_id: str) -> HTMLResponse:
           <div class="widget-body">
             <div class="meta-preview">{_html.escape(meta_desc)}</div>
             <div class="char-count"><span class="{char_cls}">{char_len} tegn</span>
-              &nbsp;(krav: 120–160)</div>
+              &nbsp;(krav: 120-160)</div>
           </div>
         </div>"""
     else:
@@ -1063,7 +1063,7 @@ async def preview(job_id: str) -> HTMLResponse:
     if placements:
         pl_items = "".join(
             f'<li><strong>{_html.escape(str(p.get("anchor", "?")))}</strong>'
-            f' — {_html.escape(str(p.get("kind", "?")))}</li>'
+            f' - {_html.escape(str(p.get("kind", "?")))}</li>'
             for p in placements
         )
         placements_widget = f"""
@@ -1136,7 +1136,7 @@ async def preview(job_id: str) -> HTMLResponse:
       </div>
     </div>"""
 
-    # Context widget — skip large nested objects; show scalar values only
+    # Context widget - skip large nested objects; show scalar values only
     ctx_rows = "".join(
         f'<div class="info-row"><div class="info-label">{_html.escape(k)}</div>'
         f'<div class="info-val">{_html.escape(str(v)[:120])}</div></div>'
@@ -1244,7 +1244,7 @@ async def preview(job_id: str) -> HTMLResponse:
           if (btn) {{ btn.disabled = false; btn.textContent = origText; }}
         }} else {{
           msg.style.color = '#f39c12';
-          msg.textContent = 'Queued from ' + fromStep + ' — run the worker to continue';
+          msg.textContent = 'Queued from ' + fromStep + ' - run the worker to continue';
           if (btn) btn.textContent = 'Queued ✓';
           setTimeout(() => location.reload(), 2000);
         }}
@@ -1311,7 +1311,7 @@ async def preview(job_id: str) -> HTMLResponse:
             continue
         rj_brief = rj.context.get("brief", {}) or {}
         rj_products = rj_brief.get("products", [])
-        rj_name = (rj_products[0].get("name") if rj_products else None) or "–"
+        rj_name = (rj_products[0].get("name") if rj_products else None) or "-"
         has_content = any(
             s.step_name in ("write_draft", "optimize_seo") and s.status == "complete"
             for s in rj.steps
@@ -1335,7 +1335,7 @@ async def preview(job_id: str) -> HTMLResponse:
     _score_boxes = "".join(
         f'<div class="stat-box">'
         f'<div class="stat-num" style="font-size:16px;color:{"#1c4966" if scores.get(k) is not None else "#aaa"}">'
-        f'{scores.get(k, "–")}</div>'
+        f'{scores.get(k, "-")}</div>'
         f'<div class="stat-lbl">{label}</div></div>'
         for k, label in _score_dims
     )
@@ -1543,7 +1543,7 @@ def _ht_article_card(step, stats: dict, seo: dict, cost_str: str, delta_badge: s
 def _ht_status_card(step) -> str:
     status_cls = {"complete": "pv-badge", "failed": "pv-badge fail",
                   "in_progress": "pv-badge review"}.get(step.status, "pv-badge pending")
-    err = f' — <span style="color:#c0392b;font-size:12px">{_html.escape(step.error_message[:120])}</span>' if step.error_message else ""
+    err = f' - <span style="color:#c0392b;font-size:12px">{_html.escape(step.error_message[:120])}</span>' if step.error_message else ""
     return (
         f'<div class="ht-status-card">'
         f'<span class="{status_cls}">{step.status}</span>'
@@ -1594,12 +1594,12 @@ def _ht_score_card(step) -> str:
     dims = [("seo", "SEO"), ("cro", "CRO"), ("readability", "Readability"), ("overall", "Overall")]
     dim_cells = "".join(
         f'<div class="ht-score-dim">'
-        f'<div class="sd-num">{scores.get(k, "–")}</div>'
+        f'<div class="sd-num">{scores.get(k, "-")}</div>'
         f'<div class="sd-lbl">{label}</div>'
         f'</div>'
         for k, label in dims
     )
-    overall = scores.get("overall", "–")
+    overall = scores.get("overall", "-")
     notes_html = ""
     if scores.get("notes"):
         note_rows = "".join(
@@ -1632,21 +1632,21 @@ def _ht_brief_card(brief_ctx: dict) -> str:
     rows += f'<div class="ht-seo-row"><span class="ht-seo-key">Type</span>{_html.escape(brief_ctx.get("article_type",""))}</div>'
     rows += f'<div class="ht-seo-row"><span class="ht-seo-key">Kategori</span>{_html.escape(brief_ctx.get("category",""))}</div>'
     if rules:
-        rules_str = f'{rules.get("tone","")} · {rules.get("min_words",0)}–{rules.get("max_words",0)} ord'
+        rules_str = f'{rules.get("tone","")} · {rules.get("min_words",0)}-{rules.get("max_words",0)} ord'
         rows += f'<div class="ht-seo-row"><span class="ht-seo-key">Regler</span>{_html.escape(rules_str)}</div>'
     for p in products[:1]:
         spec_parts = [f'{k}: {v}' for k, v in (p.get("specs") or {}).items()]
         rows += (
             f'<div class="ht-seo-row" style="margin-top:8px">'
             f'<span class="ht-seo-key">Produkt</span>'
-            f'<strong>{_html.escape(p.get("name",""))}</strong> — {p.get("price_kr",0):.0f} kr'
+            f'<strong>{_html.escape(p.get("name",""))}</strong> - {p.get("price_kr",0):.0f} kr'
             f'</div>'
         )
         if spec_parts:
             rows += f'<div class="ht-seo-row" style="color:#888;font-size:11px">{_html.escape(" · ".join(spec_parts[:5]))}</div>'
     return (
         f'<div class="ht-bubble">'
-        f'<div class="ht-bubble-header">📋 Brief — startpunktet</div>'
+        f'<div class="ht-bubble-header">📋 Brief - startpunktet</div>'
         f'<div class="ht-bubble-body">{rows}</div>'
         f'</div>'
     )
@@ -1821,7 +1821,7 @@ async def preview_history(job_id: str) -> HTMLResponse:
                 nodes.append(_ht_status_card(step))
 
         else:
-            # Unknown step type — show generic status card
+            # Unknown step type - show generic status card
             nodes.append(_ht_status_card(step))
 
         nodes.append(_ht_connector())

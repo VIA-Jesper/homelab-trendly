@@ -161,7 +161,7 @@ class PipelineService:
         """
         Reset in_progress steps whose lease has expired (worker died without submitting).
         Called at the start of every /work poll so stuck steps are reclaimed automatically.
-        Each expiry counts as an attempt — when max_attempts is reached the job fails.
+        Each expiry counts as an attempt - when max_attempts is reached the job fails.
         """
         cutoff = datetime.now(timezone.utc) - timedelta(seconds=STEP_LEASE_SECONDS)
         result = await db.execute(
@@ -176,7 +176,7 @@ class PipelineService:
             step_cfg = self._get_step_config(step.step_name)
             max_attempts = step_cfg.get("max_attempts", 1) if step_cfg else 1
             step.status = "failed"
-            step.error_message = "Lease expired — worker did not complete in time"
+            step.error_message = "Lease expired - worker did not complete in time"
             log.warning(
                 "Expired stale step %s (%s attempt %d/%d)",
                 step.id, step.step_name, step.attempt, max_attempts,
@@ -234,7 +234,7 @@ class PipelineService:
         Prefers corrected_article (from LLM retry output) over the stored optimize_seo output,
         so retries are checked against the content the LLM actually produced.
         """
-        # Fetch optimize_seo output — needed for meta description regardless of which
+        # Fetch optimize_seo output - needed for meta description regardless of which
         # article version we're checking (corrected or original).
         result = await db.execute(
             select(Step)

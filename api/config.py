@@ -18,7 +18,7 @@ class Settings(BaseSettings):
     api_key: str
     log_level: str = "INFO"
 
-    # Pipeline steps are config-driven — add/reorder/remove without code changes
+    # Pipeline steps are config-driven - add/reorder/remove without code changes
     pipeline_steps: list[dict] = Field(default=DEFAULT_PIPELINE_STEPS)
 
     gemini_api_key: str = ""
@@ -26,7 +26,7 @@ class Settings(BaseSettings):
 
     # ── husforbegyndere.dk ─────────────────────────────────────────────────────
     # Loaded from .env. pr_hus_partner_id is required for PriceRunner widget
-    # embeds — without it the widget inserter falls back to a plain HTML card.
+    # embeds - without it the widget inserter falls back to a plain HTML card.
     pr_hus_partner_id: str = ""
     wp_hus_url: str = ""
     wp_hus_user: str = ""

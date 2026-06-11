@@ -26,7 +26,7 @@ function check(label: string, condition: boolean, detail?: string): void {
     console.log(`  ${GREEN} ${label}`);
     passed++;
   } else {
-    console.log(`  ${RED} ${label}${detail ? ` — ${detail}` : ""}`);
+    console.log(`  ${RED} ${label}${detail ? ` - ${detail}` : ""}`);
     failed++;
   }
 }
@@ -40,7 +40,7 @@ async function smokeCategory(categoryId: string, country = "DK"): Promise<void> 
   check("Returns at least 1 product", products.length >= 1, `got ${products.length}`);
 
   const p = products[0]!;
-  console.log(`  First product: "${p.name}" — ${p.priceKr} kr.`);
+  console.log(`  First product: "${p.name}" - ${p.priceKr} kr.`);
 
   check("Product has id with pr_ prefix", p.id.startsWith("pr_"), p.id);
   check("Price is a finite number", isFinite(p.priceKr) && p.priceKr > 0, String(p.priceKr));
@@ -63,7 +63,7 @@ async function smokeCategory(categoryId: string, country = "DK"): Promise<void> 
 
 async function smokeKeywordSearch(term: string): Promise<void> {
   // Note: the suggest endpoint returns category/brand autocomplete hints, not
-  // individual product results. searchProductsByKeyword reflects that — we
+  // individual product results. searchProductsByKeyword reflects that - we
   // verify the endpoint responds 200 and that our client doesn't throw.
   console.log(`\n${CYAN}▶ Keyword Suggest endpoint: q="${term}"${RESET}`);
   try {
@@ -71,7 +71,7 @@ async function smokeKeywordSearch(term: string): Promise<void> {
     // The suggest API returns 0 product results (it returns category hints via
     // a separate "suggestions" field). That is expected and correct behaviour.
     check("Suggest endpoint returns 200 (no throw)", true);
-    console.log(`  Products from suggest: ${products.length} (expected 0 — categories returned as hints, not products)`);
+    console.log(`  Products from suggest: ${products.length} (expected 0 - categories returned as hints, not products)`);
   } catch (err: unknown) {
     check("Suggest endpoint returns 200 (no throw)", false, String(err));
   }
@@ -82,8 +82,8 @@ async function main(): Promise<void> {
   console.log("=".repeat(50));
 
   // Test 2 representative categories (verified IDs)
-  await smokeCategory("27");  // laptops  — MacBook Air etc.
-  await smokeCategory("94");  // headphones — AirPods etc.
+  await smokeCategory("27");  // laptops  - MacBook Air etc.
+  await smokeCategory("94");  // headphones - AirPods etc.
 
   // Test keyword search
   await smokeKeywordSearch("laptop");

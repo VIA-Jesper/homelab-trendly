@@ -1,28 +1,28 @@
-# Widgets — Placement Engine and Affiliate Widget Rules
+# Widgets - Placement Engine and Affiliate Widget Rules
 
 ## Overview
 The widget system uses an agent-directed placement engine. The agent specifies where
-to inject images and widgets via a `placements` array — there are no inline placeholders
+to inject images and widgets via a `placements` array - there are no inline placeholders
 in the article text. `insertPlacements` is called before Markdown-to-HTML conversion.
 
 ## Requirements
 
-### REQ-WIDGET-001 — Placement Input
+### REQ-WIDGET-001 - Placement Input
 `insertPlacements` SHALL accept an article string, a ContentBrief, a placements array, and
 a siteKey. Each placement entry is: `{ type: "image" | "widget", productId: string, after_paragraph: number }`.
 
-### REQ-WIDGET-002 — Insertion Order
+### REQ-WIDGET-002 - Insertion Order
 Placements SHALL be sorted descending by `after_paragraph` before injection so that
 earlier paragraph indices remain valid after each splice. If `after_paragraph` exceeds
 the paragraph count, the block is appended at the end.
 
-### REQ-WIDGET-003 — Image Block
+### REQ-WIDGET-003 - Image Block
 An image placement SHALL render a `<figure>` element with:
 - `<img src loading="lazy">` with rounded/shadow Tailwind classes
 - `alt`: product name + brand (from specs), falling back to product name only
 - `<figcaption>`: product name + retailer + price in DKK
 
-### REQ-WIDGET-004 — PriceRunner Widget Block
+### REQ-WIDGET-004 - PriceRunner Widget Block
 A widget placement SHALL render the official PriceRunner JS embed widget.
 Two variants are used, alternating by widget position in the article:
 - 1st widget → `singleproduct.js` (lowest price, strong single CTA)
@@ -35,12 +35,12 @@ widgetId (UUID per instance), country (from site config, lowercase).
 The widget block SHALL include a sponsored disclosure link below the embed in compliance with
 Danish marketing rules: `rel="sponsored nofollow"`.
 
-### REQ-WIDGET-005 — Fallback Widget
+### REQ-WIDGET-005 - Fallback Widget
 If `pricerunnerPartnerId` is not configured for the site, the widget SHALL fall back to a
 styled Tailwind card containing: product name, retailer, price in DKK, and a buy CTA link
 with `rel="sponsored"`.
 
-### REQ-WIDGET-006 — Unknown Product
+### REQ-WIDGET-006 - Unknown Product
 If a placement references a product ID not found in the brief, the block is skipped
 (empty string returned) and a warning is logged. No error is thrown.
 

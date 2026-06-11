@@ -38,7 +38,7 @@ function withBrand(p: Partial<RawProduct>, brand: string): Partial<RawProduct> {
 
 // ─── hero ─────────────────────────────────────────────────────────────────────
 
-describe("classifyProducts — hero", () => {
+describe("classifyProducts - hero", () => {
   it("classifies as hero when top score ≥ 2× second and has watchers", () => {
     const products = [
       makeProduct({ ...withWatchers(withRankOne({})), popularityScore: 80 }),
@@ -78,7 +78,7 @@ describe("classifyProducts — hero", () => {
 
 // ─── deal ─────────────────────────────────────────────────────────────────────
 
-describe("classifyProducts — deal", () => {
+describe("classifyProducts - deal", () => {
   it("classifies as deal when priceDrop ≥ 10% and has watchers", () => {
     const products = [
       makeProduct({ ...withWatchers(withPriceDrop({})), popularityScore: 50 }),
@@ -113,7 +113,7 @@ describe("classifyProducts — deal", () => {
 
 // ─── brand-vs-brand ───────────────────────────────────────────────────────────
 
-describe("classifyProducts — brand-vs-brand", () => {
+describe("classifyProducts - brand-vs-brand", () => {
   it("classifies as brand-vs-brand when two different brands have close scores", () => {
     const products = [
       makeProduct({ ...withBrand({}, "Makita"), popularityScore: 50, id: "pr_1" }),
@@ -145,7 +145,7 @@ describe("classifyProducts — brand-vs-brand", () => {
 
 // ─── budget-tiers ─────────────────────────────────────────────────────────────
 
-describe("classifyProducts — budget-tiers", () => {
+describe("classifyProducts - budget-tiers", () => {
   it("classifies as budget-tiers when 3+ products and max ≥ 2× min price", () => {
     const products = [
       makeProduct({ id: "pr_1", priceKr: 3000, popularityScore: 20 }),
@@ -170,7 +170,7 @@ describe("classifyProducts — budget-tiers", () => {
 
 // ─── roundup ─────────────────────────────────────────────────────────────────
 
-describe("classifyProducts — roundup", () => {
+describe("classifyProducts - roundup", () => {
   it("defaults to roundup when no pattern matches", () => {
     const products = [
       makeProduct({ id: "pr_1", popularityScore: 15 }),
@@ -199,7 +199,7 @@ describe("classifyProducts — roundup", () => {
 
 // ─── determinism ─────────────────────────────────────────────────────────────
 
-describe("classifyProducts — determinism", () => {
+describe("classifyProducts - determinism", () => {
   it("returns identical output on repeated calls with same input", () => {
     const products = [
       makeProduct({ ...withWatchers(withRankOne({})), popularityScore: 80 }),

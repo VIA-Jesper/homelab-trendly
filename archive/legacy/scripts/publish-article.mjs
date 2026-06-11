@@ -1,6 +1,6 @@
 /**
  * Publish a trendly article JSON to WordPress.
- * Uses the same publishToWordPress service as the MCP tool — widgets, affiliate links,
+ * Uses the same publishToWordPress service as the MCP tool - widgets, affiliate links,
  * partner ID stamping, and SEO meta are all handled identically.
  *
  * Usage: node scripts/publish-article.mjs <article.json> <brief.json> [site] [--draft]

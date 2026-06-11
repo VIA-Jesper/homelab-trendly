@@ -1,5 +1,5 @@
 """
-PriceRunner API client — fetches live product data for article generation.
+PriceRunner API client - fetches live product data for article generation.
 
 WHY THIS EXISTS
   The article generator needs real product data (price, specs, images, merchant count)
@@ -14,7 +14,7 @@ WHY NO OFFICIAL API
 
 WHY ASYNC
   The FastAPI app is async throughout. Using httpx.AsyncClient keeps everything on the
-  same event loop — no thread pool overhead and no sync blocking.
+  same event loop - no thread pool overhead and no sync blocking.
 
 KEY DECISIONS
   - Rate limit: 1 req/sec minimum. PriceRunner blocks faster bursts.
@@ -82,7 +82,7 @@ async def _with_backoff(fn, max_retries: int = 4):
                 raise
             delay = min(1.0 * (2 ** attempt) + random.random() * 0.5, 30.0)
             logger.warning(
-                "PriceRunner HTTP %s — retry %d/%d in %.1fs",
+                "PriceRunner HTTP %s - retry %d/%d in %.1fs",
                 status, attempt + 1, max_retries, delay,
             )
             await asyncio.sleep(delay)
@@ -131,7 +131,7 @@ class RawProduct:
     """
     Normalised product data ready for the brief builder.
     Mirrors the TypeScript RawProduct type in archive/src/services/product-store.ts.
-    All fields are required — brief builder will reject incomplete products.
+    All fields are required - brief builder will reject incomplete products.
     """
     id: str             # "pr_{pricerunner_id}", e.g. "pr_3332774746"
     name: str
@@ -149,7 +149,7 @@ class RawProduct:
 # ─── Category ID → internal slug map ──────────────────────────────────────────
 # Matches CATEGORY_ID_MAP in archive/src/scraper/pricerunner-client.ts
 # To find the ID: extract it from any PriceRunner URL → /pl/{categoryId}-{productId}/...
-# Missing IDs cause job creation to fail with a 422 — add the entry here, then retry.
+# Missing IDs cause job creation to fail with a 422 - add the entry here, then retry.
 _CATEGORY_SLUG: dict[str, str] = {
     "19":   "stovsugere",
     "81":   "frituregryder-airfryere",
@@ -223,7 +223,7 @@ def get_category_display(slug: str) -> str:
     display = _CATEGORY_DISPLAY.get(slug)
     if display is None:
         logger.warning(
-            "Category slug '%s' has no _CATEGORY_DISPLAY entry — using slug verbatim. "
+            "Category slug '%s' has no _CATEGORY_DISPLAY entry - using slug verbatim. "
             "Add the singular Danish form to api/services/pricerunner_client.py.",
             slug,
         )
@@ -294,7 +294,7 @@ def _compute_popularity_score(p: dict) -> float:
 def _parse_num(v, default: float = 0.0) -> float:
     """Convert PriceRunner numeric fields to float.
 
-    The API sometimes returns "1000+" instead of a plain number — strip
+    The API sometimes returns "1000+" instead of a plain number - strip
     trailing non-digit characters before parsing.
     """
     if v is None:
@@ -333,7 +333,7 @@ def _map_v4_product(p: dict, base_url: str, category_id: str) -> RawProduct:
     internal_category = _CATEGORY_SLUG.get(category_id)
     if internal_category is None:
         logger.warning(
-            "PriceRunner category ID '%s' is not in _CATEGORY_SLUG — add it to "
+            "PriceRunner category ID '%s' is not in _CATEGORY_SLUG - add it to "
             "api/services/pricerunner_client.py before publishing jobs for this category.",
             category_id,
         )
@@ -450,7 +450,7 @@ async def fetch_product_from_url(url: str, country: str = "DK") -> Optional[RawP
 
     Why category fetch instead of a direct product endpoint:
       The public API only has a confirmed category browse endpoint. A size=100 fetch
-      covers virtually all products a user would link to — if they're linking it,
+      covers virtually all products a user would link to - if they're linking it,
       it's likely notable enough to appear in the top 100. If it doesn't appear
       (e.g. very niche or newly listed), we log a warning and return None.
     """

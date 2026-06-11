@@ -23,7 +23,7 @@ export async function withBackoff<T>(fn: () => Promise<T>, maxRetries = 4): Prom
       const retryable = status === 429 || status === 503 || (status !== undefined && status >= 500);
       if (!retryable || attempt === maxRetries) throw err;
       const delayMs = Math.min(1000 * 2 ** attempt + Math.random() * 500, 30_000);
-      console.warn(`[pricerunner] HTTP ${status} — retry ${attempt + 1}/${maxRetries} in ${Math.round(delayMs)}ms`);
+      console.warn(`[pricerunner] HTTP ${status} - retry ${attempt + 1}/${maxRetries} in ${Math.round(delayMs)}ms`);
       await new Promise((r) => setTimeout(r, delayMs));
     }
   }

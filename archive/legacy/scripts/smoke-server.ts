@@ -21,7 +21,7 @@ let failed = 0;
 
 function check(label: string, condition: boolean, detail?: string): void {
   if (condition) { console.log(`  ${GREEN} ${label}`); passed++; }
-  else { console.log(`  ${RED} ${label}${detail ? ` — ${detail}` : ""}`); failed++; }
+  else { console.log(`  ${RED} ${label}${detail ? ` - ${detail}` : ""}`); failed++; }
 }
 
 async function waitForServer(timeoutMs = 15_000): Promise<void> {
@@ -56,7 +56,7 @@ async function runChecks(): Promise<void> {
   check("openapi version 3.1.0", spec.data.openapi === "3.1.0");
   check("title is Trendly API", spec.data.info.title === "Trendly API");
 
-  // ── POST /generate — create a brief ───────────────────────────────────────
+  // ── POST /generate - create a brief ───────────────────────────────────────
   console.log(`\n${CYAN}▶ POST /generate${RESET}`);
   let jobId: string | undefined;
   try {

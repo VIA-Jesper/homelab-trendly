@@ -2,7 +2,7 @@ import { describe, it, expect } from "vitest";
 import { insertPlacements } from "../../src/services/widget-inserter.js";
 import type { ContentBrief, Placement } from "../../src/types/index.js";
 
-// Minimal brief fixture — only what widget-inserter uses
+// Minimal brief fixture - only what widget-inserter uses
 const BRIEF: ContentBrief = {
   brief_id: "test-uuid",
   category: "laptops",
@@ -111,7 +111,7 @@ describe("insertPlacements", () => {
   it("uses fallback link when partnerId is empty (techblog has no partner ID by default)", () => {
     const placements: Placement[] = [{ type: "widget", productId: "pr_123", after_paragraph: 1 }];
     const result = insertPlacements(ARTICLE, BRIEF, placements, "techblog");
-    // Either full widget or fallback link — both should contain rel="sponsored"
+    // Either full widget or fallback link - both should contain rel="sponsored"
     expect(result).toContain('rel="sponsored"');
   });
 

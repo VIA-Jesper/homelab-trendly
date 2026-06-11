@@ -101,8 +101,8 @@ export async function buildBriefForCategory(
   const images: ImageRef[] = fresh.map((p) => ({
     productId: p.id,
     url: p.imageUrl,
-    alt: `${p.name} — ${Object.values(p.specs).slice(0, 2).join(", ")}`,
-    caption: `${p.name} hos ${p.retailer || "PriceRunner"} — ${p.priceKr.toLocaleString("da-DK")} kr.`,
+    alt: `${p.name} - ${Object.values(p.specs).slice(0, 2).join(", ")}`,
+    caption: `${p.name} hos ${p.retailer || "PriceRunner"} - ${p.priceKr.toLocaleString("da-DK")} kr.`,
   }));
 
   const classified = classifyProducts(fresh);
@@ -112,7 +112,7 @@ export async function buildBriefForCategory(
     : classified.articleHook;
 
   if (overrideArticleType) {
-    console.log(`[brief-builder] Classifier suggested "${classified.articleType}" — overridden to "${overrideArticleType}"`);
+    console.log(`[brief-builder] Classifier suggested "${classified.articleType}" - overridden to "${overrideArticleType}"`);
   } else {
     console.log(`[brief-builder] Classifier selected "${articleType}"`);
   }

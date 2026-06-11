@@ -20,7 +20,7 @@ function makeProduct(overrides: Partial<V4Product> = {}): V4Product {
   };
 }
 
-describe("mapV4Product — price parsing", () => {
+describe("mapV4Product - price parsing", () => {
   it("parses lowestPrice.amount from string to float", () => {
     const product = mapV4Product(makeProduct(), BASE, "laptops");
     expect(product.priceKr).toBe(8999.0);
@@ -45,7 +45,7 @@ describe("mapV4Product — price parsing", () => {
   });
 });
 
-describe("mapV4Product — image URL", () => {
+describe("mapV4Product - image URL", () => {
   it("uses image.url when present (absolute)", () => {
     const product = mapV4Product(makeProduct(), BASE, "laptops");
     expect(product.imageUrl).toBe("https://cdn.pricerunner.dk/img/123.jpg");
@@ -70,7 +70,7 @@ describe("mapV4Product — image URL", () => {
   });
 });
 
-describe("mapV4Product — affiliate URL", () => {
+describe("mapV4Product - affiliate URL", () => {
   it("makes relative product URL absolute", () => {
     const product = mapV4Product(makeProduct(), BASE, "laptops");
     expect(product.affiliateUrl).toBe(`${BASE}/pl/3741515-superbook`);
@@ -83,7 +83,7 @@ describe("mapV4Product — affiliate URL", () => {
   });
 });
 
-describe("mapV4Product — additional fields", () => {
+describe("mapV4Product - additional fields", () => {
   it("maps brand.name to specs.brand", () => {
     const product = mapV4Product(makeProduct(), BASE, "laptops");
     expect(product.specs["brand"]).toBe("Acme");
@@ -130,7 +130,7 @@ describe("mapV4Product — additional fields", () => {
   });
 });
 
-describe("mapV4Product — popularity signals", () => {
+describe("mapV4Product - popularity signals", () => {
   it("maps rank.rank to specs.popularityRank", () => {
     const p = makeProduct({ rank: { rank: 3 } });
     const product = mapV4Product(p, BASE, "laptops");

@@ -29,7 +29,7 @@ export function validateArticleFull(
     issues.push(`Word count ${wordCount} exceeds maximum ${typeRules.maxWords} for type "${typeRules.articleType}"`);
   }
 
-  // Disclosure in first 300 chars (optional — site-wide banner handles it)
+  // Disclosure in first 300 chars (optional - site-wide banner handles it)
   const opening = article.slice(0, 300).toLowerCase();
   const hasDisclosure = brief.compliance.disclosurePhrases.some((p) => opening.includes(p.toLowerCase()));
   if (!hasDisclosure && brief.compliance.requireDisclosure) {

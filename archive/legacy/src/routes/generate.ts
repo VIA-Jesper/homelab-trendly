@@ -14,7 +14,7 @@ import { publishToWordPress } from "../services/wp-publisher.js";
 export async function generateRoutes(app: FastifyInstance): Promise<void> {
   const server = app.withTypeProvider<ZodTypeProvider>();
 
-  // POST /generate — start a new job
+  // POST /generate - start a new job
   server.post("/generate", {
     schema: {
       tags: ["jobs"],
@@ -50,7 +50,7 @@ export async function generateRoutes(app: FastifyInstance): Promise<void> {
     return reply.send(job.brief);
   });
 
-  // POST /generate/:job_id/publish — insert placements, convert to HTML, publish to WordPress
+  // POST /generate/:job_id/publish - insert placements, convert to HTML, publish to WordPress
   server.post("/generate/:job_id/publish", {
     schema: {
       tags: ["jobs"],

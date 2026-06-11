@@ -152,7 +152,7 @@ export async function discoverBestCategory(siteKey: string): Promise<DiscoveredC
         const categorySlug = slugify(hit.name);
 
         if (wasPublishedRecently(siteKey, categorySlug, root.defaultCooldownDays)) {
-          console.log(`[category-discoverer] "${hit.name}" in cooldown — skipping`);
+          console.log(`[category-discoverer] "${hit.name}" in cooldown - skipping`);
           continue;
         }
 

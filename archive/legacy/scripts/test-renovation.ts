@@ -8,7 +8,7 @@ const RENOVATION_CATEGORIES: Array<{ id: string; name: string }> = [
 ];
 
 async function main() {
-  console.log("PriceRunner v4 — Renovering & Byggeri leaf categories");
+  console.log("PriceRunner v4 - Renovering & Byggeri leaf categories");
   console.log("=".repeat(60));
 
   for (const cat of RENOVATION_CATEGORIES) {

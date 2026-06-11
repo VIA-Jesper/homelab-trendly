@@ -8,7 +8,7 @@ class BaseAdapter(ABC):
     Each adapter wraps one agentic runtime (Claude CLI, Augment, OpenClaw, etc.)
 
     The adapter receives a prompt + content dict and returns the agent's output as a string.
-    That's all it does — the pipeline loop lives in run_pipeline.py.
+    That's all it does - the pipeline loop lives in run_pipeline.py.
     """
 
     @abstractmethod
@@ -34,7 +34,7 @@ class BaseAdapter(ABC):
 
         Dicts and lists are JSON-serialised so agents receive valid, readable JSON
         rather than Python repr strings. This matters for the generator prompt which
-        reads structured data from context.brief — Python repr is not parseable JSON.
+        reads structured data from context.brief - Python repr is not parseable JSON.
 
         Override this if an adapter needs a completely different format.
         """

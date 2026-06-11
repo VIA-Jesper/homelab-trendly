@@ -79,7 +79,7 @@
                         Vis luk-knap (huskes i 30 dage via localStorage)
                     </label>
                     <p class="description">
-                        OBS: Brugere der lukker baren er stadig eksponeret ved første besøg —
+                        OBS: Brugere der lukker baren er stadig eksponeret ved første besøg -
                         dette er tilstrækkeligt for lovkravet.
                     </p>
                 </td>

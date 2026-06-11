@@ -40,7 +40,7 @@ console.log(`  Top ${topN} by popularity:`);
 top.forEach((p, i) => {
   const rank = p.specs["popularityRank"] ?? "?";
   const watched = p.specs["watchedLabel"] ? ` 👁 ${p.specs["watchedLabel"]}` : "";
-  console.log(`  ${i + 1}. #${rank} ${p.name} — ${p.priceKr} kr. (score: ${p.popularityScore})${watched}`);
+  console.log(`  ${i + 1}. #${rank} ${p.name} - ${p.priceKr} kr. (score: ${p.popularityScore})${watched}`);
 });
 
 // Classify
@@ -56,8 +56,8 @@ classified.articleHook = classified.articleHook.replace(/\\b20\\d{2}\\b/g, curre
 const images: ImageRef[] = top.map((p) => ({
   productId: p.id,
   url: p.imageUrl,
-  alt: `${p.name} — ${p.specs["brand"] ?? ""}`,
-  caption: `${p.name} — ${p.priceKr.toLocaleString("da-DK")} kr. hos ${p.retailer || "sammenlign"}`,
+  alt: `${p.name} - ${p.specs["brand"] ?? ""}`,
+  caption: `${p.name} - ${p.priceKr.toLocaleString("da-DK")} kr. hos ${p.retailer || "sammenlign"}`,
 }));
 
 const siteConfig = SITE_CONFIGS[siteKey];

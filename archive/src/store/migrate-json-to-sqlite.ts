@@ -34,7 +34,7 @@ interface V1PublishedLog {
 function migrateContentRegistry(db: ReturnType<typeof getDb>): void {
   const path = join(DATA_DIR, "content-registry.json");
   if (!existsSync(path)) {
-    console.log("[migrate] content-registry.json not found — skipping");
+    console.log("[migrate] content-registry.json not found - skipping");
     return;
   }
 
@@ -62,13 +62,13 @@ function migrateContentRegistry(db: ReturnType<typeof getDb>): void {
 function migratePublishedLog(db: ReturnType<typeof getDb>): void {
   const path = join(DATA_DIR, "published-log.json");
   if (!existsSync(path)) {
-    console.log("[migrate] published-log.json not found — skipping");
+    console.log("[migrate] published-log.json not found - skipping");
     return;
   }
 
   const log = JSON.parse(readFileSync(path, "utf-8")) as V1PublishedLog;
   if (!log.articles?.length) {
-    console.log("[migrate] published-log.json is empty — skipping");
+    console.log("[migrate] published-log.json is empty - skipping");
     return;
   }
 

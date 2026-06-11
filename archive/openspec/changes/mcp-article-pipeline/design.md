@@ -39,17 +39,17 @@ hand-crafted for a reliable agent experience.
 ### 2. MCP Transport: Streamable HTTP on a dedicated port
 MCP runs as a standalone HTTP server on port 3001, same Node.js process as Fastify (port 3000).
 Single Docker container exposes both ports. Streamable HTTP (POST /mcp) is the current MCP spec
-recommendation — Docker-friendly, no persistent connections required, works with all major agent
+recommendation - Docker-friendly, no persistent connections required, works with all major agent
 frameworks. Legacy SSE transport not used.
 ```
 Docker container
-├── Fastify   :3000  — REST API (dev/testing)
-└── MCP Server :3001  — Agent interface (production)
-    POST /mcp         — Streamable HTTP transport
+├── Fastify   :3000  - REST API (dev/testing)
+└── MCP Server :3001  - Agent interface (production)
+    POST /mcp         - Streamable HTTP transport
 ```
 
 ### 3. Content Registry: atomic JSON writes, publish-only
-Structure: `{ [siteKey: string]: string[] }` — flat array of product IDs per site.
+Structure: `{ [siteKey: string]: string[] }` - flat array of product IDs per site.
 Written only when `status: "publish"` (drafts do not lock products).
 Atomic write pattern: write to `data/content-registry.tmp.json` → rename → replaces live file.
 Prevents corruption on crash mid-write. Single Node.js process; event loop serializes naturally.
@@ -68,7 +68,7 @@ Phase 2: replace step 4 with PriceRunner "recommended/trending" feed filtered to
 
 ### 5. Placement engine: agent-directed paragraph injection
 The agent specifies exactly where each image and widget goes via the placements array.
-The system places them precisely at the requested position — no auto-detection, no inference.
+The system places them precisely at the requested position - no auto-detection, no inference.
 
 ```
 placements: [
@@ -88,25 +88,25 @@ Pipeline:
 Applying in descending order preserves earlier paragraph indices.
 
 Two HTML block types:
-- **Image** (`type: "image"`) — `<figure>` with product image, `loading="lazy"`, `border-radius: 8px`
+- **Image** (`type: "image"`) - `<figure>` with product image, `loading="lazy"`, `border-radius: 8px`
   Alt text: `{productName} - {brand}` if brand available, else `{productName}`
-- **Widget** (`type: "widget"`) — full PriceRunner widget HTML (see Decision 11)
+- **Widget** (`type: "widget"`) - full PriceRunner widget HTML (see Decision 11)
 
-**Post-processing pass — inline affiliate link conversion:**
+**Post-processing pass - inline affiliate link conversion:**
 After widget/image placement and Markdown→HTML conversion, the system scans the article HTML
 for product name mentions and converts them to affiliate links. This is independent of placement
-— the agent does not control it, the system handles it automatically.
+- the agent does not control it, the system handles it automatically.
 
 Rules (from reference, validated against PriceRunner affiliate terms):
 - Match product names using word-boundary, case-insensitive search
 - Convert up to **2 mentions per product** to avoid looking spammy (hurts SEO)
-- **Never link mentions inside headings** (`<h1>`–`<h6>`)
+- **Never link mentions inside headings** (`<h1>`-`<h6>`)
 - Link format: `<a href="{absoluteAffiliateUrl}?partnerId={urlEncodedPartnerId}" rel="sponsored">{mentionText}</a>`
 - If a product has 0 mentions in the article, note it in the publish response as a warning
-  (agent may have omitted a product from the brief — useful signal for the caller)
+  (agent may have omitted a product from the brief - useful signal for the caller)
 
 ### 6. Markdown → HTML: `marked` library
-`marked` is the standard Node.js Markdown→HTML converter — fast, dependency-light, no config needed.
+`marked` is the standard Node.js Markdown→HTML converter - fast, dependency-light, no config needed.
 Alternative `remark` (plugin-based, heavier) is overkill for structured article conversion.
 Conversion happens after placement injection is complete (placements reference paragraph indices
 in the Markdown source, not the HTML output).
@@ -120,7 +120,7 @@ in code or config files.
 ### 8. RankMath SEO fields
 Delivered via WP REST API `meta` field on post creation. Known RankMath meta keys:
 `rank_math_title`, `rank_math_description`, `rank_math_focus_keyword`.
-Featured image (`featured_media`) requires a WP media library ID — skipped in Phase 1 since
+Featured image (`featured_media`) requires a WP media library ID - skipped in Phase 1 since
 images are not uploaded. If RankMath is not installed, meta fields are silently ignored by WP;
 publish succeeds, SEO meta is absent. System logs a warning but does not fail the request.
 
@@ -131,7 +131,7 @@ Category Browse v4 API. Leaf detection: category with no child entries = leaf, f
 
 ```ts
 pricerunnerCountry: "DK"                       // DK | SE | NO | UK
-pricerunnerCategories: ["34", "1448", "243"]   // mix of levels — system resolves
+pricerunnerCategories: ["34", "1448", "243"]   // mix of levels - system resolves
 pricerunnerPartnerId: "adrunner_dk_techblog"   // plain string; system URL-encodes as needed
 categoryMap: { "Køkkenknive": 12, "Bærbare computere": 5 }  // leaf name → WP category ID
 ```
@@ -140,7 +140,7 @@ Traversal applies 1000ms minimum rate limit between requests + UA rotation + bac
 Results cached in memory with 24-hour TTL keyed by `pricerunner-category:{id}:{country}`.
 
 ### 10. PriceRunner API endpoints (corrected from existing codebase)
-The existing `pricerunner-client.ts` uses an undocumented v3 internal endpoint — replaced:
+The existing `pricerunner-client.ts` uses an undocumented v3 internal endpoint - replaced:
 
 ```
 Category Browse v4 (primary):
@@ -156,17 +156,17 @@ Base URLs: DK → `https://www.pricerunner.dk`, SE → `.se`, NO → `.no`, UK �
 Header strategy (per reference): clear all headers before each request, set ONLY:
 - `User-Agent: {rotated browser UA}`
 - `Accept: application/json`
-Persistent Referer/Accept-Language headers are bot signals — removed from axios instance config.
+Persistent Referer/Accept-Language headers are bot signals - removed from axios instance config.
 
-`lowestPrice.amount` is returned as a **string** — parse with `parseFloat()`.
+`lowestPrice.amount` is returned as a **string** - parse with `parseFloat()`.
 Price fallback: `lowestPrice` first, then `cheapestOffer.price`.
 Image fallback: `image.url` first, then `image.path`. Relative URLs (`/pl/...`) → prepend base URL.
 
 Additional fields available from v4 (enrich brief quality):
-- `brand.name` — brand for alt text generation
-- `rating.average`, `rating.count` — prioritise well-rated products in brief
-- `ribbon.type` — `TRENDING_CATEGORY`, `PRICE_DROP_ABSOLUTE` signals boost product priority
-- `priceDrop.percent` — mention in brief for agent to highlight
+- `brand.name` - brand for alt text generation
+- `rating.average`, `rating.count` - prioritise well-rated products in brief
+- `ribbon.type` - `TRENDING_CATEGORY`, `PRICE_DROP_ABSOLUTE` signals boost product priority
+- `priceDrop.percent` - mention in brief for agent to highlight
 
 ### 11. PriceRunner widget HTML template (updated)
 ```html
@@ -197,7 +197,7 @@ Fallback (missing productId or partnerId):
 `<p><a href="{absoluteUrl}" rel="sponsored" class="btn-primary">Se pris på {name}</a></p>`
 
 ### 10. PriceRunner widget HTML template
-Widget HTML is fully system-generated — the agent never writes widget markup. The agent only
+Widget HTML is fully system-generated - the agent never writes widget markup. The agent only
 specifies `{ type: "widget", productId, after_paragraph }` in the placements array.
 
 ```html
@@ -225,7 +225,7 @@ Field resolution:
 - `affiliateUrl` → product's `affiliateUrl` from brief
 
 The disclosure text ("Annonce i samarbejde med PriceRunner") satisfies the Danish compliance
-requirement. The widget is self-disclosing — no separate disclosure element needed per widget.
+requirement. The widget is self-disclosing - no separate disclosure element needed per widget.
 
 ## Risks / Trade-offs
 
@@ -237,7 +237,7 @@ requirement. The widget is self-disclosing — no separate disclosure element ne
 | Agent sends wrong paragraph index | Placement appended at end of article. Article still readable. Not a hard failure. |
 | Content registry diverges from WP reality (e.g. post deleted) | Acceptable in Phase 1. Phase 2 cross-references live WP posts. |
 | Markdown from agent contains raw HTML | `marked` passes raw HTML through unchanged. Could cause layout issues. Agent prompt should discourage mixing. |
-| PriceRunner v3 endpoint silently breaks | Existing seed script uses v3 — must be updated to v4. v3 may stop working without notice. |
+| PriceRunner v3 endpoint silently breaks | Existing seed script uses v3 - must be updated to v4. v3 may stop working without notice. |
 | Category traversal produces too many API calls | 1000ms rate limit + 24h cache mitigates. Warm cache on server start. |
 
 
@@ -245,12 +245,12 @@ requirement. The widget is self-disclosing — no separate disclosure element ne
 
 1. Add env vars for WP credentials to Docker config before deploy
 2. `data/content-registry.json` created empty on first run (correct starting state)
-3. MCP server starts on port 3001 alongside existing Fastify — no breaking change to REST API
+3. MCP server starts on port 3001 alongside existing Fastify - no breaking change to REST API
 4. `file-writer.ts` kept in place during transition; `wp-publisher.ts` added alongside it
 5. Route handler swaps import once WP publisher is verified (per existing REQ-PUB-005)
-6. `pricerunner-client.ts` migrated from v3 to v4 endpoint — seed script updated in tandem
+6. `pricerunner-client.ts` migrated from v3 to v4 endpoint - seed script updated in tandem
 7. Rollback: revert route import and pricerunner-client.ts, MCP server can be stopped independently
 
 ## Open Questions
 
-- None — all decisions resolved during exploration and reference document review.
+- None - all decisions resolved during exploration and reference document review.

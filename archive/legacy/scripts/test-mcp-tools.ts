@@ -10,7 +10,7 @@ const RED   = "\x1b[31m✗\x1b[0m";
 
 function check(label: string, ok: boolean, detail?: string): void {
   if (ok) console.log(`  ${GREEN} ${label}`);
-  else     console.log(`  ${RED} ${label}${detail ? ` — ${detail}` : ""}`);
+  else     console.log(`  ${RED} ${label}${detail ? ` - ${detail}` : ""}`);
 }
 
 async function main(): Promise<void> {

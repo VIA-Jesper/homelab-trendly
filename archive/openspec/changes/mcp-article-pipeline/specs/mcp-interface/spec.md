@@ -1,4 +1,4 @@
-# MCP Interface — Agent Tool Definitions
+# MCP Interface - Agent Tool Definitions
 
 ## ADDED Requirements
 
@@ -15,9 +15,9 @@ for Streamable HTTP transport.
 
 ### Requirement: get_brief tool
 The MCP server SHALL expose a tool named `get_brief` with the following input schema:
-- `category` (string, optional) — PriceRunner leaf category name to write about
-- `productUrl` (string, optional) — specific product URL to build brief around
-- `site` (string, required) — site key identifying which site config to use
+- `category` (string, optional) - PriceRunner leaf category name to write about
+- `productUrl` (string, optional) - specific product URL to build brief around
+- `site` (string, required) - site key identifying which site config to use
 
 If `category` is omitted, the system SHALL select the leaf category with the most unwritten
 products for the given site (most-unwritten-first algorithm).
@@ -33,7 +33,7 @@ images, writing_rules, compliance).
 - **WHEN** agent calls get_brief with category="laptops" and site="techblog"
 - **THEN** system returns a brief with up to 5 fresh products and a job_id
 
-#### Scenario: Category omitted — system selects
+#### Scenario: Category omitted - system selects
 - **WHEN** agent calls get_brief with no category and site="techblog"
 - **THEN** system picks the leaf category with the most unwritten products and returns a brief
 
@@ -49,9 +49,9 @@ images, writing_rules, compliance).
 
 ### Requirement: validate_article tool
 The MCP server SHALL expose a tool named `validate_article` with the following input schema:
-- `job_id` (string, required) — references the brief returned by get_brief
-- `article` (string, required) — article content in Markdown
-- `placements` (array, required) — planned widget/image placements (same shape as publish_article)
+- `job_id` (string, required) - references the brief returned by get_brief
+- `article` (string, required) - article content in Markdown
+- `placements` (array, required) - planned widget/image placements (same shape as publish_article)
 
 The tool SHALL validate the article against the brief and planned placements without publishing.
 It SHALL return: `{ passed: boolean, wordCount: number, issues: string[], scores: { seo, voice, cro } }`.
@@ -92,12 +92,12 @@ Scores (0-100 each):
 
 ### Requirement: publish_article tool
 The MCP server SHALL expose a tool named `publish_article` with the following input schema:
-- `job_id` (string, required) — references the brief returned by get_brief
-- `article` (string, required) — article content in Markdown
-- `site` (string, required) — site key
-- `status` (enum, required) — `"publish"` or `"draft"`
-- `placements` (array, required) — `[{ type: "image"|"widget", productId, after_paragraph }]`
-- `seo` (object, optional) — `{ title?, description?, slug?, focus_keyword?, featured_image_product_id? }`
+- `job_id` (string, required) - references the brief returned by get_brief
+- `article` (string, required) - article content in Markdown
+- `site` (string, required) - site key
+- `status` (enum, required) - `"publish"` or `"draft"`
+- `placements` (array, required) - `[{ type: "image"|"widget", productId, after_paragraph }]`
+- `seo` (object, optional) - `{ title?, description?, slug?, focus_keyword?, featured_image_product_id? }`
 
 The tool SHALL: convert Markdown to HTML, inject placements, run inline affiliate link
 conversion, apply SEO metadata, publish to WordPress, update the content registry (if status

@@ -31,7 +31,7 @@ interface LinkerResult {
  * Rules:
  *  - Case-insensitive, word-boundary match
  *  - Max 2 links per product
- *  - Never inside <h1>–<h6> tags
+ *  - Never inside <h1>-<h6> tags
  *  - Link uses rel="sponsored"
  */
 /**

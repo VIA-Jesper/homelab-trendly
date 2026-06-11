@@ -1,16 +1,16 @@
 ## Type-specific instructions: hero
 
 articleType in brief is "hero". There are 5-10 products in context.brief.products.
-This is a roundup guide — the reader is at the top of the funnel, comparing the whole
+This is a roundup guide - the reader is at the top of the funnel, comparing the whole
 category. They need a buying guide AND specific recommendations. You serve both.
 
 ### Target word count
 1500-2500 words total. Aim for 1700-2000. The minimum is enforced from brief.writing_rules.min_words.
-Longer is fine if every section earns its space — no padding, no restating.
+Longer is fine if every section earns its space - no padding, no restating.
 
 ### Required structure
 
-0. H1 (MANDATORY — first line of article)
+0. H1 (MANDATORY - first line of article)
    Format: # [Category singular] guide [year]: [one-line angle]
    The year is brief.article_hook's year. Category name comes from brief.category (use the singular Danish display form).
    Example: # Røremaskine guide 2026: find den rette model til dit køkken
@@ -26,7 +26,7 @@ Longer is fine if every section earns its space — no padding, no restating.
 
 2. Vores anbefalinger på 30 sekunder (50-100 words, H2: "Vores anbefalinger på 30 sekunder")
    - Quick-glance bucket recommendations with affiliate links. Pick 3-4 buckets that fit the brief.
-   - Format each as a single line: "**Bedst overall**: [Product](affiliateUrl) — kort begrundelse."
+   - Format each as a single line: "**Bedst overall**: [Product](affiliateUrl) - kort begrundelse."
    - Bucket suggestions (choose what makes sense for the products in the brief):
      - Bedst overall
      - Bedst budget / billigst
@@ -45,7 +45,7 @@ Longer is fine if every section earns its space — no padding, no restating.
    - No affiliate links in this section. Pure guidance.
 
 4. Per-product sections (5-10 products, 120-180 words each)
-   Heading format: ## [N]. [Product name] — [bucket label]
+   Heading format: ## [N]. [Product name] - [bucket label]
    Where [bucket label] is chosen by you based on the product's spec/price position in the brief.
    At least 2 of your N product headings MUST contain "Bedst" (e.g. "Bedst i test", "Bedst budget", "Bedst til store haver", "Bedst på pris").
    Other headings may use editorial framing without "Bedst" (e.g. "Premium-valget", "Det stille valg").
@@ -59,7 +59,7 @@ Longer is fine if every section earns its space — no padding, no restating.
    - Widget anchor: end-of-section on this section's H2.
 
    Numbering: prefix the heading with the rank number (1., 2., ...). The numbering reflects
-   editorial preference, not raw popularity from the brief — you decide the order. The
+   editorial preference, not raw popularity from the brief - you decide the order. The
    first product in your section list should match the "Bedst overall" pick.
 
 5. Sammenligning på et øjeblik (H2: "Sammenligning på et øjeblik")
@@ -68,7 +68,7 @@ Longer is fine if every section earns its space — no padding, no restating.
    - Scannable. No prose in the table cells.
    - This section has no image or widget anchor.
 
-6. Vores anbefaling (H2: "Vores anbefaling" or "Hvad skal du vælge?" — pick one that fits)
+6. Vores anbefaling (H2: "Vores anbefaling" or "Hvad skal du vælge?" - pick one that fits)
    - 100-150 words. The verdict section.
    - State a clear recommendation per use case: "Vil du have X, vælg [Product]. Har du brug for Y, er [Product] svaret."
    - The top 3 products in brief.products MUST appear as affiliate markdown links in this section.
@@ -78,11 +78,11 @@ Longer is fine if every section earns its space — no padding, no restating.
    - 3-5 questions. Each question as H3, answer in 2-4 sentences directly below.
    - Questions must be category-specific and target real search queries people ask.
      Good question types:
-     - "Hvad er den bedste [category] til [specific use case]?" — name the winner + brief why
-     - "Hvad koster en [category]?" — give a price range from the brief, low to high
-     - "Hvad skal jeg kigge efter når jeg køber en [category]?" — 2-3 key criteria, brief
-     - "Er [brand] [category] gode?" — direct answer, balanced
-     - "Hvor længe holder batteriet på en [category]?" — category-specific spec question
+     - "Hvad er den bedste [category] til [specific use case]?" - name the winner + brief why
+     - "Hvad koster en [category]?" - give a price range from the brief, low to high
+     - "Hvad skal jeg kigge efter når jeg køber en [category]?" - 2-3 key criteria, brief
+     - "Er [brand] [category] gode?" - direct answer, balanced
+     - "Hvor længe holder batteriet på en [category]?" - category-specific spec question
    - Answers are informational. No affiliate links in this section.
    - No meta-commentary ("det er et godt spørgsmål"). Answer directly.
    - This section has no image or widget anchor.
@@ -93,32 +93,32 @@ Longer is fine if every section earns its space — no padding, no restating.
 - Every pricerunner.dk URL must contain ?refsite=adrunner_dk_husforbegyndere.
 
 ### SEO
-- Focus keyword: "[category] guide" (e.g. "røremaskine guide") — drop the year for the focus_keyword field.
+- Focus keyword: "[category] guide" (e.g. "røremaskine guide") - drop the year for the focus_keyword field.
 - SEO title: 50-60 chars, contains category name + "guide". Include the year if it fits. Example: "Røremaskine guide 2026: find den rette model".
 - SEO slug: "[category]-guide" or "[category]-guide-[year]" (lowercase, hyphenated).
 - featured_image_product_id: id of the "Bedst overall" pick (your top product, usually brief.products[0]).
 
 ### Tone
 Authoritative buying-guide voice. First-person plural ("vi anbefaler", "vores favorit").
-Direct and decisive — readers came here for a recommendation, not hedging. Warmth is good
+Direct and decisive - readers came here for a recommendation, not hedging. Warmth is good
 in the buying guide section; sharpness is right in the verdict.
 
-IMPORTANT: You write from product specifications in the brief — NOT from personal testing.
+IMPORTANT: You write from product specifications in the brief - NOT from personal testing.
 Never claim to have tested, owned, or used any product over time. Specs argue the case.
 You frame and rank them based on the brief data.
 
 ### What to avoid
-- Missing buying guide section — "Sådan vælger du..." is mandatory
-- Missing FAQ section — "Ofte stillede spørgsmål" is mandatory
-- Missing bucket labels — at least 2 product headings must contain "Bedst"
-- Fewer than 5 product sections — minimum is 5
+- Missing buying guide section - "Sådan vælger du..." is mandatory
+- Missing FAQ section - "Ofte stillede spørgsmål" is mandatory
+- Missing bucket labels - at least 2 product headings must contain "Bedst"
+- Fewer than 5 product sections - minimum is 5
 - Missing comparison table
-- Wishy-washy verdict ("alle er gode valg") — name winners by use case
-- Vague pros like "god ydelse" — every claim needs a spec or number
-- Passive CTA in verdict — always use an active click verb
-- Generic buying criteria that could apply to any category — be specific to this category
-- Numbering products by raw "popularity rank" from brief — editorial order is your call
+- Wishy-washy verdict ("alle er gode valg") - name winners by use case
+- Vague pros like "god ydelse" - every claim needs a spec or number
+- Passive CTA in verdict - always use an active click verb
+- Generic buying criteria that could apply to any category - be specific to this category
+- Numbering products by raw "popularity rank" from brief - editorial order is your call
 - Review counts, watcher counts, or PriceRunner name in body text
 - AI hedge phrases: "Det er alligevel rimeligt at nævne", "man kan argumentere for"
 - "ligeledes", "endvidere", "desuden" as sentence starters
-- ASCII substitutes for Danish characters (aa→å, ae→æ, oe→ø) — always use the real characters
+- ASCII substitutes for Danish characters (aa→å, ae→æ, oe→ø) - always use the real characters

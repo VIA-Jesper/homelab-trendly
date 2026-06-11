@@ -71,9 +71,9 @@ console.log(`\n  ℹ️  Article type: "${typeRules.articleType}" (from ${articl
 
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
-function pass(label: string, msg = "") { console.log(`  ✅ ${label}${msg ? " — " + msg : ""}`); }
-function fail(label: string, msg = "") { console.log(`  ❌ ${label}${msg ? " — " + msg : ""}`); }
-function warn(label: string, msg = "") { console.log(`  ⚠️  ${label}${msg ? " — " + msg : ""}`); }
+function pass(label: string, msg = "") { console.log(`  ✅ ${label}${msg ? " - " + msg : ""}`); }
+function fail(label: string, msg = "") { console.log(`  ❌ ${label}${msg ? " - " + msg : ""}`); }
+function warn(label: string, msg = "") { console.log(`  ⚠️  ${label}${msg ? " - " + msg : ""}`); }
 function section(title: string)        { console.log(`\n${"─".repeat(60)}\n  ${title}\n${"─".repeat(60)}`); }
 
 let failures = 0;
@@ -81,18 +81,18 @@ let failures = 0;
 // ── 1. Content checks ─────────────────────────────────────────────────────────
 section("1. Content compliance");
 
-// Word count — use type-aware targets
+// Word count - use type-aware targets
 const wordCount = article.trim().split(/\s+/).length;
 const { minWords, maxWords } = typeRules;
-if (wordCount < minWords) { fail("Word count", `${wordCount} words — below minimum of ${minWords} for type "${typeRules.articleType}"`); failures++; }
-else if (wordCount > maxWords) { warn("Word count", `${wordCount} words — above recommended maximum of ${maxWords} for type "${typeRules.articleType}"`); }
-else { pass("Word count", `${wordCount} words (${minWords}–${maxWords} for "${typeRules.articleType}")`); }
+if (wordCount < minWords) { fail("Word count", `${wordCount} words - below minimum of ${minWords} for type "${typeRules.articleType}"`); failures++; }
+else if (wordCount > maxWords) { warn("Word count", `${wordCount} words - above recommended maximum of ${maxWords} for type "${typeRules.articleType}"`); }
+else { pass("Word count", `${wordCount} words (${minWords}-${maxWords} for "${typeRules.articleType}")`); }
 
-// Disclosure (optional — handled by WordPress site-wide banner)
+// Disclosure (optional - handled by WordPress site-wide banner)
 const articleLower = article.toLowerCase();
 const disclosureFound = brief.compliance.disclosurePhrases.some(p => articleLower.includes(p.toLowerCase()));
 if (disclosureFound) pass("Disclosure phrase present (in-article)");
-else { warn("Disclosure phrase", "Not found in article body — ensure WordPress site-wide disclosure is active"); }
+else { warn("Disclosure phrase", "Not found in article body - ensure WordPress site-wide disclosure is active"); }
 
 // Forbidden superlatives
 for (const term of brief.compliance.forbiddenSuperlatives) {
@@ -102,7 +102,7 @@ if (!brief.compliance.forbiddenSuperlatives.some(t => articleLower.includes(t.to
   pass("No forbidden superlatives");
 }
 
-// Pros/Cons — only required for types that specify it
+// Pros/Cons - only required for types that specify it
 // Accept both traditional headers (fordele/ulemper) and type-module variants (det vi kan lide / det vi ville ændre)
 if (typeRules.requireProsCons) {
   const hasProsCons = /fordele|ulemper|det vi kan lide|det vi ville \u00e6ndre/i.test(article);
@@ -112,7 +112,7 @@ if (typeRules.requireProsCons) {
   pass("Pros/Cons", `not required for type "${typeRules.articleType}"`);
 }
 
-// Verdict — all types currently require a verdict
+// Verdict - all types currently require a verdict
 if (typeRules.requireVerdict) {
   const hasVerdict = /vores dom|konklusion|sammenfattende|sådan vælger du|det ender med|hvilken skal du vælge/i.test(article);
   if (hasVerdict) pass("Verdict section present");
@@ -143,7 +143,7 @@ for (const p of placements) {
     badPlacements++;
   }
 }
-// Check placements per product — rules vary by article type:
+// Check placements per product - rules vary by article type:
 // - hero: hero product (first/rank-1) needs image+widget; alternatives need widget only
 // - single-product-review: the one product needs image+widget
 // - all others (roundup, deal, brand-vs-brand, budget-tiers): every product needs image+widget
@@ -181,7 +181,7 @@ else    warn("No H1 found in rendered HTML");
 
 console.log("  → insertAffiliateLinks...");
 const { html: finalHtml, warnings } = insertAffiliateLinks(html, brief, siteKey);
-if (warnings.length === 0) pass("Affiliate links — all products linked");
+if (warnings.length === 0) pass("Affiliate links - all products linked");
 else warn("Affiliate link warnings", warnings.join(", "));
 
 // Save rendered HTML for inspection
@@ -217,7 +217,7 @@ if (focus) {
 }
 if (!article.includes("## ")) { seoScore -= 20; seoIssues.push("No H2 headings found"); }
 
-// Voice checks — AI tells from type config
+// Voice checks - AI tells from type config
 let voiceScore = 100;
 const foundTells = typeRules.aiTells.filter(t => article.toLowerCase().includes(t.toLowerCase()));
 if (foundTells.length > 0) {
@@ -228,7 +228,7 @@ const hasO = article.includes("robotstovsugere");
 const hasOslash = article.includes("robotstøvsugere");
 if (hasO && hasOslash) { voiceScore -= 15; foundTells.push("Inconsistent spelling (o vs ø)"); }
 
-// CRO checks — weights from type config
+// CRO checks - weights from type config
 let croScore = 100;
 const croIssues: string[] = [];
 const lastPara = paragraphs[paragraphs.length - 1]?.toLowerCase() || "";
@@ -238,7 +238,7 @@ if (!lastPara.includes("http")) {
   croScore -= verdictAffiliate;
   croIssues.push(`No affiliate link in the final verdict (-${verdictAffiliate})`);
 }
-// CRO placement density — expected count varies by type:
+// CRO placement density - expected count varies by type:
 // - hero: 1 image + 1 widget for star + 1 widget per alternative = products.length + 1
 // - single-product-review: 1 image + 1 widget = 2
 // - all others: 2 per product (image + widget)

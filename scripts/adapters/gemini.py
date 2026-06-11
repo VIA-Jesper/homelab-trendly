@@ -8,7 +8,7 @@ from adapters.base import BaseAdapter
 
 log = logging.getLogger(__name__)
 
-# Gemini 3.1 Pro Preview pricing ($/M tokens) — tracked even on free tier
+# Gemini 3.1 Pro Preview pricing ($/M tokens) - tracked even on free tier
 # so cost figures are comparable to Claude runs.
 _INPUT_COST_PER_M = 1.25
 _OUTPUT_COST_PER_M = 10.00
@@ -24,7 +24,7 @@ class GeminiAdapter(BaseAdapter):
     Adapter for Google Gemini via the google-genai SDK.
 
     Default model: gemini-3.1-pro-preview (free tier: limited experimental quota).
-    Requires GEMINI_API_KEY environment variable — get a key at aistudio.google.com.
+    Requires GEMINI_API_KEY environment variable - get a key at aistudio.google.com.
 
     Rate limiting:
       Enforces a minimum interval between calls (default 6.5s, free-tier safe).
@@ -37,7 +37,7 @@ class GeminiAdapter(BaseAdapter):
     """
 
     def __init__(self, model: str = "gemini-3.1-pro-preview") -> None:
-        from google import genai  # noqa: PLC0415 — lazy import, only loaded when using Gemini
+        from google import genai  # noqa: PLC0415 - lazy import, only loaded when using Gemini
         from google.genai import types as _types  # noqa: PLC0415
         api_key = os.environ.get("GEMINI_API_KEY")
         if not api_key:
@@ -84,7 +84,7 @@ class GeminiAdapter(BaseAdapter):
                     if m:
                         retry_after = float(m.group(1)) + 1.0
                     log.warning(
-                        "Gemini rate limit hit (attempt %d/%d) — sleeping %.0fs",
+                        "Gemini rate limit hit (attempt %d/%d) - sleeping %.0fs",
                         attempt + 1, _MAX_RETRIES, retry_after,
                     )
                     time.sleep(retry_after)
@@ -100,7 +100,7 @@ class GeminiAdapter(BaseAdapter):
         response = self._call_with_backoff(instruction)
 
         if not response.candidates:
-            raise RuntimeError("Gemini returned no candidates — likely a safety block")
+            raise RuntimeError("Gemini returned no candidates - likely a safety block")
 
         output = response.text.strip()
         if not output:
@@ -119,7 +119,7 @@ class GeminiAdapter(BaseAdapter):
             parsed, _ = json.JSONDecoder(strict=False).raw_decode(output)
             output = json.dumps(parsed, ensure_ascii=False)
         except (ValueError, json.JSONDecodeError):
-            pass  # Not JSON output — return as-is
+            pass  # Not JSON output - return as-is
 
         # Capture usage for cost tracking
         usage = response.usage_metadata

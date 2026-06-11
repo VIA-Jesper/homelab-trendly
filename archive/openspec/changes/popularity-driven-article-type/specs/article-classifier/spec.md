@@ -5,11 +5,11 @@ The classifier SHALL accept a non-empty array of `RawProduct` objects (sorted by
 
 Classification SHALL follow these rules in priority order:
 
-1. **hero** — top product `popularityScore` ≥ 2× second product score (or only one product), AND `specs.popularityRank === "1"` is present or `specs.watchedLabel` is present.
-2. **deal** — top product `specs.priceDrop` is present AND numeric value ≥ 10, AND `specs.watchedLabel` is present.
-3. **brand-vs-brand** — top two products have different `specs.brand` values AND their `popularityScore` values are within 20% of each other.
-4. **budget-tiers** — at least three products are present AND the highest `priceKr` is ≥ 2× the lowest `priceKr`.
-5. **roundup** — default when no other pattern matches.
+1. **hero** - top product `popularityScore` ≥ 2× second product score (or only one product), AND `specs.popularityRank === "1"` is present or `specs.watchedLabel` is present.
+2. **deal** - top product `specs.priceDrop` is present AND numeric value ≥ 10, AND `specs.watchedLabel` is present.
+3. **brand-vs-brand** - top two products have different `specs.brand` values AND their `popularityScore` values are within 20% of each other.
+4. **budget-tiers** - at least three products are present AND the highest `priceKr` is ≥ 2× the lowest `priceKr`.
+5. **roundup** - default when no other pattern matches.
 
 #### Scenario: Single dominant product → hero
 - **WHEN** the top product has popularityScore ≥ 2× the second product AND has watchers or rank 1
@@ -47,7 +47,7 @@ The `articleHook` SHALL be a single Danish-language sentence suitable as an arti
 - **THEN** articleHook contains the price drop percentage
 
 ### Requirement: Classifier is a pure function with no side effects
-The classifier SHALL NOT perform any I/O, network calls, or mutations to its inputs. It SHALL be deterministic — the same input SHALL always produce the same output.
+The classifier SHALL NOT perform any I/O, network calls, or mutations to its inputs. It SHALL be deterministic - the same input SHALL always produce the same output.
 
 #### Scenario: Repeated calls return identical output
 - **WHEN** classifyProducts is called twice with the same product array

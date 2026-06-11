@@ -1,10 +1,10 @@
 """
-Brief builder — assembles a ContentBrief from PriceRunner product data.
+Brief builder - assembles a ContentBrief from PriceRunner product data.
 
 WHY THIS EXISTS
   The generator agent needs a structured brief (product data + writing rules +
   compliance rules) rather than raw API responses. The brief is the contract
-  between data fetching and content generation — it normalises everything the
+  between data fetching and content generation - it normalises everything the
   agent needs into one JSON blob that goes into job.context["brief"].
 
   This is a Python port of archive/src/services/brief-builder.ts, simplified
@@ -18,7 +18,7 @@ WHY PYDANTIC MODELS
 
 SITE CONFIG
   Each site has different WP credentials, a PriceRunner partner ID, and writing
-  tone preferences. Config lives here for now — move to DB or Settings if sites
+  tone preferences. Config lives here for now - move to DB or Settings if sites
   proliferate. The partner ID is required for widget rendering; without it the
   widget inserter falls back to a plain HTML card.
 
@@ -85,7 +85,7 @@ def get_site_config(site_key: str) -> SiteConfig:
 class ProductBrief(BaseModel):
     """
     Slimmed-down product representation for the generator agent.
-    imageUrl is excluded — that lives in ImageRef. popularityScore and outOfStock
+    imageUrl is excluded - that lives in ImageRef. popularityScore and outOfStock
     are also excluded since the agent shouldn't reason about internal scoring.
     """
     id: str            # "pr_3332774746"
@@ -116,7 +116,7 @@ class ComplianceRules(BaseModel):
     """
     Rules the generator must follow for legal/trust reasons.
     requireDisclosure=False because we use a site-wide disclosure rather than
-    per-article — the generator still includes it but QA doesn't fail without it.
+    per-article - the generator still includes it but QA doesn't fail without it.
     """
     require_disclosure: bool
     disclosure_phrases: list[str]
@@ -126,7 +126,7 @@ class ComplianceRules(BaseModel):
 class ContentBrief(BaseModel):
     """
     Full brief passed to the generator agent as job.context["brief"].
-    Every field here is referenced by name in the generator prompt — don't
+    Every field here is referenced by name in the generator prompt - don't
     rename fields without updating the prompt accordingly.
     """
     brief_id: str
@@ -173,10 +173,10 @@ def _build_article_hook(product: RawProduct) -> str:
     if watched:
         return f"{product.name}: Er det den robot {watched} danskere holder øje med en god grund til?"
     if price_drop:
-        return f"{product.name}: Ny lavpris — er det nu du skal slå til?"
+        return f"{product.name}: Ny lavpris - er det nu du skal slå til?"
     if rank == "1":
-        return f"{product.name}: Kategoritopper — men holder den hvad den lover?"
-    return f"{product.name} anmeldelse — er det pengene værd?"
+        return f"{product.name}: Kategoritopper - men holder den hvad den lover?"
+    return f"{product.name} anmeldelse - er det pengene værd?"
 
 
 def build_brief_for_comparison(products: list[RawProduct], site_key: str) -> ContentBrief:
@@ -200,8 +200,8 @@ def build_brief_for_comparison(products: list[RawProduct], site_key: str) -> Con
             specs=product.specs,
         ))
         brand = product.specs.get("brand", "")
-        alt_text = f"{product.name} — {brand}".strip(" —") if brand else product.name
-        caption = f"{product.name} hos {product.retailer} — {product.price_kr:,.0f} kr.".replace(",", ".")
+        alt_text = f"{product.name} - {brand}".strip(" -") if brand else product.name
+        caption = f"{product.name} hos {product.retailer} - {product.price_kr:,.0f} kr.".replace(",", ".")
         image_refs.append(ImageRef(
             product_id=product.id,
             url=product.image_url,
@@ -210,7 +210,7 @@ def build_brief_for_comparison(products: list[RawProduct], site_key: str) -> Con
         ))
 
     names = [p.name for p in products]
-    hook = f"{names[0]} vs {names[1]} — hvad er det rigtige valg for dig?"
+    hook = f"{names[0]} vs {names[1]} - hvad er det rigtige valg for dig?"
 
     # 3-4 product comparisons need more room: 700 + N*250 words.
     max_words = max(site.max_words, 1600) if len(products) >= 3 else site.max_words
@@ -246,10 +246,10 @@ def build_brief_for_hero(
     just product names.
 
     Category is auto-inferred from products[0].category (the PriceRunner slug).
-    All products must share the same category — mixing categories in a single
+    All products must share the same category - mixing categories in a single
     hero article would confuse the H1, SEO slug, and buying guide section.
 
-    Word count is overridden to 1500-2800 — site defaults (700-1200) are too low
+    Word count is overridden to 1500-2800 - site defaults (700-1200) are too low
     for a 5-10 product roundup with a buying guide.
     """
     if not (5 <= len(products) <= 10):
@@ -284,8 +284,8 @@ def build_brief_for_hero(
             specs=product.specs,
         ))
         brand = product.specs.get("brand", "")
-        alt_text = f"{product.name} — {brand}".strip(" —") if brand else product.name
-        caption = f"{product.name} hos {product.retailer} — {product.price_kr:,.0f} kr.".replace(",", ".")
+        alt_text = f"{product.name} - {brand}".strip(" -") if brand else product.name
+        caption = f"{product.name} hos {product.retailer} - {product.price_kr:,.0f} kr.".replace(",", ".")
         image_refs.append(ImageRef(
             product_id=product.id,
             url=product.image_url,
@@ -294,7 +294,7 @@ def build_brief_for_hero(
         ))
 
     year = datetime.now().year
-    hook = f"Bedste {category_display} {year} — vores guide til at vælge rigtigt"
+    hook = f"Bedste {category_display} {year} - vores guide til at vælge rigtigt"
 
     return ContentBrief(
         brief_id=str(uuid.uuid4()),
@@ -323,7 +323,7 @@ def build_brief_for_product(product: RawProduct, site_key: str) -> ContentBrief:
     job.context["brief"] and passed to the generator agent at every pipeline step.
 
     Why single article type:
-      When a user provides a specific product URL they want THAT product reviewed —
+      When a user provides a specific product URL they want THAT product reviewed -
       not compared to a category. The "single-product-review" type forces a focused
       1-product article rather than the classifier making a different call.
     """
@@ -331,7 +331,7 @@ def build_brief_for_product(product: RawProduct, site_key: str) -> ContentBrief:
 
     # Append ?refsite= to the affiliate URL so all clicks are tracked.
     # Confirmed with Rune @ PriceRunner (June 2025): ?refsite= works on any
-    # PriceRunner URL — product pages, category pages, search — not just widgets.
+    # PriceRunner URL - product pages, category pages, search - not just widgets.
     sep = "&" if "?" in product.affiliate_url else "?"
     tracked_url = f"{product.affiliate_url}{sep}refsite={site.pricerunner_partner_id}"
 
@@ -346,8 +346,8 @@ def build_brief_for_product(product: RawProduct, site_key: str) -> ContentBrief:
     )
 
     brand = product.specs.get("brand", "")
-    alt_text = f"{product.name} — {brand}".strip(" —") if brand else product.name
-    caption = f"{product.name} hos {product.retailer} — {product.price_kr:,.0f} kr.".replace(",", ".")
+    alt_text = f"{product.name} - {brand}".strip(" -") if brand else product.name
+    caption = f"{product.name} hos {product.retailer} - {product.price_kr:,.0f} kr.".replace(",", ".")
 
     image_ref = ImageRef(
         product_id=product.id,

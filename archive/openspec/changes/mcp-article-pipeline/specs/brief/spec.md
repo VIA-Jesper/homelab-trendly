@@ -1,4 +1,4 @@
-# Brief — Delta Spec
+# Brief - Delta Spec
 
 ## MODIFIED Requirements
 
@@ -16,7 +16,7 @@ unwritten products across all categories configured for the site.
 - **THEN** returns up to 5 products where product.category === "laptops" AND product.id
   is NOT in the content registry for "techblog"
 
-#### Scenario: Null category — system selects
+#### Scenario: Null category - system selects
 - **WHEN** brief generator receives no category for site "techblog"
 - **THEN** system picks the leaf category with the most unwritten products for that site
 
@@ -31,9 +31,9 @@ unwritten products across all categories configured for the site.
 ### Requirement: Content registry
 The system SHALL maintain a per-site content registry tracking which product IDs have been
 used in published articles. Registry is stored at `data/content-registry.json` as:
-`{ [siteKey: string]: string[] }` — flat array of product IDs per site.
+`{ [siteKey: string]: string[] }` - flat array of product IDs per site.
 
-The registry SHALL be updated only when `status: "publish"` — draft articles SHALL NOT
+The registry SHALL be updated only when `status: "publish"` - draft articles SHALL NOT
 register their products (drafts do not lock products from future briefs).
 
 Writes SHALL be atomic: write to temp file, then rename, to prevent corruption on crash.

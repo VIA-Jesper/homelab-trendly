@@ -1,5 +1,5 @@
 """
-WordPress publisher — converts article markdown to HTML and posts via WP REST API.
+WordPress publisher - converts article markdown to HTML and posts via WP REST API.
 
 Uses:
   - markdown library (python-markdown) for markdown→HTML conversion.

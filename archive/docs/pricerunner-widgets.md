@@ -1,7 +1,7 @@
 # PriceRunner Publisher Widgets
 
 Reference for all available PriceRunner JS embed widgets.
-Partner IDs are site-specific — see `.env` / `brief_builder.SITE_CONFIGS`.
+Partner IDs are site-specific - see `.env` / `brief_builder.SITE_CONFIGS`.
 
 Widget IDs must be unique per page. Convention: `pr-{scriptname}-widget-{8-char-hex}`.
 Generate with `uuid4()[:8]` in Python or `randomUUID().slice(0,8)` in TS.
@@ -21,9 +21,9 @@ The `href` should point to the product/category page (not the widget script URL)
 
 ---
 
-## 1. product.js — Price comparison (recommended for single-product-review)
+## 1. product.js - Price comparison (recommended for single-product-review)
 
-Shows 1–5 stores with their prices. Filters: in-stock only, Danish stores only.
+Shows 1-5 stores with their prices. Filters: in-stock only, Danish stores only.
 Best used as the main CTA block in a single-product review.
 
 ```html
@@ -41,11 +41,11 @@ Best used as the main CTA block in a single-product review.
 | `widgetId` | matches the `div` id | must be unique per page |
 | `onlyInStock` | `true` | omit to show out-of-stock |
 | `offerOrigin` | `NATIONAL` | omit to include international stores |
-| `offerLimit` | `1`–`5` | number of stores to show |
+| `offerLimit` | `1`-`5` | number of stores to show |
 
 ---
 
-## 2. singleproduct.js — Lowest price only
+## 2. singleproduct.js - Lowest price only
 
 Shows only the single lowest price. Simpler, good for inline mentions or tight layouts.
 
@@ -56,11 +56,11 @@ Shows only the single lowest price. Simpler, good for inline mentions or tight l
   async></script>
 ```
 
-**Query params:** `productId`, `partnerId`, `widgetId` — no filters.
+**Query params:** `productId`, `partnerId`, `widgetId` - no filters.
 
 ---
 
-## 3. bestprice.js — Text only (not recommended)
+## 3. bestprice.js - Text only (not recommended)
 
 Renders just the product name and price as text. Minimal visual impact.
 Not suitable for affiliate articles where conversion matters.
@@ -74,7 +74,7 @@ Not suitable for affiliate articles where conversion matters.
 
 ---
 
-## 4. products.js — Multiple products (recommended for roundups/comparisons)
+## 4. products.js - Multiple products (recommended for roundups/comparisons)
 
 Shows multiple products side-by-side, each with lowest price. Takes a comma-separated
 list of product IDs. Good for `roundup`, `brand-vs-brand`, `budget-tiers` article types.
@@ -97,7 +97,7 @@ Attribution `href` points to `https://www.pricerunner.dk` (no specific product).
 
 ---
 
-## 5. category.js — Category feed (good for category/hero articles)
+## 5. category.js - Category feed (good for category/hero articles)
 
 Shows N products from a category. Can filter to only show products currently on sale
 within a price-drop range. Good for category overview articles or "other options" sections.
@@ -115,7 +115,7 @@ within a price-drop range. Good for category overview articles or "other options
 | `categoryId` | numeric PR category ID | e.g. `1595` = robotplæneklippere |
 | `productLimit` | integer | number of products to show |
 | `partnerId` | site partner ID | |
-| `priceDropRange` | e.g. `-60_-10` | optional; `-60_-10` = 10%–60% price drop |
+| `priceDropRange` | e.g. `-60_-10` | optional; `-60_-10` = 10%-60% price drop |
 | `onlyInStock` | `true` | optional |
 
 Attribution `href` points to the category page:
@@ -149,7 +149,7 @@ Attribution `href` points to the category page:
   clicks. Each widget is a separate affiliate entry point so total click surface is the same.
 
 `products.js` (multi-product table) is an alternative to stacked `singleproduct.js` for
-roundups — one block instead of N blocks — but gives less per-product detail.
+roundups - one block instead of N blocks - but gives less per-product detail.
 
 ## Pipeline integration notes
 

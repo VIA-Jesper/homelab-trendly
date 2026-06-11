@@ -1,6 +1,6 @@
 # Implementation Note: LLM & AI Search Optimization
 
-**Status:** Planned — implement when WordPress publishing pipeline is live
+**Status:** Planned - implement when WordPress publishing pipeline is live
 **Relates to:** ADR-010 (WP publishing deferred), article pipeline Phase 5
 
 ---
@@ -15,14 +15,14 @@ cited regardless of content quality. Standard SEO (Google ranking) is necessary 
 
 ## What to implement
 
-### 1. `/llms.txt` — machine-readable site index
+### 1. `/llms.txt` - machine-readable site index
 
 A plain-text file at the domain root that lists pages an LLM should prioritize when crawling for
 context. The format is a community proposal (Answer.AI, 2024) modeled on `robots.txt`.
 
 **WordPress implementation:**
 
-Option A — Static file (simplest):
+Option A - Static file (simplest):
 ```
 wp-content/uploads/llms.txt  (served via rewrite rule)
 ```
@@ -33,7 +33,7 @@ location = /llms.txt {
 }
 ```
 
-Option B — mu-plugin (recommended, auto-updates as content grows):
+Option B - mu-plugin (recommended, auto-updates as content grows):
 ```php
 // wp-content/mu-plugins/llms-txt.php
 add_action('init', function () {
@@ -56,7 +56,7 @@ add_action('init', function () {
 ```
 # TechBlog DK
 
-> Danish affiliate tech reviews — robotics, smart home, consumer electronics.
+> Danish affiliate tech reviews - robotics, smart home, consumer electronics.
 
 ## Articles
 
@@ -125,13 +125,13 @@ LLMs and Google's EEAT framework both favor pages with clear authorship and edit
 - **Affiliate disclosure:** Already enforced by validator. Ensure it renders visibly above the fold,
   not buried in fine print.
 - **Update dates:** Set `dateModified` when re-publishing an updated article. The pipeline
-  already has `job_id` and timestamp — pass these through to WP.
+  already has `job_id` and timestamp - pass these through to WP.
 - **Canonical URLs:** Ensure `rel="canonical"` is set. Yoast/Rank Math handles this if the slug
   is set correctly. The article JSON `seo.slug` is the source of truth.
 
 ---
 
-### 4. `robots.txt` — allow AI crawlers
+### 4. `robots.txt` - allow AI crawlers
 
 Some AI crawlers (GPTBot, ClaudeBot, PerplexityBot) are blocked by default `robots.txt` configs.
 Ensure the following is NOT blocked:
@@ -153,15 +153,15 @@ Check current `robots.txt` after WP is live. Many security plugins block all bot
 
 ## Implementation order (when WP publishing goes live)
 
-1. `robots.txt` audit — unblock AI crawlers (5 min, high impact)
-2. Schema.org via `wp-publisher.ts` — wire `buildJsonLd()` into post creation
-3. mu-plugin for `/llms.txt` — auto-updates as articles are published
-4. EEAT signals — author entity, canonical, update dates
+1. `robots.txt` audit - unblock AI crawlers (5 min, high impact)
+2. Schema.org via `wp-publisher.ts` - wire `buildJsonLd()` into post creation
+3. mu-plugin for `/llms.txt` - auto-updates as articles are published
+4. EEAT signals - author entity, canonical, update dates
 
 ---
 
 ## What NOT to do
 
-- Do not stuff keywords into `llms.txt` — it is a navigation index, not a content page.
-- Do not add `noindex` to any published article — some caching/security plugins do this by mistake.
-- Do not use `rel="nofollow"` on internal links — only on PriceRunner affiliate links.
+- Do not stuff keywords into `llms.txt` - it is a navigation index, not a content page.
+- Do not add `noindex` to any published article - some caching/security plugins do this by mistake.
+- Do not use `rel="nofollow"` on internal links - only on PriceRunner affiliate links.

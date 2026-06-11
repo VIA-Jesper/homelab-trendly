@@ -74,7 +74,7 @@ export async function cmdGenerate(opts: GenerateOpts): Promise<void> {
   console.log("");
   console.log("Products to cover:");
   for (const p of result.products) {
-    console.log(`  - ${p.name} (${p.priceKr} kr) — ${p.affiliateUrl}`);
+    console.log(`  - ${p.name} (${p.priceKr} kr) - ${p.affiliateUrl}`);
   }
   console.log("");
   if (result.articleHook) console.log(`Hook:           ${result.articleHook}`);

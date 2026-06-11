@@ -1,13 +1,13 @@
-# SEO Integration — RankMath Field Delivery
+# SEO Integration - RankMath Field Delivery
 
 ## ADDED Requirements
 
 ### Requirement: RankMath SEO metadata delivery
 When publishing to WordPress, the system SHALL write SEO metadata to the post via the WP REST
 API `meta` field using RankMath's known meta keys:
-- `rank_math_title` — from `seo.title` if provided, else falls back to article H1
-- `rank_math_description` — from `seo.description` if provided; no fallback (omitted if missing)
-- `rank_math_focus_keyword` — from `seo.focus_keyword` if provided; omitted if missing
+- `rank_math_title` - from `seo.title` if provided, else falls back to article H1
+- `rank_math_description` - from `seo.description` if provided; no fallback (omitted if missing)
+- `rank_math_focus_keyword` - from `seo.focus_keyword` if provided; omitted if missing
 
 If RankMath is not installed on the target site, WordPress SHALL silently ignore the meta fields.
 The system SHALL log a warning but SHALL NOT fail the publish request.

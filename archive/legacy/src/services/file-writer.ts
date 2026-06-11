@@ -15,11 +15,11 @@ export function writeArticleToFile({ jobId, article, brief, validation }: WriteO
   const dir = join(OUTPUT_ROOT, jobId);
   mkdirSync(dir, { recursive: true });
 
-  // 1. article.html — final HTML with widgets already inserted
+  // 1. article.html - final HTML with widgets already inserted
   const articlePath = join(dir, "article.html");
   writeFileSync(articlePath, wrapHtml(article, brief.category), "utf-8");
 
-  // 2. report.json — validation metadata for review
+  // 2. report.json - validation metadata for review
   const report = {
     job_id: jobId,
     brief_id: brief.brief_id,
@@ -36,7 +36,7 @@ export function writeArticleToFile({ jobId, article, brief, validation }: WriteO
 }
 
 function wrapHtml(content: string, category: string): string {
-  const title = `${category.charAt(0).toUpperCase() + category.slice(1)} — Trendly Guide`;
+  const title = `${category.charAt(0).toUpperCase() + category.slice(1)} - Trendly Guide`;
   return `<!DOCTYPE html>
 <html lang="da">
 <head>

@@ -64,7 +64,7 @@ export async function getMostUnwrittenLeafCategory(siteKey: string): Promise<Lea
   const leaves = await fetchLeafResults(siteKey);
   const viable = leaves.filter((l) => l.freshProducts.length >= 3);
   if (viable.length === 0) return null;
-  // Sort descending by fresh product count — pick richest
+  // Sort descending by fresh product count - pick richest
   viable.sort((a, b) => b.freshProducts.length - a.freshProducts.length);
   return viable[0]!;
 }

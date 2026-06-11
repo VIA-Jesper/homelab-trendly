@@ -1,11 +1,11 @@
 """
-import_jobs.py — Import exported jobs from a worker instance into the authority DB.
+import_jobs.py - Import exported jobs from a worker instance into the authority DB.
 
 Run this on the AUTHORITY machine after copying remote-jobs.json from a worker.
 Creates minimal job records (status=complete) so the authority's suggest_articles.py
 correctly excludes those products from future suggestions.
 
-Does NOT re-run the pipeline — this is purely for dedup tracking.
+Does NOT re-run the pipeline - this is purely for dedup tracking.
 
 Usage:
   # Import all jobs from remote-jobs.json
@@ -14,7 +14,7 @@ Usage:
   # Specify a different export file
   python scripts/import_jobs.py --input my-worker-jobs.json
 
-  # Dry-run — show what would be imported without writing
+  # Dry-run - show what would be imported without writing
   python scripts/import_jobs.py --dry-run
 """
 
@@ -83,7 +83,7 @@ def build_context(job: dict) -> dict:
     urls  = job.get("product_urls", [])
 
     if job.get("article_type") == "hero" or len(urls) > 1:
-        # Hero / comparison — store as products list in brief
+        # Hero / comparison - store as products list in brief
         return {
             "article_type": job.get("article_type", "hero"),
             "brief": {
@@ -126,7 +126,7 @@ def main():
     print(f"Input: {len(jobs)} jobs from {src.name} (exported {data.get('exported_at', '?')})")
 
     if args.dry_run:
-        print("\nDry-run — nothing will be written.\n")
+        print("\nDry-run - nothing will be written.\n")
 
     con = sqlite3.connect(str(DB_PATH))
     try:
@@ -146,7 +146,7 @@ def main():
                     pids.add(m.group(1))
 
             if already_known(con, pids, pnames):
-                print(f"  SKIP (already in DB): {j.get('category')} — {', '.join(j.get('product_names', [])[:2])}")
+                print(f"  SKIP (already in DB): {j.get('category')} - {', '.join(j.get('product_names', [])[:2])}")
                 skipped += 1
                 continue
 

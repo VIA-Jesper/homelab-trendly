@@ -29,12 +29,12 @@ Headers: User-Agent (browser), Accept: application/json
 **Returns:** Full category tree under a topic.
 **Use case:** Discover all leaf categories under a broad topic like "Hjem & Husholdning" (t34).
 **Key fields:**
-- `categories[].id` — topic or leaf category ID
-- `categories[].children[]` — leaf categories (cl-prefixed) or sub-topics
-- `categories[].children[].id` — leaf category IDs like `cl82`, `cl250`
+- `categories[].id` - topic or leaf category ID
+- `categories[].children[]` - leaf categories (cl-prefixed) or sub-topics
+- `categories[].children[].id` - leaf category IDs like `cl82`, `cl250`
 
 **Notes:**
-- Some children IDs are compound (e.g. `100003649-100015017`) — these are filter combinations, skip them.
+- Some children IDs are compound (e.g. `100003649-100015017`) - these are filter combinations, skip them.
 - Topics have `id` like `t34`, `t1424`. Leaf categories have `id` like `cl82` (the numeric part is the API category ID).
 - The tree is essentially static. Scrape once, cache indefinitely. Refresh only if PriceRunner reorganizes.
 
@@ -59,7 +59,7 @@ GET https://www.pricerunner.dk/dk/api/seo-edge-rest/public/popularproducts/v3/DK
 
 **Returns:** ~15 trending products across ALL subcategories of a topic.
 **Use case:** Identify breakout products across categories. Could inform which categories deserve new articles.
-**Note:** Products have `categoryName: null` — you can't tell which subcategory they belong to without parsing the product URL.
+**Note:** Products have `categoryName: null` - you can't tell which subcategory they belong to without parsing the product URL.
 
 ---
 
@@ -86,7 +86,7 @@ GET https://www.pricerunner.dk/dk/api/seo-edge-rest/public/keyword/tree/DK/{topi
 
 ## Verified Topic Trees
 
-### t34 — Hjem & Husholdning
+### t34 - Hjem & Husholdning
 
 **t14: Køkkenapparater**
 - cl1617: Andre køkkenapparater

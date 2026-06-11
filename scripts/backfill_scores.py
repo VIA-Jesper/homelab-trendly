@@ -1,5 +1,5 @@
 """
-backfill_scores.py — Add score_article step to existing complete jobs.
+backfill_scores.py - Add score_article step to existing complete jobs.
 
 Finds all complete jobs that don't have a score_article step, injects the step,
 and sets the job back to in_progress so the worker picks it up.
@@ -15,7 +15,7 @@ sys.path.insert(0, str(Path(__file__).parent.parent / "api"))
 
 from sqlalchemy import select
 from database import AsyncSessionLocal
-import models  # noqa: F401 — registers ORM classes
+import models  # noqa: F401 - registers ORM classes
 from models.job import Job
 from models.prompt import Prompt
 from models.step import Step

@@ -2,7 +2,7 @@ node_modules/
 dist/
 output/
 
-# Runtime data — generated at runtime, not committed
+# Runtime data - generated at runtime, not committed
 data/products.json
 data/content-registry.json
 data/content-registry.tmp.json
@@ -16,7 +16,7 @@ runs/
 # Stale backups
 prompts/*.bak.json
 
-# Generated pipeline outputs — prompts/agents/ templates are tracked, root-level outputs are not
+# Generated pipeline outputs - prompts/agents/ templates are tracked, root-level outputs are not
 prompts/*.json
 prompts/*.html
 prompts/*-task.md

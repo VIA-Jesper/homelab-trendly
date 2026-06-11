@@ -1,6 +1,6 @@
-# PriceRunner Scraper — Reference Document
+# PriceRunner Scraper - Reference Document
 
-This document extracts everything needed to reuse or replicate the PriceRunner scraping logic from Trendly. No API key required — all endpoints are public-facing web APIs that the PriceRunner website itself calls.
+This document extracts everything needed to reuse or replicate the PriceRunner scraping logic from Trendly. No API key required - all endpoints are public-facing web APIs that the PriceRunner website itself calls.
 
 ---
 
@@ -17,7 +17,7 @@ Both endpoints return JSON, require no authentication, and only need browser-lik
 
 ---
 
-## Endpoint 1 — Instant Search (Keyword Search)
+## Endpoint 1 - Instant Search (Keyword Search)
 
 ### URL Pattern
 
@@ -96,15 +96,15 @@ Rotate User-Agent across a few real browser strings to reduce block risk:
 ```
 
 **Key notes:**
-- `lowestPrice.amount` is a **string**, not a number — parse with `decimal.TryParse`
+- `lowestPrice.amount` is a **string**, not a number - parse with `decimal.TryParse`
 - `image.url` can be null; fall back to `image.path`
 - `suggestions[].id` can be null (e.g., for `QUERY` type suggestions)
 - Suggestion types: `CATEGORY`, `BRAND`, `PRODUCT`, `QUERY`
-- Category suggestions include the category ID in the URL: `/cl/{id}/{slug}` — extract `id` from this
+- Category suggestions include the category ID in the URL: `/cl/{id}/{slug}` - extract `id` from this
 
 ---
 
-## Endpoint 2 — Category Browse (v4)
+## Endpoint 2 - Category Browse (v4)
 
 ### URL Pattern
 
@@ -121,7 +121,7 @@ https://www.pricerunner.dk/dk/api/search-edge-rest/public/search/category/v4/DK/
 
 | Parameter | Values | Notes |
 |---|---|---|
-| `size` | integer | Number of products (max observed: 30–50) |
+| `size` | integer | Number of products (max observed: 30-50) |
 | `sorting` | `POPULARITY`, `PRICE_ASC`, `PRICE_DESC`, `RATING` | Default: `POPULARITY` |
 | `device` | `desktop` | Always `desktop` |
 
@@ -190,9 +190,9 @@ https://www.pricerunner.dk/dk/api/search-edge-rest/public/search/category/v4/DK/
 
 Category IDs appear in two ways:
 
-1. **From search suggestions** — when you search a keyword, the `suggestions` array contains `CATEGORY` type entries with the category ID. URL format: `/cl/{categoryId}/{slug}`. The ID is the number after `/cl/`.
+1. **From search suggestions** - when you search a keyword, the `suggestions` array contains `CATEGORY` type entries with the category ID. URL format: `/cl/{categoryId}/{slug}`. The ID is the number after `/cl/`.
 
-2. **Manually** — browse PriceRunner in a browser, navigate to a category page. The URL contains the category ID: `pricerunner.dk/cl/345/Varmepumper` → ID is `345`.
+2. **Manually** - browse PriceRunner in a browser, navigate to a category page. The URL contains the category ID: `pricerunner.dk/cl/345/Varmepumper` → ID is `345`.
 
 ---
 
@@ -451,29 +451,29 @@ if (categorySuggestion?.Url != null)
 | `brand.name` | string? | Brand name |
 | `description` | string? | Short product description, often absent |
 | `ribbon.type` | string? | `TRENDING_CATEGORY`, `WATCHED`, `PRICE_DROP_ABSOLUTE`, `TOP_RATED_CATEGORY` |
-| `ribbon.value` | string? | Present when `type=WATCHED`: e.g. `"50+"`, `"100+"`, `"200+"` — price-watcher count tier |
-| `rating.average` | double? | Star rating 0–5 |
+| `ribbon.value` | string? | Present when `type=WATCHED`: e.g. `"50+"`, `"100+"`, `"200+"` - price-watcher count tier |
+| `rating.average` | double? | Star rating 0-5 |
 | `rating.count` | int? | Number of ratings |
 | `priceDrop.percent` | double? | Recent price drop % |
 | `cheapestOffer.price` | price object | Alternative price source (use as fallback if `lowestPrice` absent) |
-| `cheapestOffer.merchant.name` | string? | Merchant offering the cheapest price — use as display retailer |
+| `cheapestOffer.merchant.name` | string? | Merchant offering the cheapest price - use as display retailer |
 | `rank.rank` | int? | PriceRunner's composite popularity position within the category (1 = most popular). Reflects clicks, comparisons, and purchase intent weighted together |
 | `previewMerchants.count` | int? | Number of merchants currently stocking this product. High count = wide availability + commercial maturity |
 | `outOfStock` | boolean? | True if no merchants have stock. Filter these out before selecting products for articles |
 | `categoryInfo.name` | string | Category display name |
 | `categoryInfo.path` | array | Breadcrumb path with id + name |
 
-### Popularity signals — interpretation guide
+### Popularity signals - interpretation guide
 
 The v4 category endpoint returns three independent demand signals. Understanding what each measures is important for using them correctly:
 
 | Signal | What it measures | Strength |
 |---|---|---|
-| `ribbon.value` (e.g. `"200+"`) | **Purchase intent** — users with active price alerts. These people have decided on the product and are waiting to buy. The strongest signal of real demand. | High |
-| `rank.rank` | **Discovery demand** — PriceRunner's composite score of clicks, comparisons, and views. Measures what people are researching, not necessarily buying. | Medium |
-| `previewMerchants.count` | **Market validation** — how many retailers stock this product. High count means the market has decided it's worth carrying; also correlates with price competition and product longevity. | Supporting |
+| `ribbon.value` (e.g. `"200+"`) | **Purchase intent** - users with active price alerts. These people have decided on the product and are waiting to buy. The strongest signal of real demand. | High |
+| `rank.rank` | **Discovery demand** - PriceRunner's composite score of clicks, comparisons, and views. Measures what people are researching, not necessarily buying. | Medium |
+| `previewMerchants.count` | **Market validation** - how many retailers stock this product. High count means the market has decided it's worth carrying; also correlates with price competition and product longevity. | Supporting |
 
-**Ribbon value tiers observed:** `"50+"`, `"100+"`, `"200+"`. A product at 200+ watchers in a niche category (e.g. power saws) is exceptional — it indicates very high purchase intent relative to category size.
+**Ribbon value tiers observed:** `"50+"`, `"100+"`, `"200+"`. A product at 200+ watchers in a niche category (e.g. power saws) is exceptional - it indicates very high purchase intent relative to category size.
 
 **Brand dominance** is available indirectly via the `quickFilters` field in the response (not mapped in Trendly). It lists brands with product counts, e.g. Makita (224), Bosch (186), DeWalt (135). Useful for understanding which brands actually lead a category.
 
@@ -481,7 +481,7 @@ The v4 category endpoint returns three independent demand signals. Understanding
 
 ## Observed Limitations
 
-- No pagination on keyword search — returns top ~10 products and ~10 suggestions
+- No pagination on keyword search - returns top ~10 products and ~10 suggestions
 - Category browse supports `size` param (up to ~50 observed), no cursor/page support discovered yet
 - Responses are cached by PriceRunner's CDN, so results may lag a few minutes behind live data
-- No webhook or push mechanism — polling only
+- No webhook or push mechanism - polling only

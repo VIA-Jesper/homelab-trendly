@@ -71,11 +71,13 @@ only the two singletons ever say "bedste".
 - `scripts/suggest_articles.py` + `queue_daily.py` - use shared `dedup`, key category on slug
 - `scripts/backfill_coverage.py` - populate ledger from existing jobs
 
-**Phase 1 - Deterministic slot planner (scale engine)**
-- `config/formats.yaml` - format registry (multiplicity, keyword/title/slug templates, article_type)
-- `config/segments/<category>.yaml` - segment rules (price-band first, spec-based where data is clean)
-- `scripts/plan_slots.py` - `enumerate -> subtract covered -> rank -> emit top K`; caps (singleton=1). No LLM.
-- Milestone: one category (robotstøvsugere) live end-to-end, mapping formats to existing API types
+**Phase 1 - Deterministic slot planner (scale engine) [DONE]**
+- `affiliate-pipeline/formats_v1.json` - format registry (multiplicity, keyword/title templates, article_type). single_review -> single-product-review; segment_roundup + best_of -> hero.
+- `affiliate-pipeline/segments/<category>_v1.json` - segment rules. Price-band only for now (the hot-products pool has no specs); spec-based segments (til kaeledyr, med moppe) go under match.spec once product enrichment lands (Phase 2), no planner change needed.
+- `scripts/plan_slots.py` - `enumerate -> subtract covered -> rank -> emit top K`. No LLM. Dry-run by default; `--execute` POSTs to the gate.
+- `/from-products` gained an optional `segment` so segmented roundups get a segment-aware slot_key.
+- Fix (caught by the smoke test): slot identity keys on `brief.category_slug` (stable ASCII slug), not the display `category` (hero uses singular Danish for content) - keeps planner and API slots consistent across formats.
+- Verified end-to-end on robotstoevsugere: planner creates single + hero slots; coverage-driven filtering drops covered slots on re-run.
 
 **Phase 1.5 - New formats (only when needed)**
 - `alternatives`, `worth_it`, `buying_guide` each need an `article_type` + prompt + brief builder. Add after existing-type formats prove out.

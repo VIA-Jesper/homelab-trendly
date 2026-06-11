@@ -131,7 +131,8 @@ class ContentBrief(BaseModel):
     """
     brief_id: str
     site_key: str
-    category: str
+    category: str            # display string used in content (singular Danish for hero)
+    category_slug: str = ""  # stable ASCII slug used for slot identity (see services/dedup.py)
     products: list[ProductBrief]
     images: list[ImageRef]
     writing_rules: WritingRules
@@ -219,6 +220,7 @@ def build_brief_for_comparison(products: list[RawProduct], site_key: str) -> Con
         brief_id=str(uuid.uuid4()),
         site_key=site_key,
         category=products[0].category,
+        category_slug=products[0].category,
         products=product_briefs,
         images=image_refs,
         writing_rules=WritingRules(
@@ -300,6 +302,7 @@ def build_brief_for_hero(
         brief_id=str(uuid.uuid4()),
         site_key=site_key,
         category=category_display,
+        category_slug=category_slug,
         products=product_briefs,
         images=image_refs,
         writing_rules=WritingRules(
@@ -368,6 +371,7 @@ def build_brief_for_product(product: RawProduct, site_key: str) -> ContentBrief:
         brief_id=str(uuid.uuid4()),
         site_key=site_key,
         category=product.category,
+        category_slug=product.category,
         products=[product_brief],
         images=[image_ref],
         writing_rules=writing_rules,

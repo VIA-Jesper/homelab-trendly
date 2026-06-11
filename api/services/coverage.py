@@ -37,7 +37,10 @@ def product_entries(brief: dict) -> list[tuple[str, str]]:
 def compute_slot_key(article_type: str, brief: dict, segment: str | None = None) -> str:
     """Canonical slot identity for a brief (delegates to services.dedup.slot_key)."""
     keys = [k for k, _ in product_entries(brief)]
-    return slot_key(article_type, brief.get("category", ""), keys, segment=segment)
+    # Key on the stable slug, not the display category (hero uses singular Danish
+    # for content). Fall back to category for briefs created before category_slug.
+    category = brief.get("category_slug") or brief.get("category", "")
+    return slot_key(article_type, category, keys, segment=segment)
 
 
 async def find_slot_conflict(db: AsyncSession, site_id: uuid.UUID, slot: str) -> dict | None:

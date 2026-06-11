@@ -87,6 +87,9 @@ class CreateJobFromProductsRequest(BaseModel):
     product_urls: list[str]  # 1 for single, 2-4 for comparison, 5-10 for hero
     editorial_note: str | None = None  # optional in-band guidance threaded to the generator
     reasoning: str | None = None       # optional audit metadata, not seen by the generator
+    segment: str | None = None         # planner-supplied roundup segment (e.g. "budget"); makes
+                                       # the slot_key segment-aware so segmented roundups don't
+                                       # collide on product set. Ignored for single/comparison.
     force: bool = False                # bypass duplicate check
 
 
@@ -196,7 +199,7 @@ async def create_job_from_products(
     # ledger - not the old positional, same-type name match. A slot_key collision
     # means "this is the same article". See services/dedup.py + services/coverage.py.
     brief_dict = brief.model_dump()
-    slot = compute_slot_key(brief.article_type, brief_dict)
+    slot = compute_slot_key(brief.article_type, brief_dict, segment=request.segment)
 
     if not request.force:
         conflict = await find_slot_conflict(db, site.id, slot)
@@ -223,6 +226,8 @@ async def create_job_from_products(
         "site_key": request.site_key,
         "slot_key": slot,
     }
+    if request.segment:
+        context["segment"] = request.segment
     if request.editorial_note and request.editorial_note.strip():
         context["editorial_note"] = request.editorial_note.strip()
 

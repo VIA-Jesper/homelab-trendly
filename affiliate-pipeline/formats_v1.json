@@ -1,0 +1,34 @@
+{
+  "version": "1.0",
+  "description": "Article format registry for the deterministic slot planner (scripts/plan_slots.py). Each format maps to an existing API article_type and a multiplicity rule controlling how many slots it yields per category. Keyword/title templates are advisory for now (used in the plan output and, later, as the primary_keyword passed to the generator); slot identity itself is derived by api/services/dedup.slot_key. Placeholders: {product}, {category} (singular Danish display), {segment} (segment phrase), {year}. Deferred: comparison (handled by queue_daily Pass 0); alternatives/worth_it/buying_guide need new article_types + prompts (Phase 1.5).",
+  "formats": [
+    {
+      "key": "single_review",
+      "article_type": "single-product-review",
+      "multiplicity": "per_product",
+      "min_products": 1,
+      "max_products": 1,
+      "keyword_template": "{product} test",
+      "title_template": "{product} test"
+    },
+    {
+      "key": "segment_roundup",
+      "article_type": "hero",
+      "multiplicity": "per_segment",
+      "min_products": 5,
+      "max_products": 7,
+      "keyword_template": "bedste {category} {segment}",
+      "title_template": "Bedste {category} {segment}"
+    },
+    {
+      "key": "best_of",
+      "article_type": "hero",
+      "multiplicity": "singleton",
+      "segment_key": "{year}",
+      "min_products": 5,
+      "max_products": 7,
+      "keyword_template": "bedste {category} {year}",
+      "title_template": "Bedste {category} {year}"
+    }
+  ]
+}

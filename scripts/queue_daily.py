@@ -4,12 +4,14 @@ queue_daily.py — Plan and queue article jobs from the candidate pool.
 Dry-run by default. Pass --execute to actually POST to the API.
 
 Selection logic:
-  1. Group all unwritten candidates by category.
-  2. For each category with 0 existing articles AND 5+ candidates → recommend hero
-     (bundles the top 7 by score into one roundup job).
-  3. Remaining slots filled with the highest-score single-product-review candidates,
-     max one per category per run (variety).
-  4. Never picks two jobs from the same category in one run.
+  Pass 0: pick up to 1 comparison if any category has 2+ existing singles AND
+          a fresh product pair is available. Strengthens content clusters.
+  Pass 1: fill remaining slots with the highest-score single-product-review
+          candidates, max one per category per run (variety).
+  Never picks two jobs from the same category in one run.
+
+Hero is no longer auto-queued — see brain/inbox/2026-06-10-trendly-scaling-plan.md.
+Use the API directly or queue-remote.json if a hero roundup is wanted manually.
 
 Usage:
   python queue_daily.py                             # dry-run, 2 jobs
@@ -17,25 +19,18 @@ Usage:
   python queue_daily.py --execute                   # queue 2 jobs for real
   python queue_daily.py --count 3 --execute
   python queue_daily.py --api-url http://host:8000 --api-key mykey --execute
+  python queue_daily.py --no-comparisons            # singles only (skip Pass 0)
 """
 
 import argparse
-import json
 import sys
-from collections import defaultdict
 from pathlib import Path
 
 import httpx
 
 # Import shared logic from suggest_articles (same scripts/ dir)
 sys.path.insert(0, str(Path(__file__).parent))
-from suggest_articles import (
-    HERO_MAX_PRODUCTS,
-    HERO_MIN_CANDIDATES,
-    get_candidates,
-    load_category_article_counts,
-    recommend_article_type,
-)
+from suggest_articles import get_candidates, get_comparison_candidates
 
 JSONL    = Path(__file__).parent.parent / "data" / "hot-products.jsonl"
 SITE_KEY = "hus"
@@ -45,62 +40,42 @@ def _enc(s: str) -> str:
     return s.encode(sys.stdout.encoding, errors="replace").decode(sys.stdout.encoding)
 
 
-def build_plan(count: int) -> list[dict]:
+def build_plan(count: int, include_comparisons: bool = True) -> list[dict]:
     """
     Return up to `count` job dicts:
       {"article_type": str, "product_urls": [str, ...], "reasoning": str, "category": str, "label": str}
     """
-    candidates = get_candidates(show_all=False, min_score=0.0)
-    if not candidates:
-        return []
-
-    cat_article_counts  = load_category_article_counts()
-
-    # Group unwritten candidates by category name (lowercase)
-    by_category: dict[str, list[tuple]] = defaultdict(list)
-    for score, product, delta, is_new, exists in candidates:
-        if exists:
-            continue
-        cat = (product.get("category_name") or "").lower()
-        by_category[cat].append((score, product))
-
-    # Pre-sort each category bucket by score desc (already sorted globally, but re-sort per bucket)
-    for cat in by_category:
-        by_category[cat].sort(key=lambda x: x[0], reverse=True)
-
     plan: list[dict] = []
     used_categories: set[str] = set()
 
-    # Pass 1: hero opportunities — categories with no existing articles and 5+ candidates
-    for cat, bucket in sorted(by_category.items(), key=lambda kv: kv[1][0][0], reverse=True):
-        if len(plan) >= count:
+    # Pass 0: at most one comparison per run, pulled from categories with 2+ singles.
+    if include_comparisons and count > 0:
+        for cand in get_comparison_candidates():
+            cat = cand["category"]
+            if cat in used_categories:
+                continue
+            names = cand["names"]
+            label = f"COMPARE {cat:<23}  {names[0]}  vs  {names[1]}"
+            reasoning = (
+                f"Comparison opportunity: '{cat}' has 2+ existing singles. "
+                f"Pair score {cand['score']:.1f}."
+            )
+            plan.append({
+                "article_type": "comparison",
+                "product_urls": cand["product_urls"],
+                "reasoning": reasoning,
+                "category": cat,
+                "label": label,
+                "names": names,
+            })
+            used_categories.add(cat)
             break
-        if cat in used_categories:
-            continue
-        existing = cat_article_counts.get(cat, 0)
-        rec = recommend_article_type(cat, len(bucket), existing)
-        if rec != "hero":
-            continue
 
-        top = bucket[:HERO_MAX_PRODUCTS]
-        urls = [p.get("product_url", "") for _, p in top]
-        names = [p.get("name", "") for _, p in top]
-        label = f"HERO  {top[0][1].get('category_name', cat):<25}  {len(top)} products"
-        reasoning = (
-            f"Hero opportunity: {len(bucket)} unwritten candidates in '{cat}', "
-            f"0 existing articles. Top products: {', '.join(names[:3])}..."
-        )
-        plan.append({
-            "article_type": "hero",
-            "product_urls": urls,
-            "reasoning": reasoning,
-            "category": cat,
-            "label": label,
-            "names": names,
-        })
-        used_categories.add(cat)
+    candidates = get_candidates(show_all=False, min_score=0.0)
+    if not candidates and len(plan) == 0:
+        return []
 
-    # Pass 2: fill remaining slots with top single-product-review (one per category)
+    # Pass 1: fill remaining slots with top single-product-review (one per category)
     for score, product, delta, is_new, exists in candidates:
         if len(plan) >= count:
             break
@@ -141,12 +116,8 @@ def print_plan(plan: list[dict]):
         return
     for i, job in enumerate(plan, 1):
         print(_enc(f"  {i}. {job['label']}"))
-        if job["article_type"] == "hero":
-            for j, (name, url) in enumerate(zip(job["names"], job["product_urls"]), 1):
-                print(_enc(f"       {j}. {name}"))
-                print(_enc(f"          {url}"))
-        else:
-            print(_enc(f"       {job['product_urls'][0]}"))
+        for url in job["product_urls"]:
+            print(_enc(f"       {url}"))
     print()
 
 
@@ -181,17 +152,18 @@ def execute_plan(plan: list[dict], api_url: str, api_key: str):
 
 def main():
     parser = argparse.ArgumentParser(description="Plan and queue daily article jobs")
-    parser.add_argument("--count",   type=int, default=2,                      help="Number of jobs to queue (default: 2)")
-    parser.add_argument("--execute", action="store_true",                       help="Actually create jobs (default: dry-run)")
-    parser.add_argument("--api-url", default="http://localhost:8000",           help="Trendly API base URL")
-    parser.add_argument("--api-key", default="changeme",                        help="API key")
+    parser.add_argument("--count",          type=int, default=2,                  help="Number of jobs to queue (default: 2)")
+    parser.add_argument("--execute",        action="store_true",                   help="Actually create jobs (default: dry-run)")
+    parser.add_argument("--api-url",        default="http://localhost:8000",       help="Trendly API base URL")
+    parser.add_argument("--api-key",        default="changeme",                    help="API key")
+    parser.add_argument("--no-comparisons", action="store_true",                   help="Skip Pass 0 (singles only)")
     args = parser.parse_args()
 
     if not JSONL.exists():
         print("No product data. Run: python fetch_hot_products.py --popular")
         sys.exit(1)
 
-    plan = build_plan(args.count)
+    plan = build_plan(args.count, include_comparisons=not args.no_comparisons)
     print_plan(plan)
 
     if not plan:

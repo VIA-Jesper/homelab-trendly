@@ -10,15 +10,21 @@ Composite score:
   watcher_score → 1000+ = 4, 500+ = 3, 200+ = 2, 100+ = 1.5, 50+ = 1, none = 0
   composite     = rank_score + watcher_score
 
-Article type recommendation:
-  hero              — category has 0 existing articles AND 5+ unwritten candidates
-  single-product-review — everything else
+Article type recommendation (single-product candidates):
+  single-product-review — every unwritten product. Hero auto-recommendation retired
+                          2026-06-10 (see brain/inbox/2026-06-10-trendly-scaling-plan.md).
+
+Comparison opportunities (separate pool from single candidates):
+  get_comparison_candidates() returns (category, product pair) tuples for
+  categories that already have 2+ singles published. Used by queue_daily.py to
+  build a comparison Pass 0.
 
 Usage:
   python suggest_articles.py                   # top 20 new candidates
   python suggest_articles.py --limit 10
   python suggest_articles.py --min-score 5
   python suggest_articles.py --show-all        # include already-written products
+  python suggest_articles.py --comparisons     # list eligible comparison pairs
 """
 
 import argparse
@@ -142,6 +148,121 @@ def load_category_article_counts() -> dict[str, int]:
     return counts
 
 
+def load_written_singles_by_category() -> dict[str, list[dict]]:
+    """
+    Returns {category_slug: [{"id": pid, "name": str, "url": str}, ...]} for
+    products that have a single-product-review job in the DB (any non-archived status,
+    including in-flight). Used to discover comparison opportunities.
+
+    Product name is read from brief.products[0].name (the brief stores singles
+    with a single-item products list).
+    """
+    by_cat: dict[str, list[dict]] = defaultdict(list)
+    if not DB_PATH.exists():
+        return by_cat
+
+    con = sqlite3.connect(str(DB_PATH))
+    try:
+        cur = con.cursor()
+        cur.execute("SELECT context FROM jobs WHERE status NOT IN ('archived', 'failed')")
+        for (ctx_raw,) in cur.fetchall():
+            try:
+                ctx = json.loads(ctx_raw) if isinstance(ctx_raw, str) else ctx_raw
+                if ctx.get("article_type") != "single-product-review":
+                    continue
+                brief = ctx.get("brief") or {}
+                cat = (brief.get("category") or "").strip().lower()
+                url = ctx.get("product_url", "") or ""
+                m = re.search(r'/pl/\d+-(\d+)', url)
+                pid = m.group(1) if m else None
+                products = brief.get("products") or []
+                name = products[0].get("name", "") if products else ""
+                if cat and pid and name and url:
+                    by_cat[cat].append({"id": pid, "name": name, "url": url})
+            except (json.JSONDecodeError, AttributeError, TypeError):
+                pass
+    finally:
+        con.close()
+
+    return by_cat
+
+
+def load_comparison_pairs_written() -> set[frozenset]:
+    """
+    Returns a set of frozensets of product IDs that already appear together in a
+    non-archived comparison job. Used to dedupe pair candidates.
+    """
+    pairs: set[frozenset] = set()
+    if not DB_PATH.exists():
+        return pairs
+
+    con = sqlite3.connect(str(DB_PATH))
+    try:
+        cur = con.cursor()
+        cur.execute("SELECT context FROM jobs WHERE status NOT IN ('archived')")
+        for (ctx_raw,) in cur.fetchall():
+            try:
+                ctx = json.loads(ctx_raw) if isinstance(ctx_raw, str) else ctx_raw
+                if ctx.get("article_type") != "comparison":
+                    continue
+                prods = (ctx.get("brief") or {}).get("products") or []
+                pids: set[str] = set()
+                for p in prods:
+                    src = p.get("affiliate_url") or p.get("product_url") or ""
+                    m = re.search(r'/pl/\d+-(\d+)', src)
+                    if m:
+                        pids.add(m.group(1))
+                if len(pids) >= 2:
+                    pairs.add(frozenset(pids))
+            except (json.JSONDecodeError, AttributeError, TypeError):
+                pass
+    finally:
+        con.close()
+
+    return pairs
+
+
+def get_comparison_candidates() -> list[dict]:
+    """
+    Enumerate eligible comparison pairs.
+
+    Trigger: a category has 2+ products written as singles, and the pair has
+    not yet been covered by a comparison.
+
+    Returns a list of candidate dicts sorted by combined score, highest first:
+      {"category": str, "product_urls": [str, str],
+       "names": [str, str], "ids": [str, str], "score": float}
+
+    Score is the sum of each product's composite_score() from the latest snapshot,
+    falling back to 0 when no snapshot is available.
+    """
+    written_by_cat = load_written_singles_by_category()
+    pairs_written  = load_comparison_pairs_written()
+    latest, _      = load_snapshots() if JSONL.exists() else ({}, {})
+
+    candidates: list[dict] = []
+    for cat, products in written_by_cat.items():
+        if len(products) < 2:
+            continue
+        for i in range(len(products)):
+            for j in range(i + 1, len(products)):
+                a, b = products[i], products[j]
+                pair_key = frozenset({a["id"], b["id"]})
+                if pair_key in pairs_written:
+                    continue
+                score = composite_score(latest.get(a["id"], {})) + composite_score(latest.get(b["id"], {}))
+                candidates.append({
+                    "category":     cat,
+                    "product_urls": [a["url"], b["url"]],
+                    "names":        [a["name"], b["name"]],
+                    "ids":          [a["id"], b["id"]],
+                    "score":        score,
+                })
+
+    candidates.sort(key=lambda c: c["score"], reverse=True)
+    return candidates
+
+
 def is_known(product: dict, known_ids: set[str], known_names: set[str]) -> bool:
     if product.get("id") in known_ids:
         return True
@@ -165,12 +286,12 @@ def recommend_article_type(
     existing_in_category: int,
 ) -> str:
     """
-    hero               — 0 existing articles for this category AND 5+ unwritten candidates
-    single-product-review — everything else
+    Always returns "single-product-review" for individual-product candidates.
+    Hero auto-recommendation was retired 2026-06-10. Comparison opportunities
+    live in get_comparison_candidates() — they're scored per pair, not per product,
+    so they don't fit this function's signature.
     """
-    cat = category_name.lower()
-    if existing_in_category == 0 and unwritten_in_category >= HERO_MIN_CANDIDATES:
-        return "hero"
+    _ = (category_name, unwritten_in_category, existing_in_category)  # kept for signature stability
     return "single-product-review"
 
 
@@ -245,7 +366,21 @@ def main():
     parser.add_argument("--show-all",       action="store_true")
     parser.add_argument("--recommend-type", action="store_true",
                         help="Show article type recommendation per candidate")
+    parser.add_argument("--comparisons",    action="store_true",
+                        help="List eligible comparison pairs (categories with 2+ singles)")
     args = parser.parse_args()
+
+    if args.comparisons:
+        pairs = get_comparison_candidates()
+        print(f"\n=== Eligible comparison pairs ===")
+        print(f"Categories with 2+ singles + unwritten pair combinations: {len(pairs)}\n")
+        if not pairs:
+            print("No eligible pairs. Need at least 2 single-product-review jobs in the same category.")
+            return
+        for i, c in enumerate(pairs[:args.limit], 1):
+            line = f"{i:>3}  {c['score']:>5.1f}  {c['category']:<25}  {c['names'][0]}  ×  {c['names'][1]}"
+            print(line.encode(sys.stdout.encoding, errors="replace").decode(sys.stdout.encoding))
+        return
 
     if not JSONL.exists():
         print(f"No data at {JSONL}. Run fetch_hot_products.py --site-only first.")

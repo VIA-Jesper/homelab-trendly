@@ -1,5 +1,5 @@
 """
-suggest_articles.py — Surface article candidates from hot-products.jsonl.
+suggest_articles.py - Surface article candidates from hot-products.jsonl.
 
 Reads the latest snapshot per product, scores on rank + watchers, filters out
 products already in the DB, and prints ranked candidates with recommended
@@ -11,7 +11,7 @@ Composite score:
   composite     = rank_score + watcher_score
 
 Article type recommendation (single-product candidates):
-  single-product-review — every unwritten product. Hero auto-recommendation retired
+  single-product-review - every unwritten product. Hero auto-recommendation retired
                           2026-06-10 (see brain/inbox/2026-06-10-trendly-scaling-plan.md).
 
 Comparison opportunities (separate pool from single candidates):
@@ -38,6 +38,11 @@ from pathlib import Path
 ROOT    = Path(__file__).parent.parent
 JSONL   = ROOT / "data" / "hot-products.jsonl"
 DB_PATH = ROOT / "trendly_local.db"
+
+# Shared canonical de-dup key (pure module; imported by file path to avoid the
+# api `services` package __init__, which pulls in config/DB).
+sys.path.insert(0, str(ROOT / "api" / "services"))
+from dedup import canonical_product_key  # noqa: E402
 
 WATCHER_SCORES = {"1000": 4.0, "500": 3.0, "200": 2.0, "100": 1.5, "50": 1.0}
 
@@ -90,12 +95,16 @@ def load_snapshots() -> tuple[dict[str, dict], dict[str, dict]]:
     return latest, previous
 
 
-def load_known_products() -> tuple[set[str], set[str]]:
-    """Returns (known_ids, known_names) from existing jobs in the DB."""
-    known_ids: set[str] = set()
-    known_names: set[str] = set()
+def load_known_keys() -> set[str]:
+    """
+    Returns canonical product keys (see api/services/dedup.py) for every product
+    already referenced by a job in the DB. Using the same key the API gate uses
+    means planning agrees with creation - and catches name variants the old
+    exact-string match missed.
+    """
+    keys: set[str] = set()
     if not DB_PATH.exists():
-        return known_ids, known_names
+        return keys
 
     con = sqlite3.connect(str(DB_PATH))
     try:
@@ -104,24 +113,21 @@ def load_known_products() -> tuple[set[str], set[str]]:
         for (ctx_raw,) in cur.fetchall():
             try:
                 ctx = json.loads(ctx_raw) if isinstance(ctx_raw, str) else ctx_raw
-                url = ctx.get("product_url", "")
-                m = re.search(r'/pl/\d+-(\d+)', url)
-                if m:
-                    known_ids.add(m.group(1))
-                name = (ctx.get("brief") or {}).get("product_name", "")
-                if name:
-                    known_names.add(name.strip().lower())
-                # Also check products list inside brief (hero/comparison jobs)
                 for prod in ((ctx.get("brief") or {}).get("products") or []):
-                    pname = prod.get("name", "")
-                    if pname:
-                        known_names.add(pname.strip().lower())
+                    keys.add(canonical_product_key(
+                        prod.get("name", ""),
+                        pid=prod.get("id"),
+                        url=prod.get("affiliate_url") or prod.get("product_url"),
+                    ))
+                top_url = ctx.get("product_url")
+                if top_url:
+                    keys.add(canonical_product_key("", url=top_url))
             except (json.JSONDecodeError, AttributeError, TypeError):
                 pass
     finally:
         con.close()
 
-    return known_ids, known_names
+    return keys
 
 
 def load_category_article_counts() -> dict[str, int]:
@@ -263,10 +269,12 @@ def get_comparison_candidates() -> list[dict]:
     return candidates
 
 
-def is_known(product: dict, known_ids: set[str], known_names: set[str]) -> bool:
-    if product.get("id") in known_ids:
-        return True
-    return (product.get("name") or "").strip().lower() in known_names
+def is_known(product: dict, known_keys: set[str]) -> bool:
+    return canonical_product_key(
+        product.get("name", ""),
+        pid=product.get("id"),
+        url=product.get("product_url"),
+    ) in known_keys
 
 
 def rising_delta(pid: str, latest: dict, previous: dict) -> int | None:
@@ -288,7 +296,7 @@ def recommend_article_type(
     """
     Always returns "single-product-review" for individual-product candidates.
     Hero auto-recommendation was retired 2026-06-10. Comparison opportunities
-    live in get_comparison_candidates() — they're scored per pair, not per product,
+    live in get_comparison_candidates() - they're scored per pair, not per product,
     so they don't fit this function's signature.
     """
     _ = (category_name, unwritten_in_category, existing_in_category)  # kept for signature stability
@@ -307,11 +315,11 @@ def get_candidates(
         return []
 
     latest, previous = load_snapshots()
-    known_ids, known_names = load_known_products()
+    known_keys = load_known_keys()
 
     candidates = []
     for pid, product in latest.items():
-        exists = is_known(product, known_ids, known_names)
+        exists = is_known(product, known_keys)
         if exists and not show_all:
             continue
         score = composite_score(product)

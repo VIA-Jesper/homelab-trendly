@@ -1,5 +1,5 @@
 """
-Publish route — inserts widgets and posts to WordPress for a completed job.
+Publish route - inserts widgets and posts to WordPress for a completed job.
 
 The job must have a complete optimize_seo (or at minimum write_draft) step.
 Publishing to ?status=publish requires qa_review to have passed.
@@ -15,6 +15,7 @@ Flow:
 
 import json
 import uuid
+from urllib.parse import urlparse
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy import select
@@ -23,6 +24,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from database import get_db
 from models.job import Job
 from services.brief_builder import ContentBrief
+from services.coverage import set_coverage_slug
 from services.widget_inserter import insert_anchored_placements
 from services.wp_publisher import markdown_to_html, publish_to_wordpress
 
@@ -38,9 +40,9 @@ async def publish_job(
     """
     Insert widgets and publish the article to WordPress.
 
-    ?status=draft    — saves as WP draft (default, always allowed)
-    ?status=future   — schedules 24h from now; blocked if qa_review has not passed
-    ?status=publish  — publishes live immediately; blocked if qa_review has not passed
+    ?status=draft    - saves as WP draft (default, always allowed)
+    ?status=future   - schedules 24h from now; blocked if qa_review has not passed
+    ?status=publish  - publishes live immediately; blocked if qa_review has not passed
     """
     result = await db.execute(select(Job).where(Job.id == uuid.UUID(job_id)))
     job = result.scalar_one_or_none()
@@ -80,7 +82,7 @@ async def publish_job(
     placements = output.get("placements", [])
     seo = output.get("seo", {})
 
-    # WP theme renders the post title — strip leading H1 to avoid duplication
+    # WP theme renders the post title - strip leading H1 to avoid duplication
     _lines = article_md.splitlines()
     if _lines and _lines[0].startswith("# "):
         article_md = "\n".join(_lines[1:]).lstrip("\n")
@@ -107,6 +109,9 @@ async def publish_job(
         "wp_post_url": wp_result["post_url"],
         "wp_status": wp_result["wp_status"],
     }
+    # Record the published slug on the coverage row (best-effort, for slug-collision checks).
+    _path = urlparse(wp_result.get("post_url") or "").path.strip("/")
+    await set_coverage_slug(db, job.id, _path.rsplit("/", 1)[-1] if _path else None)
     await db.commit()
 
     return {

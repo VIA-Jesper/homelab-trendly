@@ -3,7 +3,7 @@ import uuid
 
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
-from sqlalchemy import delete, func, or_, select
+from sqlalchemy import delete, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from database import get_db
@@ -16,6 +16,7 @@ from services.brief_builder import (
     build_brief_for_product,
     get_site_config,
 )
+from services.coverage import compute_slot_key, find_slot_conflict, record_coverage
 from services.pipeline import pipeline_service
 from services.pricerunner_client import fetch_product_from_url
 
@@ -81,7 +82,7 @@ async def create_job(
 
 
 class CreateJobFromProductsRequest(BaseModel):
-    site_key: str            # e.g. "hus" — must match a key in brief_builder.SITE_CONFIGS
+    site_key: str            # e.g. "hus" - must match a key in brief_builder.SITE_CONFIGS
     article_type: str        # single-product-review | comparison | hero
     product_urls: list[str]  # 1 for single, 2-4 for comparison, 5-10 for hero
     editorial_note: str | None = None  # optional in-band guidance threaded to the generator
@@ -114,7 +115,7 @@ async def create_job_from_products(
 
     editorial_note: free-text guidance threaded into the generator's prompt context
     as `context.editorial_note`. Use to steer angle, framing, or constraints that
-    aren't derivable from product specs. Example: "Lead with battery life — that
+    aren't derivable from product specs. Example: "Lead with battery life - that
     matters most to this audience."
     """
     if request.article_type not in ARTICLE_TYPE_URL_COUNTS:
@@ -142,7 +143,7 @@ async def create_job_from_products(
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
 
-    # Parallel fetch — same path for 1 URL or 10
+    # Parallel fetch - same path for 1 URL or 10
     results = await asyncio.gather(
         *[fetch_product_from_url(url, country=site_cfg.pricerunner_country)
           for url in request.product_urls],
@@ -191,44 +192,36 @@ async def create_job_from_products(
             detail=f"No active site found for domain '{site_cfg.domain}'. Create it via POST /api/v1/sites first.",
         )
 
+    # De-dup on slot identity (category + format + subject) via the coverage
+    # ledger - not the old positional, same-type name match. A slot_key collision
+    # means "this is the same article". See services/dedup.py + services/coverage.py.
+    brief_dict = brief.model_dump()
+    slot = compute_slot_key(brief.article_type, brief_dict)
+
     if not request.force:
-        # Duplicate: same article_type with any overlapping product name on this site.
-        product_names = [p.name for p in brief.products]
-        dup_filters = [
-            func.json_extract(Job.context, f"$.brief.products[{i}].name") == name
-            for i, name in enumerate(product_names)
-        ]
-        dup_result = await db.execute(
-            select(Job).where(
-                Job.site_id == site.id,
-                func.json_extract(Job.context, "$.article_type") == request.article_type,
-                or_(*dup_filters),
-            )
-        )
-        duplicate = dup_result.scalars().first()
-        if duplicate:
-            if len(product_names) == 1:
-                summary = f"'{product_names[0]}'"
-            else:
-                summary = f"'{product_names[0]}' (+ {len(product_names) - 1} more)"
+        conflict = await find_slot_conflict(db, site.id, slot)
+        if conflict:
             raise HTTPException(
                 status_code=409,
                 detail={
-                    "error": "duplicate_job",
+                    "error": "duplicate_slot",
                     "message": (
-                        f"A {request.article_type} job for {summary} already exists "
-                        f"(status: {duplicate.status}). Add \"force\": true to create a new job anyway."
+                        f"A {brief.article_type} for this slot already exists "
+                        f"(status: {conflict['existing_status']}). "
+                        "Add \"force\": true to create a new job anyway."
                     ),
-                    "existing_job_id": str(duplicate.id),
-                    "existing_status": duplicate.status,
+                    "existing_job_id": conflict["existing_job_id"],
+                    "existing_status": conflict["existing_status"],
+                    "slot_key": slot,
                 },
             )
 
     context: dict = {
         "product_urls": request.product_urls,
-        "brief": brief.model_dump(),
+        "brief": brief_dict,
         "article_type": brief.article_type,
         "site_key": request.site_key,
+        "slot_key": slot,
     }
     if request.editorial_note and request.editorial_note.strip():
         context["editorial_note"] = request.editorial_note.strip()
@@ -242,6 +235,9 @@ async def create_job_from_products(
     db.add(job)
     await db.flush()
 
+    # Record coverage before create_steps_for_job (which commits) so the ledger
+    # rows land in the same transaction as the job + its steps.
+    await record_coverage(db, job, brief_dict, brief.article_type, slot)
     await pipeline_service.create_steps_for_job(job, db)
 
     return JobResponse(
@@ -294,7 +290,7 @@ async def reset_job(
     """
     Reset a job back to queued.
 
-    from_step=None (default): full reset — drop all steps, recreate from scratch.
+    from_step=None (default): full reset - drop all steps, recreate from scratch.
     from_step="optimize_seo": keep completed steps before that step, drop and
       recreate everything from that step onward. Useful for re-running SEO/QA
       without discarding the draft.
@@ -337,13 +333,13 @@ async def reset_job(
                 status="pending",
                 attempt=1,
             ))
-        message = f"Job reset from '{from_step}' — earlier steps preserved."
+        message = f"Job reset from '{from_step}' - earlier steps preserved."
     else:
         await db.execute(delete(Step).where(Step.job_id == job.id))
         job.context = {k: v for k, v in job.context.items() if k != "qa_corrected"}
         await db.flush()
         await pipeline_service.create_steps_for_job(job, db)
-        message = "Job reset — fresh steps created."
+        message = "Job reset - fresh steps created."
 
     job.status = "queued"
     await db.commit()

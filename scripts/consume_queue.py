@@ -1,15 +1,15 @@
 """
-consume_queue.py — Seed a remote Trendly instance from queue-remote.json.
+consume_queue.py - Seed a remote Trendly instance from queue-remote.json.
 
 Reads the curated job list from queue-remote.json (repo root) and POSTs
 each job to the remote API. Skip jobs that already exist in the remote DB
 by checking against already-queued product names.
 
 Usage:
-  # Dry-run (default) — show what would be queued
+  # Dry-run (default) - show what would be queued
   python scripts/consume_queue.py
 
-  # Execute — actually create the jobs
+  # Execute - actually create the jobs
   python scripts/consume_queue.py --execute
 
   # Limit to first N jobs (default: all)
@@ -77,6 +77,8 @@ def execute(jobs: list[dict], api_url: str, api_key: str):
             if r.status_code in (200, 201):
                 data = r.json()
                 print(f"    -> job_id: {data.get('job_id')}  status: {data.get('status')}")
+            elif r.status_code == 409:
+                print("    -> SKIP (already covered)")
             else:
                 print(f"    -> ERROR {r.status_code}: {r.text[:200]}")
         except httpx.RequestError as e:

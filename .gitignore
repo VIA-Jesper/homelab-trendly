@@ -19,6 +19,9 @@ env/
 *.sqlite
 *.sqlite3
 
+# Generated article exports (content, not source)
+exports/
+
 # Environment / secrets
 .env
 *.env.local

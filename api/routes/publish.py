@@ -23,8 +23,9 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from database import get_db
 from models.job import Job
-from services.brief_builder import ContentBrief
-from services.coverage import set_coverage_slug
+from services.brief_builder import ContentBrief, get_site_config
+from services.coverage import related_articles, set_coverage_slug
+from services.internal_links import build_related_section
 from services.widget_inserter import insert_anchored_placements
 from services.wp_publisher import markdown_to_html, publish_to_wordpress
 
@@ -94,6 +95,16 @@ async def publish_job(
     if not brief_dict:
         raise HTTPException(status_code=422, detail="No brief in job context.")
     brief = ContentBrief.model_validate(brief_dict)
+
+    # Internal-link cluster: append links to other published articles in the same
+    # category on this site (topical authority). Empty on a fresh site - no-op then.
+    try:
+        candidates = await related_articles(db, job.site_id, brief.category_slug, job.id)
+        related_md = build_related_section(candidates, get_site_config(brief.site_key).domain)
+        if related_md:
+            article_md += related_md
+    except (ValueError, KeyError):
+        pass  # never block a publish on the related-links cluster
 
     article_with_widgets, widget_errors = insert_anchored_placements(article_md, brief, placements)
     article_html = markdown_to_html(article_with_widgets)

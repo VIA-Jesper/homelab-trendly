@@ -86,10 +86,22 @@ coverage ledger is the scale engine; the LLM is boxed to writing the article bod
    threshold sits cleanly in the gap. 46 tests total.
    Optional later: price-focused numeric-claim backstop; language check; semantic
    near-dup detection (= Phase 3 embeddings; lexical Jaccard does not catch rewrites).
-2. **Daily scheduler (cron).** Wrap `plan_slots.py` to queue 1-2 slots/day = the
-   "continuously agentic" autopilot.
-3. **Phase 2C schema JSON-LD; 2D internal-link clusters** (from the coverage ledger).
-4. **Deferred:** Phase 1.5 new formats (alternatives/worth_it/buying_guide);
+2. **Daily scheduler - DOCUMENTED, not built (by decision).** See `docs/SCHEDULING.md`.
+   The loop is three existing scripts run daily (`fetch_hot_products --site-only` ->
+   `plan_slots --execute` per category -> `run_pipeline` worker). `run_pipeline.py` is
+   already a cron-shaped worker. Left to an operator/scheduling agent to wire per the README.
+3. **Phase 2D internal-link clusters - DONE.** `api/services/internal_links.py` (pure
+   "Læs også" formatter) + `coverage.related_articles` (same-category published siblings,
+   matched on the slot_key prefix - the category_slug column is unreliable across formats)
+   wired into `publish.py` to append the cluster before widget insertion. 8 tests; empty
+   no-op on a fresh site. Anchor text uses primary_keyword, else a de-slugified slug
+   (improve later by storing the SEO title on the coverage row).
+4. **Phase 2C schema JSON-LD - BLOCKED, decision needed.** The WP site runs **Yoast**
+   (`register-yoast-meta.php`, `_yoast_wpseo_*` in `wp_publisher.py`; Rank Math fields too),
+   which already auto-emits schema.org JSON-LD. Injecting our own Product/Review/FAQ would
+   duplicate/conflict. Decide: rely on Yoast's auto schema, feed Yoast/Rank Math structured
+   fields, or use Yoast FAQ blocks - do NOT blind-inject a second graph.
+5. **Deferred:** Phase 1.5 new formats (alternatives/worth_it/buying_guide);
    Phase 2.5 refresh loop (stale -> update > redirect > delete; good background
    subagent); Phase 3 semantic-similarity gate.
 

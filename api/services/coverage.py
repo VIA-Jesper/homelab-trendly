@@ -88,6 +88,36 @@ async def record_coverage(
         ))
 
 
+async def related_articles(
+    db: AsyncSession,
+    site_id: uuid.UUID,
+    category_slug: str,
+    exclude_job_id: uuid.UUID,
+    limit: int = 4,
+) -> list[dict]:
+    """Published articles in the same category on this site, for internal-link
+    clusters. Matches on the slot_key prefix (always the true category_slug) rather
+    than the category_slug column (which record_coverage derives from the display
+    name, so it is inconsistent across formats). Only rows with a slug (= published)
+    on a live job are returned."""
+    if not category_slug:
+        return []
+    q = (
+        select(JobCoverage.slug, JobCoverage.primary_keyword)
+        .join(Job, Job.id == JobCoverage.job_id)
+        .where(
+            JobCoverage.site_id == site_id,
+            JobCoverage.job_id != exclude_job_id,
+            JobCoverage.slug.isnot(None),
+            JobCoverage.slot_key.like(f"{category_slug}:%"),
+            Job.status.notin_(_DEAD_STATES),
+        )
+        .limit(limit)
+    )
+    rows = (await db.execute(q)).all()
+    return [{"slug": slug, "title": kw} for slug, kw in rows]
+
+
 async def set_coverage_slug(db: AsyncSession, job_id: uuid.UUID, slug: str | None) -> None:
     """Record the final published slug on the job's coverage row (best-effort)."""
     if not slug:

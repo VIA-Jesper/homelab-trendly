@@ -65,6 +65,76 @@ class MinWordCountCheck(IQACheck):
         }
 
 
+class NoDashCheck(IQACheck):
+    """No em/en dashes anywhere - the strongest AI tell and a hard house rule.
+    The generator prompt forbids them; this enforces it deterministically so a
+    stray dash can never reach publish."""
+
+    @property
+    def check_id(self) -> str:
+        return "QA-004"
+
+    @property
+    def severity(self) -> str:
+        return "BLOCKER"
+
+    def evaluate(self, content: str, context: dict) -> dict:
+        em = content.count("—")   # em dash
+        en = content.count("–")   # en dash
+        total = em + en
+        return {
+            "passed": total == 0,
+            "message": "OK" if total == 0
+            else f"Found {em} em-dash and {en} en-dash char(s); use plain hyphens",
+        }
+
+
+# AI-slop phrases that almost never appear in genuine human affiliate writing.
+# Mirrors the hard bans in prompts/generate_base.txt - kept here so QA enforces
+# them deterministically instead of trusting the model to obey.
+_FORBIDDEN_PHRASES = (
+    "det er værd at bemærke",
+    "det er værd at nævne",
+    "man kan argumentere for",
+    "det er alligevel rimeligt at",
+    "som nævnt ovenfor",
+    "som tidligere nævnt",
+    "i denne anmeldelse",
+    "i dette indlæg",
+    "i dette udvalg",
+    "velkommen til",
+    "briefen",
+    "analytisk set",
+    "popularityrank",
+    "popularityscore",
+)
+
+
+class ForbiddenPhraseCheck(IQACheck):
+    """Block AI-slop phrases and the brief's forbidden superlatives. These are
+    hard bans (per generate_base.txt and the brief's compliance rules), so a hit
+    blocks and triggers a regenerate rather than shipping slop."""
+
+    @property
+    def check_id(self) -> str:
+        return "QA-005"
+
+    @property
+    def severity(self) -> str:
+        return "BLOCKER"
+
+    def evaluate(self, content: str, context: dict) -> dict:
+        lc = content.lower()
+        banned = list(_FORBIDDEN_PHRASES)
+        compliance = (context.get("brief") or {}).get("compliance") or {}
+        banned += [s.lower() for s in compliance.get("forbidden_superlatives", [])]
+        hits = sorted({p for p in banned if p and p in lc})
+        return {
+            "passed": not hits,
+            "message": "OK" if not hits else f"Found banned phrase(s): {', '.join(hits)}",
+        }
+
+
 class QAService:
     """
     Runs all registered QA checks against article content.
@@ -77,6 +147,8 @@ class QAService:
         self.register_check(MetaDescriptionLengthCheck())
         self.register_check(NoRawUrlsCheck())
         self.register_check(MinWordCountCheck())
+        self.register_check(NoDashCheck())
+        self.register_check(ForbiddenPhraseCheck())
 
     def register_check(self, check: IQACheck) -> None:
         self._checks.append(check)

@@ -96,11 +96,20 @@ coverage ledger is the scale engine; the LLM is boxed to writing the article bod
    wired into `publish.py` to append the cluster before widget insertion. 8 tests; empty
    no-op on a fresh site. Anchor text uses primary_keyword, else a de-slugified slug
    (improve later by storing the SEO title on the coverage row).
-4. **Phase 2C schema JSON-LD - BLOCKED, decision needed.** The WP site runs **Yoast**
-   (`register-yoast-meta.php`, `_yoast_wpseo_*` in `wp_publisher.py`; Rank Math fields too),
-   which already auto-emits schema.org JSON-LD. Injecting our own Product/Review/FAQ would
-   duplicate/conflict. Decide: rely on Yoast's auto schema, feed Yoast/Rank Math structured
-   fields, or use Yoast FAQ blocks - do NOT blind-inject a second graph.
+4. **Phase 2C schema JSON-LD - PARKED, low ROI (decided 2026-06-12).** Verified against a
+   live published article (husforbegyndere.dk): the site runs **Yoast SEO v27.7**, which
+   emits a connected graph - `Article`, `WebPage`, `ImageObject`, `BreadcrumbList`,
+   `WebSite`, `Person/Organization` - but NOT `Product`, `Review`, `aggregateRating`, or
+   `FAQPage`. Yoast covers the baseline; only product-level schema is missing. Parked because:
+   - **Review / aggregateRating: do NOT add.** We do no genuine first-party reviews; faking
+     review markup is an E-E-A-T / demotion risk (same issue as the "i testen" framing).
+   - **FAQPage: low value** - Google restricted FAQ rich results to gov/health sites (2023).
+   - **Product: the only real candidate**, but uncertain rich-result payoff for the plumbing.
+   If revisited, the clean (conflict-free) path - NOT a Python `<script>` inject (WP strips
+   `<script>` from REST post content, and a standalone block would not join Yoast's `@graph`):
+   write product fields (price, brand, image, url) as post meta in `wp_publisher.py`, then a
+   `register-product-schema.php` mu-plugin adding a `Product` piece to Yoast's graph via the
+   `wpseo_schema_graph` filter (mirrors the existing `register-yoast-meta.php`).
 5. **Deferred:** Phase 1.5 new formats (alternatives/worth_it/buying_guide);
    Phase 2.5 refresh loop (stale -> update > redirect > delete; good background
    subagent); Phase 3 semantic-similarity gate.

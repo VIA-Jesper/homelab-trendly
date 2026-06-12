@@ -75,9 +75,13 @@ coverage ledger is the scale engine; the LLM is boxed to writing the article bod
 
 ## Next steps (priority order, active/unblocked)
 
-1. **Phase 2B - QA uniqueness gate.** New `IQACheck` in `api/services/qa.py`: lexical
-   similarity vs existing articles + boilerplate guard + numeric-claim backstop (the
-   QA-as-net idea) + optional language check.
+1. **Phase 2B - QA gate.** DONE so far: QA-004 (no em/en dashes, BLOCKER) + QA-005
+   (forbidden AI-slop phrases + brief forbidden superlatives, BLOCKER) in
+   `api/services/qa.py`, 10 tests, verified clean on the sample article. Remaining:
+   cross-article lexical similarity vs existing articles (the real "uniqueness" check
+   - needs corpus/DB access in `pipeline._run_python_qa`, which the sync `IQACheck`
+   interface does not have, so it is a slightly bigger touch); a price-focused
+   numeric-claim backstop; optional language check.
 2. **Daily scheduler (cron).** Wrap `plan_slots.py` to queue 1-2 slots/day = the
    "continuously agentic" autopilot.
 3. **Phase 2C schema JSON-LD; 2D internal-link clusters** (from the coverage ledger).

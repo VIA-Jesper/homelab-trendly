@@ -119,19 +119,45 @@ against generated results.
 
 ## Follow-ups (parked - need input before building)
 
-- **Spec enrichment - need a confirmed spec API; SKIPPED until then.** Real product
-  specs (suction kPa, battery mAh, runtime, tank L, features) would make value_signals
-  produce genuine spec comparisons, not just price. The data exists (SSR'd into the
-  product page as a clean `specifications` JSON), but we will NOT scrape it on a guess.
-  Status of what was actually checked: all documented endpoints 404 (`pl/v5`, `pl/v4`,
-  `productlistings/pl/initial`, `productinfo`, `listings/products`, under both
-  `search-edge-rest` and `search-compare-gateway`); the frontend is a Klarna OWP SPA;
-  the live spec-API path is not in the page HTML. **To unblock:** capture the live
-  request from a browser (DevTools -> Network -> Fetch/XHR -> reload -> find the
-  response containing "Sugeevne"/"specifications" -> copy the Request URL), or
-  reverse-engineer the Klarna JS bundles. Once a real endpoint is confirmed: add a
-  fetch + parser into `RawProduct.specs`, then add **value_signals spec deltas**
-  (ranked values + gaps) so the model cites exact numbers (kills demo defect #1).
+- **Spec enrichment - SKIPPED until a confirmed spec API (decided 2026-06-12).** Real
+  product specs (suction kPa, battery mAh, runtime, tank L, features) would make
+  value_signals produce genuine spec comparisons, not just price. Preference: source
+  via a clean API, not page scraping. Everything below is *verified this session* so it
+  is resumable without re-investigating.
+
+  **What's verified:**
+  - The specs DO exist and ARE extractable. They are server-side-rendered into the
+    product page in a JSON object keyed `"specifications"`, grouped as
+    `Produkt / Produktegenskaber / Ydeevne / Egenskaber / Strømkilde / Mål / Øvrigt`,
+    each with an `attributes: [{name, value}]` list. Proven on Dreame X50 (id
+    3391726225): Sugeevne 20.0 kPa, Batterikapacitet 6400 mAh, Batteritid 220 min,
+    Støvbeholder 0.395 L, Egenskaber "Automatisk tømning, Moppefunktion", Vægt 4.53 kg,
+    mål 350x350x111 mm. These are exactly the comparable specs value_signals needs.
+  - **Working extraction recipe:** GET the product page
+    (`https://www.pricerunner.dk/pl/<subcat>-<productId>/<slug>`) with **full browser
+    headers** - a minimal User-Agent gets a `454` WAF block; full Chrome headers
+    (UA + Accept + Accept-Language + Sec-Fetch-*) return `200`. Then find
+    `"specifications":`, brace-match the following `{...}`, `json.loads` it directly
+    (standard JSON with `\u` escapes), and flatten each group's `attributes`. ~1 MB/page.
+  - **All documented JSON APIs are dead:** `pl/v5`, `pl/v4`, `productlistings/pl/initial`,
+    `productinfo`, `listings/products` - all 404, under both `search-edge-rest` and
+    `search-compare-gateway`. The frontend is a Klarna OWP SPA (bundles on
+    owp.klarna.com); the live spec-API path is NOT in the page HTML (it's in the JS).
+
+  **Preferred unblock (find the real API):** open a product page -> DevTools -> Network
+  -> filter Fetch/XHR -> reload -> find the response containing "Sugeevne" -> copy its
+  Request URL. That is the live spec endpoint; wire it into the client.
+
+  **Fallback (verified, if no clean API surfaces):** the page-extraction recipe above.
+  Fragile to Klarna frontend changes - wrap with graceful-empty fallback + a fixture test.
+
+  **Build once specs flow in (from either source):** parse them into `RawProduct.specs`
+  in `pricerunner_client` (the current v4 search path only sets brand/rating/meta - see
+  `_map_v4_product`), then add **value_signals spec deltas** (ranked values + pairwise
+  gaps) so the model cites exact numbers - this also kills demo defect #1 (the
+  hallucinated "50 min"). The spec-comparison machinery in `value_signals.py` already
+  exists and is tested; it just needs real specs as input. Spec-based segments
+  (`til kæledyr`, `med moppe`) in the segment config light up at the same time.
   Until then value_signals = price comparisons only (real, working).
 
 ## How to run things (from repo root, Windows)

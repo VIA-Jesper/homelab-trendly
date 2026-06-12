@@ -4,7 +4,11 @@ articleType in brief is "single-product-review". There is exactly one product. T
 standalone review - opinionated, thorough, and personal.
 
 ### Target word count
-700-1000 words total. Aim for 750+ to give a comfortable buffer above the 700-word minimum.
+**Hard minimum 700 words, enforced by QA** - an article under 700 is automatically
+rejected and regenerated, wasting a full cycle. **Target 850-1000 words** so you clear
+the floor with real margin. Treat every section's lower bound below as a floor, not a
+goal, and err long. Count as you go: if the draft is heading under ~800, expand the
+"Det vi kan lide" and "Hvad er det?" sections before finishing.
 
 ### Required structure
 
@@ -12,8 +16,10 @@ standalone review - opinionated, thorough, and personal.
    Format: # [Product name] anmeldelse - [one-line verdict or hook]
    Example: # Dreame X50 Ultra Kombi Sort anmeldelse - er det en robot, der holder hvad den lover?
    Must contain the product name and "anmeldelse" or "test".
+   NO year in the H1 or the SEO title - a product review is evergreen, so a year just
+   dates it (and will be wrong next year). The year belongs only on the yearly roundups.
 
-1. Introduction (80-120 words)
+1. Introduction (100-140 words)
    - FIRST sentence MUST contain the product name as a markdown link:
      [Product Name](affiliateUrl)
      Do NOT write the product name in bold (**...**) - it must be a hyperlink.
@@ -22,26 +28,26 @@ standalone review - opinionated, thorough, and personal.
      Do NOT mention review counts, watcher counts, or number of shops. These say nothing
      about the product and make the intro feel like a data dump.
 
-2. Hvad er det? (80-150 words, H2)
+2. Hvad er det? (140-200 words, H2)
    - Brief overview: category, price, key specs from brief.
    - Who it is designed for - be specific, not "den travle husstand".
    - Image placement anchor goes here: after-heading "Hvad er det?"
 
-3. Det vi kan lide (150-200 words, H2: "Det vi kan lide")
+3. Det vi kan lide (200-280 words, H2: "Det vi kan lide")
    - Bullet list with 4-5 concrete pros (spec-backed, from brief).
    - Each bullet: one thing + why it matters in practice. No vague "god ydelse".
    - Short conversational paragraph after the list.
 
-4. Det vi ville ændre (80-120 words, H2: "Det vi ville ændre")
+4. Det vi ville ændre (100-150 words, H2: "Det vi ville ændre")
    - Bullet list with 2-3 honest cons - REAL product limitations, not meta-comments.
    - No sugarcoating. A review with no cons loses credibility.
 
-5. Hvem er den til? (60-100 words, H2: "Hvem er den til?")
+5. Hvem er den til? (80-120 words, H2: "Hvem er den til?")
    - "Koeb den hvis..." - specific reason with data.
    - "Overvej [specific named alternative] hvis..." - NAME the alternative explicitly. You may link it to its PriceRunner product page, but ONLY if you append "?refsite=adrunner_dk_husforbegyndere" to the URL. Never use a bare PriceRunner URL without this ref - it earns nothing.
    - Widget placement anchor goes here: end-of-section "Hvem er den til?"
 
-6. Vores vurdering (H2: "Vores vurdering", 60-100 words)
+6. Vores vurdering (H2: "Vores vurdering", 80-120 words)
    - MANDATORY: include a numerical rating using exactly this format: "Vi giver den **X ud af 5**" where X is a whole number 1-5.
    - Rating calibration: 5/5 means near-perfect with no meaningful cons. If "Det vi ville ændre"
      lists 2+ real cons, the rating must be 4 or lower. A product with genuine limitations cannot
@@ -59,7 +65,9 @@ Specs argue the case. Your voice frames and interprets them.
 ### What to avoid
 - Missing H1 - every article MUST start with a # heading
 - Vague pros like "god ydelse" - every claim needs a spec or concrete reason
-- "I dette udvalg", "i denne anmeldelse" as opening phrases
+- "I dette udvalg" / "i denne anmeldelse" openers - in ANY form, including with the
+  product name in between ("I denne Dreame X50 anmeldelse ..."). Just start with substance.
+- A year in the title or H1 (e.g. "anmeldelse 2025") - reviews are evergreen
 - Artificial hedging - take a position
 - "Overve j alternativet" without naming the alternative - always name it explicitly
 - Meta-cons like "begrænset specifikationsdata" - only real product limitations

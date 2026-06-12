@@ -99,14 +99,22 @@ _FORBIDDEN_PHRASES = (
     "det er alligevel rimeligt at",
     "som nævnt ovenfor",
     "som tidligere nævnt",
-    "i denne anmeldelse",
-    "i dette indlæg",
-    "i dette udvalg",
     "velkommen til",
     "briefen",
     "analytisk set",
     "popularityrank",
     "popularityscore",
+)
+
+# Pattern variants the literal list cannot catch - notably the AI opener
+# "I denne <product name> anmeldelse ...", where words sit between "denne" and the
+# noun (a real generation found in the system check that the exact-match missed).
+_FORBIDDEN_PATTERNS = (
+    re.compile(
+        r"\bi (?:denne|dette)\b[^.?!\n]{0,50}?\b"
+        r"(?:anmeldelse|test|guide|artikel|gennemgang|indlæg|udvalg|sammenligning)\b",
+        re.IGNORECASE,
+    ),
 )
 
 
@@ -128,7 +136,12 @@ class ForbiddenPhraseCheck(IQACheck):
         banned = list(_FORBIDDEN_PHRASES)
         compliance = (context.get("brief") or {}).get("compliance") or {}
         banned += [s.lower() for s in compliance.get("forbidden_superlatives", [])]
-        hits = sorted({p for p in banned if p and p in lc})
+        hits = {p for p in banned if p and p in lc}
+        for pat in _FORBIDDEN_PATTERNS:
+            m = pat.search(content)
+            if m:
+                hits.add(m.group(0).strip().lower())
+        hits = sorted(hits)
         return {
             "passed": not hits,
             "message": "OK" if not hits else f"Found banned phrase(s): {', '.join(hits)}",

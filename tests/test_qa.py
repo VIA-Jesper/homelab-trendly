@@ -56,6 +56,23 @@ def test_clean_text_passes():
 def test_case_insensitive():
     assert ForbiddenPhraseCheck().evaluate("SOM NÆVNT OVENFOR er den god.", {})["passed"] is False
 
+def test_opener_pattern_with_product_name_between():
+    # the system-check gap: "i denne <product> anmeldelse" must be caught, not just the literal
+    r = ForbiddenPhraseCheck().evaluate(
+        "I denne Dreame X50 Ultra Black anmeldelse ser vi på flagskibet.", {})
+    assert r["passed"] is False
+
+def test_opener_pattern_variants():
+    for txt in ("I denne test af robotten kigger vi nærmere.",
+                "I dette indlæg gennemgår vi modellen.",
+                "I denne grundige sammenligning af de seks ser vi på."):
+        assert ForbiddenPhraseCheck().evaluate(txt, {})["passed"] is False, txt
+
+def test_opener_pattern_no_false_positive():
+    # "denne" and a review-ish noun far apart / unrelated should not trip
+    assert ForbiddenPhraseCheck().evaluate(
+        "Denne robot er god. Vi lavede en grundig test af sugeevnen senere i hjemmet.", {})["passed"] is True
+
 
 # ─── QA-006 uniqueness (gates on injected score) ─────────────────────────────
 

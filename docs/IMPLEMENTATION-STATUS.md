@@ -39,6 +39,8 @@ coverage ledger is the scale engine; the LLM is boxed to writing the article bod
   leads/laggards, unique features) across a brief's own products; carried on
   `ContentBrief.value_signals`; generator prompts require citing them. Platform
   signals (rating/watchers/rank/shop count) excluded so nothing uncitable leaks.
+  On real data this currently yields **price comparisons only** - spec comparisons
+  are parked until we have a confirmed spec API (see Follow-ups).
 - **best_of = evergreen (Option B): DONE.** Stable slot_key (`...:roundup:best`),
   year in title not slug, planner never re-mints it yearly. Hero prompt forbids the
   year in the slug.
@@ -63,32 +65,45 @@ coverage ledger is the scale engine; the LLM is boxed to writing the article bod
    numeric gap not in value_signals"). QA is a backstop, not the primary control.
 2. **"i testen" framing = E-E-A-T risk.** Article implies hands-on testing we did
    not do. Prefer "i denne sammenligning" / "i feltet". Prompt rule unless we test.
-3. **No real product specs in production.** Live PriceRunner public API only returns
-   platform-meta (brand/rating/watchers/rank/merchantCount) - all excluded. So on
-   REAL data, value_signals currently fires **price comparisons only**; the spec
-   comparisons need a spec-enrichment source (see Next steps #1).
+3. **No real product specs in production - spec enrichment PARKED.** Live data only
+   carries platform-meta (brand/rating/watchers/rank/merchantCount), all excluded. So
+   on REAL data value_signals fires **price comparisons only**; spec comparisons are
+   skipped until we have a confirmed spec API. See "Follow-ups" - we will NOT scrape
+   the page on a guess.
 4. Minor: "din have af rum" (garbled), "samlet sett" (Norwegian), SEO title 47 chars
    (target 50-60). Fluency slips - candidates for a 2B language/proofing check.
 
-## Next steps (priority order)
+## Next steps (priority order, active/unblocked)
 
-1. **Product spec enrichment (the big one).** Source real specs (suction Pa, battery,
-   tank, mop, auto-empty) for products - e.g. scrape the PR product-page spec table
-   or another source. Without it the spec-delta value is dormant on real articles.
-2. **value_signals spec deltas.** Add ranked values + gaps so the model cites real
-   numbers; kills defect #1 at the source. Pairs with #1.
-3. **Phase 2B - QA uniqueness gate.** New `IQACheck` in `api/services/qa.py`: lexical
+1. **Phase 2B - QA uniqueness gate.** New `IQACheck` in `api/services/qa.py`: lexical
    similarity vs existing articles + boilerplate guard + numeric-claim backstop (the
    QA-as-net idea) + optional language check.
-4. **Daily scheduler (cron).** Wrap `plan_slots.py` to queue 1-2 slots/day = the
+2. **Daily scheduler (cron).** Wrap `plan_slots.py` to queue 1-2 slots/day = the
    "continuously agentic" autopilot.
-5. **Phase 2C schema JSON-LD; 2D internal-link clusters** (from the coverage ledger).
-6. **Deferred:** Phase 1.5 new formats (alternatives/worth_it/buying_guide);
+3. **Phase 2C schema JSON-LD; 2D internal-link clusters** (from the coverage ledger).
+4. **Deferred:** Phase 1.5 new formats (alternatives/worth_it/buying_guide);
    Phase 2.5 refresh loop (stale -> update > redirect > delete; good background
    subagent); Phase 3 semantic-similarity gate.
 
-The optimization pass (prompt/framing tuning, defects #1/#2/#4) is the user's to run
-against generated results; spec enrichment (#1) is the next build-side unblocker.
+The optimization pass (prompt/framing tuning, defects #2/#4) is the user's to run
+against generated results.
+
+## Follow-ups (parked - need input before building)
+
+- **Spec enrichment - need a confirmed spec API; SKIPPED until then.** Real product
+  specs (suction kPa, battery mAh, runtime, tank L, features) would make value_signals
+  produce genuine spec comparisons, not just price. The data exists (SSR'd into the
+  product page as a clean `specifications` JSON), but we will NOT scrape it on a guess.
+  Status of what was actually checked: all documented endpoints 404 (`pl/v5`, `pl/v4`,
+  `productlistings/pl/initial`, `productinfo`, `listings/products`, under both
+  `search-edge-rest` and `search-compare-gateway`); the frontend is a Klarna OWP SPA;
+  the live spec-API path is not in the page HTML. **To unblock:** capture the live
+  request from a browser (DevTools -> Network -> Fetch/XHR -> reload -> find the
+  response containing "Sugeevne"/"specifications" -> copy the Request URL), or
+  reverse-engineer the Klarna JS bundles. Once a real endpoint is confirmed: add a
+  fetch + parser into `RawProduct.specs`, then add **value_signals spec deltas**
+  (ranked values + gaps) so the model cites exact numbers (kills demo defect #1).
+  Until then value_signals = price comparisons only (real, working).
 
 ## How to run things (from repo root, Windows)
 

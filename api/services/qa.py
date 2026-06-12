@@ -135,6 +135,40 @@ class ForbiddenPhraseCheck(IQACheck):
         }
 
 
+# Max shingle overlap (vs any existing same-site article) allowed before we treat
+# an article as a near-duplicate. Calibrated against real generated articles: genuinely
+# distinct articles score well under this; near-dups score well above it.
+_UNIQUENESS_THRESHOLD = 0.35
+
+
+class UniquenessCheck(IQACheck):
+    """Block articles that are lexical near-duplicates of an existing same-site
+    article (templated sameness). The actual corpus comparison happens in
+    pipeline._run_python_qa (which has DB access); it injects the resulting max
+    overlap as context['uniqueness_score']. Absent score (no corpus / not computed)
+    -> passes. Keeping the compare out of here leaves qa.py dependency-free."""
+
+    @property
+    def check_id(self) -> str:
+        return "QA-006"
+
+    @property
+    def severity(self) -> str:
+        return "BLOCKER"
+
+    def evaluate(self, content: str, context: dict) -> dict:
+        score = context.get("uniqueness_score")
+        if score is None:
+            return {"passed": True, "message": "OK (no comparison corpus)"}
+        threshold = context.get("uniqueness_threshold", _UNIQUENESS_THRESHOLD)
+        passed = score < threshold
+        return {
+            "passed": passed,
+            "message": "OK" if passed
+            else f"Near-duplicate of an existing article: {score:.0%} prose overlap (limit {threshold:.0%})",
+        }
+
+
 class QAService:
     """
     Runs all registered QA checks against article content.
@@ -149,6 +183,7 @@ class QAService:
         self.register_check(MinWordCountCheck())
         self.register_check(NoDashCheck())
         self.register_check(ForbiddenPhraseCheck())
+        self.register_check(UniquenessCheck())
 
     def register_check(self, check: IQACheck) -> None:
         self._checks.append(check)

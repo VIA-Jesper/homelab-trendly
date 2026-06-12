@@ -75,13 +75,17 @@ coverage ledger is the scale engine; the LLM is boxed to writing the article bod
 
 ## Next steps (priority order, active/unblocked)
 
-1. **Phase 2B - QA gate.** DONE so far: QA-004 (no em/en dashes, BLOCKER) + QA-005
-   (forbidden AI-slop phrases + brief forbidden superlatives, BLOCKER) in
-   `api/services/qa.py`, 10 tests, verified clean on the sample article. Remaining:
-   cross-article lexical similarity vs existing articles (the real "uniqueness" check
-   - needs corpus/DB access in `pipeline._run_python_qa`, which the sync `IQACheck`
-   interface does not have, so it is a slightly bigger touch); a price-focused
-   numeric-claim backstop; optional language check.
+1. **Phase 2B - QA gate. DONE.** Three deterministic blockers in `api/services/qa.py`:
+   QA-004 (no em/en dashes), QA-005 (forbidden AI-slop phrases + brief forbidden
+   superlatives), QA-006 (cross-article lexical uniqueness). Uniqueness uses
+   `api/services/similarity.py` (pure shingle-Jaccard); `pipeline._run_python_qa`
+   fetches prior same-site article bodies (the optimize_seo outputs), computes max
+   overlap, and injects `uniqueness_score` for QA-006 to gate on (threshold 0.35).
+   Validated on real generated articles: different types 0.1%, two independent
+   generations of the same roundup 4.1%, templated brand-swap near-dup 70.9% - the
+   threshold sits cleanly in the gap. 46 tests total.
+   Optional later: price-focused numeric-claim backstop; language check; semantic
+   near-dup detection (= Phase 3 embeddings; lexical Jaccard does not catch rewrites).
 2. **Daily scheduler (cron).** Wrap `plan_slots.py` to queue 1-2 slots/day = the
    "continuously agentic" autopilot.
 3. **Phase 2C schema JSON-LD; 2D internal-link clusters** (from the coverage ledger).

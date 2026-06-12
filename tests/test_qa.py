@@ -20,6 +20,7 @@ _spec.loader.exec_module(qa)
 
 NoDashCheck = qa.NoDashCheck
 ForbiddenPhraseCheck = qa.ForbiddenPhraseCheck
+UniquenessCheck = qa.UniquenessCheck
 QAService = qa.QAService
 
 
@@ -56,11 +57,37 @@ def test_case_insensitive():
     assert ForbiddenPhraseCheck().evaluate("SOM NÆVNT OVENFOR er den god.", {})["passed"] is False
 
 
+# ─── QA-006 uniqueness (gates on injected score) ─────────────────────────────
+
+def test_uniqueness_no_score_passes():
+    assert UniquenessCheck().evaluate("text", {})["passed"] is True
+
+def test_uniqueness_below_threshold_passes():
+    r = UniquenessCheck().evaluate("text", {"uniqueness_score": 0.10})
+    assert r["passed"] is True
+
+def test_uniqueness_above_threshold_blocks():
+    r = UniquenessCheck().evaluate("text", {"uniqueness_score": 0.80})
+    assert r["passed"] is False
+    assert "%" in r["message"]
+
+def test_uniqueness_custom_threshold():
+    ctx = {"uniqueness_score": 0.25, "uniqueness_threshold": 0.20}
+    assert UniquenessCheck().evaluate("text", ctx)["passed"] is False
+
+
 # ─── service integration ─────────────────────────────────────────────────────
 
 def test_service_registers_new_checks():
     ids = {c.check_id for c in QAService()._checks}
-    assert {"QA-001", "QA-002", "QA-003", "QA-004", "QA-005"} <= ids
+    assert {"QA-001", "QA-002", "QA-003", "QA-004", "QA-005", "QA-006"} <= ids
+
+def test_service_blocks_on_near_duplicate():
+    res = QAService().run(
+        "En solid robotstøvsuger til prisen. Den virker hver gang.",
+        {"meta_description": "x" * 130, "min_words": 1, "uniqueness_score": 0.9},
+    )
+    assert res["passed"] is False
 
 def test_service_blocks_on_em_dash():
     # meta 120-160 + low min_words isolates the dash failure from the other blockers

@@ -275,7 +275,44 @@ class PipelineService:
         brief_min_words = job.context.get("brief", {}).get("writing_rules", {}).get("min_words")
         if brief_min_words is not None:
             qa_context["min_words"] = brief_min_words
+
+        # Cross-article uniqueness: compare this article against prior same-site
+        # articles. The corpus + similarity live here (DB access); UniquenessCheck
+        # just gates on the score we inject. No corpus -> no score -> check passes.
+        corpus = await self._fetch_site_article_corpus(job, db)
+        if corpus:
+            from services.similarity import max_similarity
+            score, _ = max_similarity(article, corpus)
+            qa_context["uniqueness_score"] = score
+
         return qa_service.run(article, qa_context)
+
+    async def _fetch_site_article_corpus(self, job: Job, db: AsyncSession, limit: int = 200) -> list[str]:
+        """Article bodies from prior live jobs on the same site, for the uniqueness
+        check. Reads the optimize_seo output (same source as the article being QA'd).
+        Capped at `limit` most-recent; at homelab scale this is the whole corpus."""
+        result = await db.execute(
+            select(Step.output)
+            .join(Job, Job.id == Step.job_id)
+            .where(
+                Job.site_id == job.site_id,
+                Job.id != job.id,
+                Job.status.notin_(("archived", "failed")),
+                Step.step_name == "optimize_seo",
+                Step.status == "complete",
+            )
+            .order_by(Step.created_at.desc())
+            .limit(limit)
+        )
+        texts: list[str] = []
+        for (out,) in result.all():
+            if not out:
+                continue
+            try:
+                texts.append(json.loads(out).get("article", ""))
+            except (json.JSONDecodeError, ValueError):
+                texts.append(out)
+        return [t for t in texts if t]
 
     async def _get_active_prompt(self, name: str, db: AsyncSession) -> Prompt | None:
         result = await db.execute(

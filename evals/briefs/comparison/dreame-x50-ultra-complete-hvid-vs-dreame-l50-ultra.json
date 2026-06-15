@@ -1,0 +1,111 @@
+{
+  "brief": {
+    "brief_id": "5eb65a18-3732-4ef8-bc12-80fc9f89c726",
+    "site_key": "hus",
+    "category": "robotstoevsugere",
+    "category_slug": "robotstoevsugere",
+    "products": [
+      {
+        "id": "pr_3391726225",
+        "name": "Dreame X50 Ultra Complete Hvid",
+        "category": "robotstoevsugere",
+        "price_kr": 7179.0,
+        "retailer": "PriceRunner",
+        "affiliate_url": "https://www.pricerunner.dk/pl/1613-3391726225/Robotstoevsugere/Dreame-X50-Ultra-Complete-Hvid-Sammenlign-Priser?refsite=",
+        "specs": {
+          "brand": "Dreame",
+          "description": "Batteritid 220 min",
+          "rating": "4.55 (363 reviews)",
+          "ribbon": "WATCHED",
+          "watchedLabel": "500+",
+          "popularityRank": "1",
+          "merchantCount": "8"
+        }
+      },
+      {
+        "id": "pr_3414152135",
+        "name": "Dreame L50 Ultra White Robotstøvsuger Hvid",
+        "category": "robotstoevsugere",
+        "price_kr": 6999.95,
+        "retailer": "PriceRunner",
+        "affiliate_url": "https://www.pricerunner.dk/pl/1613-3414152135/Robotstoevsugere/Dreame-L50-Ultra-White-Robotstoevsuger-Hvid-Sammenlign-Priser?refsite=",
+        "specs": {
+          "brand": "Dreame",
+          "rating": "5.00 (1 reviews)",
+          "ribbon": "WATCHED",
+          "watchedLabel": "200+",
+          "popularityRank": "10",
+          "merchantCount": "17"
+        }
+      }
+    ],
+    "images": [
+      {
+        "product_id": "pr_3391726225",
+        "url": "https://www.pricerunner.dk/product/3198932936/Dreame-X50-Ultra-Complete-Hvid.jpg",
+        "alt": "Dreame X50 Ultra Complete Hvid - Dreame",
+        "caption": "Dreame X50 Ultra Complete Hvid hos PriceRunner - 7.179 kr."
+      },
+      {
+        "product_id": "pr_3414152135",
+        "url": "https://www.pricerunner.dk/product/3220871600/Dreame-L50-Ultra-White-Robotstoevsuger-Hvid.jpg",
+        "alt": "Dreame L50 Ultra White Robotstøvsuger Hvid - Dreame",
+        "caption": "Dreame L50 Ultra White Robotstøvsuger Hvid hos PriceRunner - 7.000 kr."
+      }
+    ],
+    "writing_rules": {
+      "tone": "friendly",
+      "min_words": 700,
+      "max_words": 1200,
+      "include_pros_cons": true,
+      "include_verdict": true
+    },
+    "compliance": {
+      "require_disclosure": false,
+      "disclosure_phrases": [
+        "indeholder affiliatelinks",
+        "vi tjener kommission",
+        "annonce",
+        "reklame"
+      ],
+      "forbidden_superlatives": [
+        "bedste på markedet",
+        "billigst i danmark",
+        "nr. 1 valg",
+        "absolut bedst"
+      ]
+    },
+    "article_type": "comparison",
+    "article_hook": "Dreame X50 Ultra Complete Hvid vs Dreame L50 Ultra White Robotstøvsuger Hvid - hvad er det rigtige valg for dig?",
+    "value_signals": {
+      "set_size": 2,
+      "currency": "kr",
+      "price": {
+        "min": 6999.95,
+        "max": 7179.0,
+        "median": 7089.0
+      },
+      "per_product": {
+        "pr_3391726225": {
+          "price_kr": 7179.0,
+          "price_rank": 2,
+          "price_rank_of": 2,
+          "price_vs_cheapest_kr": 179.0,
+          "price_position": "most_expensive",
+          "unique_specs": [
+            "description"
+          ]
+        },
+        "pr_3414152135": {
+          "price_kr": 6999.95,
+          "price_rank": 1,
+          "price_rank_of": 2,
+          "price_vs_cheapest_kr": 0.0,
+          "price_position": "cheapest"
+        }
+      },
+      "note": "Comparative facts derived from this article's own products - cite them as your own analysis (e.g. 'billigst i testen', 'storst kapacitet'). Never cite platform watcher/rank/shop-count data."
+    }
+  },
+  "article_type": "comparison"
+}

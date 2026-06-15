@@ -19,10 +19,82 @@ coverage ledger is the scale engine; the LLM is boxed to writing the article bod
 
 | Commit | What | Pushed? |
 |---|---|---|
+| `2fe9363` | System-prompt parity across adapters (eval/system-prompt flow) | **NO (local only)** |
 | `4bf8f8e` | Phase 2A value injection + evergreen best_of | **NO (local only)** |
 | `d1a96ea` | Phase 1 deterministic slot planner | yes |
 | `a6168d7` | em/en dash strip repo-wide | yes |
 | `d808b98` | Phase 0 slot-based de-dup coverage ledger | yes |
+
+## Eval system + system-prompt parity (NEW - separate flow)
+
+Prompted by the Claude-certification eval/system-prompt material. Two pieces.
+
+### 1. System-prompt parity across adapters (DONE, commit `2fe9363`)
+The work payload already separated `prompt` (stable per step+type instruction) from
+`content` (per-article data); adapters were concatenating both into one user turn.
+Now each model adapter delivers them on the right channel:
+- claude: `--system-prompt-file` (temp file). Full override of Claude Code's default
+  persona so it runs as a bare content writer, comparable to raw API calls.
+  WHY a file not argv: on Windows `claude` resolves to a `.cmd` wrapper routed through
+  cmd.exe, which mangles braces/quotes/colons when the prompt rides in argv -> "file
+  not found". A path is cmd.exe-safe; content goes in the file. User message via stdin.
+- gemini: `system_instruction` on `GenerateContentConfig`.
+- mistral: a `{role:system}` message.
+- augment/openclaw: unchanged (agentic CLIs, no separate system channel).
+Base class gained `build_user_message()` (content only); `build_instruction()` now
+composes system+user for the agentic path. No prompt-file or API/work-payload changes.
+Live-verified on the claude path; gemini/mistral verified at SDK/field level (no keys
+here). Tests: `tests/test_adapters.py`.
+
+The "right way" to structure prompts (the question we answered): the whole `prompt`
+field IS the system prompt (persona + rules + output contract - stable per step+type);
+`content` is the user turn. No need to split the prompt `.txt` files; the seam is
+already prompt-vs-content.
+
+### 2. Two-tier eval taxonomy (framing we settled on)
+- **ARTICLE eval** = inside the pipeline, every article. "Is THIS article good enough
+  to ship?" QA gate (deterministic) + `score_article` (LLM judge). Already existed.
+- **PROMPT eval** = offline, on demand when a prompt/model/system-prompt changes. "Did
+  my change make the SYSTEM better or worse?" Runs the writer over a FROZEN brief set,
+  grades with the SAME graders, reports aggregates. NEW (this flow).
+
+### 3. Prompt-eval harness (DONE - not yet committed at time of writing)
+- `scripts/eval_prompts.py` - runs writer over frozen briefs, grades ONCE (no QA retry
+  loop, so it measures the raw prompt not the gate's rescue), reports per-type + overall:
+  qa pass-rate, mean SEO/CRO/Readability/Overall, words, intra-run uniqueness, cost.
+  Flags: `--writer`, `--judge` (keep != writer model), `--no-judge`, `--types`,
+  `--limit`, `--out`, `--baseline` (diff two runs).
+- `scripts/freeze_eval_briefs.py` - builds the frozen set under `evals/briefs/<type>/`:
+  review (3 real, from DB), comparison (2 real same-category pairs via `brief_builder`),
+  hero (1; real products + realistic `pr_fixture_` padding to reach the 5-product
+  minimum). Re-run to refresh once real comparison/hero jobs exist.
+- Graders reused: `api/services/qa.py` + `similarity.py` (deterministic) and
+  `prompts/score_v1.txt` (LLM judge). Tests: `tests/test_eval_prompts.py`.
+- Smoke result worth remembering: a haiku single-shot draft was 625 words -> the LLM
+  judge scored it **86**, but the deterministic gate **failed** it on the 700-word
+  floor. That gap is the whole point of running both evals - the judge is blind to hard
+  rules the code grader enforces.
+
+### Next on this flow (recommendation order)
+1. System-prompt parity - DONE.
+2. Prompt-eval harness - DONE.
+3. **Judge calibration (NOT done):** grade with a stronger model than the writer (the
+   harness already supports a separate `--judge`); spot-check a handful of scores vs a
+   human read to confirm the rubric tracks judgment. Then run a real baseline (sonnet
+   writer, opus judge, `--out`) to actually measure the system-prompt change vs the old
+   combined-prompt behavior.
+
+How to run:
+```powershell
+# cheap deterministic-only smoke (no judge cost)
+.venv/Scripts/python.exe scripts/eval_prompts.py --writer claude:claude-haiku-4-5-20251001 --no-judge --limit 1
+# full baseline run, saved for later diffs
+.venv/Scripts/python.exe scripts/eval_prompts.py --writer claude:claude-sonnet-4-6 --judge claude:claude-opus-4-8 --out evals/runs/baseline.json
+# compare a new run against that baseline
+.venv/Scripts/python.exe scripts/eval_prompts.py --writer claude:claude-sonnet-4-6 --baseline evals/runs/baseline.json
+# refresh the frozen brief set from the DB
+.venv/Scripts/python.exe scripts/freeze_eval_briefs.py
+```
 
 ## Phase status
 

@@ -752,13 +752,28 @@ document.getElementById('hero-form').addEventListener('submit', async (e) => {
 
 
 @app.get("/", response_class=HTMLResponse)
-async def list_jobs() -> HTMLResponse:
+async def list_jobs(site: str = "all") -> HTMLResponse:
+    # Optional ?site=<site_id> filter; "all" (or absent/invalid) shows every job.
+    site_filter_id = None
+    if site and site != "all":
+        try:
+            site_filter_id = _uuid.UUID(site)
+        except (ValueError, AttributeError):
+            site_filter_id = None
+
     async with AsyncSessionLocal() as db:
-        result = await db.execute(
+        sites = (await db.execute(select(Site).order_by(Site.name))).scalars().all()
+        # Unknown site id falls back to showing all.
+        if site_filter_id is not None and not any(s.id == site_filter_id for s in sites):
+            site_filter_id = None
+        jobs_query = (
             select(Job)
             .options(selectinload(Job.site), selectinload(Job.steps))
             .order_by(Job.created_at.desc())
         )
+        if site_filter_id is not None:
+            jobs_query = jobs_query.where(Job.site_id == site_filter_id)
+        result = await db.execute(jobs_query)
         jobs = result.scalars().unique().all()
 
     rows = ""
@@ -838,6 +853,13 @@ async def list_jobs() -> HTMLResponse:
           <td style="display:flex;gap:6px;align-items:center">{preview_link} {retry_btn} {list_mark_btn} {archive_btn}</td>
         </tr>"""
 
+    # Site filter pills: "All sites" + one per site, active one highlighted.
+    _pill = "font-size:12px;text-decoration:none;border:1px solid #444;padding:4px 10px;border-radius:3px;color:#8fb3cc"
+    _pill_on = "font-size:12px;text-decoration:none;border:1px solid #8fb3cc;padding:4px 10px;border-radius:3px;color:#fff;background:#2a3a47"
+    site_pills = f'<a href="/" style="{_pill_on if site_filter_id is None else _pill}">All sites</a>'
+    for s in sites:
+        site_pills += f'<a href="/?site={s.id}" style="{_pill_on if site_filter_id == s.id else _pill}">{_html.escape(s.name)}</a>'
+
     body = f"""
 <div class="page-wrap">
   <div style="display:flex;align-items:baseline;gap:16px;margin-bottom:20px">
@@ -848,6 +870,11 @@ async def list_jobs() -> HTMLResponse:
     </label>
     <a href="/queue-comparison" style="margin-left:auto;font-size:12px;font-weight:600;color:#8fb3cc;text-decoration:none;border:1px solid #444;padding:4px 10px;border-radius:3px">＋ New comparison</a>
     <a href="/queue-hero" style="font-size:12px;font-weight:600;color:#8fb3cc;text-decoration:none;border:1px solid #444;padding:4px 10px;border-radius:3px">＋ New hero</a>
+  </div>
+  <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px;flex-wrap:wrap">
+    <span style="font-size:12px;color:#666">Site:</span>
+    {site_pills}
+    <span style="font-size:12px;color:#666;margin-left:10px">{len(jobs)} job(s)</span>
   </div>
   <table class="jobs-table">
     <thead>

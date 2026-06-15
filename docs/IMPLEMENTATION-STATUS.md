@@ -117,6 +117,26 @@ coverage ledger is the scale engine; the LLM is boxed to writing the article bod
 The optimization pass (prompt/framing tuning, defects #2/#4) is the user's to run
 against generated results.
 
+### Phase 1.5 note - buying_guide format (DOWN-PRIORITIZED, captured for later)
+
+Liked but parked low. A buying_guide is an informational "sådan vælger du {category}"
+article (teaches the buying decision; does not rank products - that is best_of). Build
+criteria when revisited:
+- **Singleton per category** (like best_of) - one guide per category, never more
+  (multiple = cannibalization).
+- **Gate on real decision dimensions** - only generate for a category that has enough
+  products + defined segments/spec axes (the same config the segment roundups use). No
+  guide for thin categories - this format is the most prone to thin-content demotion.
+- **Content must be data-grounded, not generic** - cite the category's real price range
+  and spec tradeoffs from the pool, structured around our segment matrix
+  (budget/mellemklasse/premium, til kæledyr, med moppe). Never freeform "how to choose".
+- **Acts as the internal-link cluster hub** - links down to the category's segment
+  roundups + best_of + top reviews; gets more valuable as the category fills out.
+- **Scaling:** scales horizontally (1/category/site, evergreen + renewable), no
+  within-category multiplication. Buildable now as price/segment-focused; the
+  spec-tradeoff depth needs the parked spec enrichment.
+- **Work needed:** new `article_type` + prompt + brief builder (standard Phase 1.5).
+
 ## Follow-ups (parked - need input before building)
 
 - **Spec enrichment - SKIPPED until a confirmed spec API (decided 2026-06-12).** Real

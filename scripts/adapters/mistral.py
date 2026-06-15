@@ -54,8 +54,15 @@ class MistralAdapter(BaseAdapter):
         self._min_interval = float(os.environ.get("MISTRAL_MIN_INTERVAL", _DEFAULT_MIN_INTERVAL))
         self._last_call: float = 0.0
 
-    def _call_with_backoff(self, instruction: str) -> object:
+    def _call_with_backoff(self, user_message: str, system_prompt: str) -> object:
         """Call the Mistral API, respecting min interval and retrying on 429."""
+        # Step instruction delivered as a system message, matching the Claude/Gemini
+        # adapters so model comparisons are fair.
+        messages = []
+        if system_prompt:
+            messages.append({"role": "system", "content": system_prompt})
+        messages.append({"role": "user", "content": user_message})
+
         backoff = 5.0
         for attempt in range(_MAX_RETRIES + 1):
             # Enforce minimum inter-call interval
@@ -67,7 +74,7 @@ class MistralAdapter(BaseAdapter):
                 self._last_call = time.monotonic()
                 return self._client.chat.complete(
                     model=self.model_name,
-                    messages=[{"role": "user", "content": instruction}],
+                    messages=messages,
                     temperature=0.7,
                     max_tokens=8192,
                 )
@@ -92,10 +99,14 @@ class MistralAdapter(BaseAdapter):
         raise RuntimeError("Mistral: exhausted retries after repeated rate limit errors")
 
     def run(self, prompt: str, content: dict) -> str:
-        instruction = self.build_instruction(prompt, content)
-        log.info("Sending instruction to Mistral %s (size: %d chars)", self.model_name, len(instruction))
+        system_prompt = (prompt or "").strip()
+        user_message = self.build_user_message(content)
+        log.info(
+            "Sending to Mistral %s (system: %d chars, user: %d chars)",
+            self.model_name, len(system_prompt), len(user_message),
+        )
 
-        response = self._call_with_backoff(instruction)
+        response = self._call_with_backoff(user_message, system_prompt)
 
         if not response.choices:
             raise RuntimeError("Mistral returned no choices")

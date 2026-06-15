@@ -52,7 +52,7 @@ class GeminiAdapter(BaseAdapter):
         self._min_interval = float(os.environ.get("GEMINI_MIN_INTERVAL", _DEFAULT_MIN_INTERVAL))
         self._last_call: float = 0.0
 
-    def _call_with_backoff(self, instruction: str) -> object:
+    def _call_with_backoff(self, user_message: str, system_prompt: str) -> object:
         """Call the Gemini API, respecting min interval and retrying on rate limit errors."""
         backoff = 15.0
         for attempt in range(_MAX_RETRIES + 1):
@@ -64,8 +64,11 @@ class GeminiAdapter(BaseAdapter):
                 self._last_call = time.monotonic()
                 return self._client.models.generate_content(
                     model=self.model_name,
-                    contents=instruction,
+                    contents=user_message,
                     config=self._types.GenerateContentConfig(
+                        # Step instruction delivered as the system prompt, matching
+                        # the Claude/Mistral adapters so model comparisons are fair.
+                        system_instruction=system_prompt or None,
                         temperature=0.7,
                         max_output_tokens=16384,
                     ),
@@ -94,10 +97,14 @@ class GeminiAdapter(BaseAdapter):
         raise RuntimeError("Gemini: exhausted retries after repeated rate limit errors")
 
     def run(self, prompt: str, content: dict) -> str:
-        instruction = self.build_instruction(prompt, content)
-        log.info("Sending instruction to Gemini %s (size: %d chars)", self.model_name, len(instruction))
+        system_prompt = (prompt or "").strip()
+        user_message = self.build_user_message(content)
+        log.info(
+            "Sending to Gemini %s (system: %d chars, user: %d chars)",
+            self.model_name, len(system_prompt), len(user_message),
+        )
 
-        response = self._call_with_backoff(instruction)
+        response = self._call_with_backoff(user_message, system_prompt)
 
         if not response.candidates:
             raise RuntimeError("Gemini returned no candidates - likely a safety block")

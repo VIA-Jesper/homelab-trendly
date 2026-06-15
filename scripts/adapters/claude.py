@@ -3,6 +3,7 @@ import logging
 import shutil
 import subprocess
 import sys
+import tempfile
 from datetime import datetime
 from pathlib import Path
 
@@ -48,30 +49,57 @@ class ClaudeAdapter(BaseAdapter):
         log.info("Claude CLI debug log: %s", self.debug_log)
 
     def run(self, prompt: str, content: dict) -> str:
-        instruction = self.build_instruction(prompt, content)
-        log.info("Sending instruction to Claude CLI (size: %d chars)", len(instruction))
+        system_prompt = (prompt or "").strip()
+        user_message = self.build_user_message(content)
+        log.info(
+            "Sending to Claude CLI (system: %d chars, user: %d chars)",
+            len(system_prompt), len(user_message),
+        )
+
+        cmd = [
+            _CLAUDE, "--print", "--model", self.model, "--output-format", "json",
+            "--no-session-persistence",
+            # Disable ALL built-in tools - without this the model goes agentic
+            # (makes tool calls → double API round-trip → 600s timeout).
+            "--tools", "",
+            # low effort suppresses extended thinking, which otherwise burns
+            # ~10-12K extra output tokens per step with no quality benefit here.
+            "--effort", "low",
+            "--verbose",
+            "--strict-mcp-config", "--mcp-config", '{"mcpServers": {}}',
+            "--debug-file", str(self.debug_log),
+        ]
+        # Deliver the step instruction as the system prompt via a temp FILE, not an
+        # argv string. --system-prompt fully replaces Claude Code's default agent
+        # persona, so the model runs as a bare content writer driven only by our
+        # prompt - directly comparable to the raw Gemini/Mistral API calls.
+        # Why a file: on Windows `claude` resolves to claude.cmd, and subprocess
+        # routes .cmd through cmd.exe, which mangles the braces/quotes/colons our
+        # prompts contain when they ride in an argv. A file path is cmd.exe-safe,
+        # and the prompt content never touches the command line. (The user message
+        # is safe regardless - it goes via stdin.)
+        sys_file: Path | None = None
+        if system_prompt:
+            with tempfile.NamedTemporaryFile(
+                mode="w", suffix=".txt", delete=False, encoding="utf-8"
+            ) as f:
+                f.write(system_prompt)
+                sys_file = Path(f.name)
+            cmd += ["--system-prompt-file", str(sys_file)]
 
         try:
-            proc = subprocess.run(
-                [
-                    _CLAUDE, "--print", "--model", self.model, "--output-format", "json",
-                    "--no-session-persistence",
-                    # Disable ALL built-in tools - without this the model goes agentic
-                    # (makes tool calls → double API round-trip → 600s timeout).
-                    "--tools", "",
-                    # low effort suppresses extended thinking, which otherwise burns
-                    # ~10-12K extra output tokens per step with no quality benefit here.
-                    "--effort", "low",
-                    "--verbose",
-                    "--strict-mcp-config", "--mcp-config", '{"mcpServers": {}}',
-                    "--debug-file", str(self.debug_log),
-                ],
-                input=instruction,
-                capture_output=True,
-                text=True,
-                encoding="utf-8",
-                timeout=600,
-            )
+            try:
+                proc = subprocess.run(
+                    cmd,
+                    input=user_message,
+                    capture_output=True,
+                    text=True,
+                    encoding="utf-8",
+                    timeout=600,
+                )
+            finally:
+                if sys_file is not None:
+                    sys_file.unlink(missing_ok=True)
         except subprocess.TimeoutExpired as e:
             stdout_so_far = (e.stdout or b"").decode("utf-8", errors="replace") if isinstance(e.stdout, bytes) else (e.stdout or "")
             stderr_so_far = (e.stderr or b"").decode("utf-8", errors="replace") if isinstance(e.stderr, bytes) else (e.stderr or "")
